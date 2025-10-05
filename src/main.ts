@@ -1,7 +1,7 @@
 import { createApp } from 'vue'
 import App from './App.vue'
 import router from './router';
-
+import { createPinia } from 'pinia'
 import { IonicVue } from '@ionic/vue';
 
 /* Core CSS required for Ionic components to work properly */
@@ -30,13 +30,15 @@ import '@ionic/vue/css/display.css';
 /* @import '@ionic/vue/css/palettes/dark.always.css'; */
 /* @import '@ionic/vue/css/palettes/dark.class.css'; */
 import '@ionic/vue/css/palettes/dark.system.css';
-
+import { VueQueryPlugin } from "@tanstack/vue-query";
 /* Theme variables */
 import './theme/variables.css';
 
 const app = createApp(App)
   .use(IonicVue)
-  .use(router);
+  .use(createPinia())
+  .use(router)
+  .use(VueQueryPlugin);
 
 router.isReady().then(() => {
   app.mount('#app');

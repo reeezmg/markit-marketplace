@@ -1,0 +1,10 @@
+CREATE INDEX idx_variants_id_companyId ON "variants"(id, "company_id");
+CREATE INDEX idx_variants_companyId ON "variants"("company_id");
+CREATE INDEX idx_variants_productId ON "variants"("product_id");
+CREATE INDEX idx_addresses_coord_gist ON addresses USING GIST (coord);
+CREATE INDEX idx_addresses_coord_geog ON addresses USING GIST ((coord::geography));
+CREATE INDEX idx_addresses_company_id ON addresses (company_id);
+CREATE INDEX idx_companies_status ON companies (status);
+CREATE INDEX idx_variants_companyId_status
+ON variants ("company_id", status);
+
