@@ -1,8 +1,8 @@
 import axios from 'axios';
 import { Preferences } from '@capacitor/preferences';
-
+const apiUrl = import.meta.env.API_URL;
 const api = axios.create({
-  baseURL: 'http://localhost:3005/api',
+  baseURL: apiUrl,
   headers: {
     'Content-Type': 'application/json',
   },
