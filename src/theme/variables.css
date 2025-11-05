@@ -19,7 +19,9 @@ http://ionicframework.com/docs/theming/ */
 html, body, ion-app {
   font-family: var(--ion-font-family) !important;
    letter-spacing: 0.3px;
+   background-color: #f1f1f1;
 }
+
 ion-content::part(scroll) {
   -ms-overflow-style: none;  /* IE, Edge */
   scrollbar-width: none;     /* Firefox */

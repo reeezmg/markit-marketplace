@@ -2,11 +2,11 @@
   <div class="bg-white p-3 mx-2 rounded-lg" @click="goToDetails">
     <!-- Header -->
      <div class="flex flex-row pb-2  border-b border-gray-200">
-      <div class="flex-shrink-0 w-12 h-12 rounded-lg overflow-hidden bg-gray-100">
+      <div class="flex-shrink-0 w-20 h-12 rounded-lg overflow-hidden bg-gray-100">
         <img
           :src="`https://images.markit.co.in/${trynbuy.company.logo}`"
           alt="product"
-          class="w-full h-full object-cover"
+          class="w-full h-full object-fill"
         />
       </div>
       <div class="flex flex-col justify-between ms-3 py-[0.5px]">
@@ -43,7 +43,7 @@
             trynbuy.packing_status === 'pending' ? 'text-yellow-600' : trynbuy.order_status === 'cancelled' ? 'text-red-600' : 'text-green-600'
           ]"
         >
-          {{ statusText }}
+          {{ formatStatus(trynbuy.order_status) }}
         </div>
         <div class="text-sm text-gray-500">
       Ordered: {{ formatDate(trynbuy.created_at) }}
@@ -84,9 +84,16 @@ function formatDate(date: string) {
   })
 }
 
-const statusText = computed(() => {
-  if (props.trynbuy.order_status === 'cancelled') return 'Cancelled'
-  if (props.trynbuy.packing_status === 'pending') return 'Order Scheduled'
-  return 'Completed'
-})
+
+  function formatStatus(status: string | null): string {
+    if (!status) return ''
+    return status
+      .toLowerCase()
+      .split('_')
+      .map(word => word.charAt(0).toUpperCase() + word.slice(1))
+      .join(' ')
+  }
+
+
+
 </script>

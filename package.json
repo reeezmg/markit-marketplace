@@ -31,6 +31,8 @@
     "localforage": "^1.10.0",
     "npm": "^11.5.2",
     "pinia": "^3.0.3",
+    "razorpay": "^2.9.6",
+    "socket.io-client": "^4.8.1",
     "swiper": "^11.2.10",
     "tailwindcss": "^4.1.11",
     "uuid": "^12.0.0",

@@ -73,8 +73,18 @@ const routes: Array<RouteRecordRaw> = [
     meta: { requiresAuth: false }
   },
   {
+    path: '/pack/:id',
+    component: () => import('@/views/orderTryPack.vue'),
+    meta: { requiresAuth: false }
+  },
+  {
     path: '/knowmore',
     component: () => import('@/views/KnowMore.vue'),
+    meta: { requiresAuth: false }
+  },
+  {
+    path: '/nearbyshops',
+    component: () => import('@/views/NearbyShops.vue'),
     meta: { requiresAuth: false }
   },
 ];

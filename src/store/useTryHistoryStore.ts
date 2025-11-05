@@ -14,7 +14,7 @@ export interface TryHistory {
   shipping: number
   delivery_type: string
   delivery_time: string | null
-  delivery_status: string | null
+  order_status: string | null
   packing_status: string | null
   company: {
     id: string
@@ -79,6 +79,15 @@ export const useTryHistoryStore = defineStore('tryHistory', {
     getTryHistoryById(id: string) {
       return this.tryHistoryList.find(h => h.trynbuy_id === id) || null
     },
+
+    // Update only order_status by id
+    async updateOrderStatus(id: string, status: string) {
+    this.tryHistoryList = this.tryHistoryList.map(h =>
+      h.trynbuy_id === id ? { ...h, order_status: status } : h
+    )
+    await tryHistoryStorage.setItem('list', JSON.parse(JSON.stringify(this.tryHistoryList)))
+    },
+
 
   },
 })

@@ -12,10 +12,19 @@ export const getAllCategories = (companyId) => api.get(`/products/categories/${c
 
 export const getAllShop = (lat,lng) => api.get(`/shops?lat=${lat}&lng=${lng}`);
 
-export const postCheckout = (data) => api.post('/checkout/trynbuy', data);
+export const getNearbyShop = (home, shops) =>
+  api.post('/shops/nearby-route-shops', {
+    home,   // { lat, lng }
+    shops,  // [{ lat, lng }, ...]
+  });
 
-export const getTryHistory = (data) => api.get('/history/trynbuy', data);
+export const postOrder = (data) => api.post('/order/trynbuy', data);
 
+export const getTryHistory = () => api.get('/history/trynbuy');
+
+export const verifyPayment = (data) => api.post('/razorpay/verify', data);
+export const initiatePayment = (data) => api.post('/razorpay/initiate', data);
+export const createTrynBuyBill = (data) => api.post('/checkout/trynbuy/bill', data);
 
 export const getProfile = () => api.get('/client')
 export const updateProfile = (data) => api.put('/client', data)

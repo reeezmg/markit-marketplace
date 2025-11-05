@@ -77,7 +77,8 @@ import { useRouter, useRoute } from 'vue-router';
 import { createAddress } from '@/api/address';
 import { useAddressStore } from '@/store/useAddressStore';
 import { v4 as uuidv4 } from 'uuid'
-const googleApi = import.meta.env.GOOGLE_MAPS_API_KEY;
+
+const googleApiKey = import.meta.env.VITE_GOOGLE_MAPS_API_KEY;
 const addressStore = useAddressStore()
 const router = useRouter();
 const route = useRoute();
@@ -228,7 +229,7 @@ const openSearchModal = () => {
 
 onMounted(() => {
   const script = document.createElement('script')
-  script.src = `https://maps.googleapis.com/maps/api/js?key=${googleApi}&libraries=places,marker`
+  script.src = `https://maps.googleapis.com/maps/api/js?key=${googleApiKey}&libraries=places,marker`
   script.async = true
   script.defer = true
   script.onload = initMap

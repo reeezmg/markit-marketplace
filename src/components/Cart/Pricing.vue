@@ -1,10 +1,6 @@
-<!-- Pricing.vue -->
 <template>
-  <div class="rounded-lg bg-white space-y-3 p-3 mx-2 my-3 ">
-    <label
-      for="checkoutMethod"
-      class="block font-semibold text-md mb-3 "
-    >
+  <div class="rounded-lg bg-white space-y-3 p-3 mx-2 my-3">
+    <label for="checkoutMethod" class="block font-semibold text-md mb-3">
       Order Summary
     </label>
 
@@ -14,31 +10,48 @@
       <div class="text-sm font-medium">₹{{ subtotal.toFixed(2) }}</div>
     </div>
 
-    <!-- Delivery -->
-    <div v-if="bagCount > 0" class="flex flex-col">
-      <div class="flex items-center justify-between text-gray-600">
-         <div class="text-sm">Delivery</div>
-        <div class="text-sm font-medium">₹{{ shipping.toFixed(2) }}</div>
-      </div>
-      <div class="text-xs text-gray-500 ml-1">
-        ₹15 deductible on purchase of every ₹500
-      </div>
-    </div>
-
-    <!-- Discount -->
+        <!-- Discount -->
     <div class="flex items-center justify-between text-gray-600">
       <div class="text-sm">Discount</div>
       <div class="text-sm font-medium">- ₹{{ totalDiscount.toFixed(2) }}</div>
     </div>
 
-    <!-- Handling / Bag Service Fee -->
-    <div v-if="bagCount > 0" class="flex flex-col">
+     <!-- Waiting Time -->
+    <div v-if="totalItem > 0" class="flex flex-col">
       <div class="flex items-center justify-between text-gray-600">
-        <div class="text-sm">Handling Fee ({{ bagCount }} Bag<span v-if="bagCount > 1">s</span>)</div>
-        <div class="text-sm font-medium">₹{{ handling.toFixed(2) }}</div>
+        <div class="text-sm">
+          Max Waiting Time ({{ totalItem }} Item<span v-if="totalItem > 1">s</span>)
+        </div>
+        <div class="text-sm font-medium">{{ waitingTime }} min</div>
       </div>
       <div class="text-xs text-gray-500 ml-1">
-        ₹20 deductible per item on purchase
+        20 min for 1–5 items, +4 min for each extra item
+      </div>
+    </div>
+
+    <!-- Delivery -->
+    <div v-if="shipping > 0" class="flex flex-col">
+      <div class="flex items-center justify-between text-gray-600">
+        <div class="text-sm">Delivery</div>
+        <div class="text-sm font-medium">₹{{ shipping.toFixed(2) }}</div>
+      </div>
+      <div class="text-xs text-green-600 ml-1">
+        ₹15 deductible on purchase of every ₹500
+      </div>
+    </div>
+
+
+    <!-- Waiting Fees -->
+    <div v-if="waitingFee > 0" class="flex flex-col">
+      <div class="flex items-center justify-between text-gray-600">
+        <div class="text-sm">Waiting Fee</div>
+        <div class="text-sm font-medium">₹{{ waitingFee.toFixed(2) }}</div>
+      </div>
+      <div class="text-xs text-gray-500 ml-1">
+        ₹0.50 per minute of waiting time
+      </div>
+      <div class="text-xs text-green-600 ml-1">
+        ₹20 deducted for each purchased item after trial
       </div>
     </div>
 
@@ -50,7 +63,9 @@
 
     <!-- Payable Amount -->
     <div>
-      <div class="flex items-center justify-between border-t pt-3 text-lg text-gray-300">
+      <div
+        class="flex items-center justify-between border-t pt-3 text-lg text-gray-300"
+      >
         <div class="font-semibold text-[#097D4C]">Payable Amount</div>
         <div class="font-semibold text-[#097D4C]">₹0</div>
       </div>
@@ -68,11 +83,12 @@ const props = defineProps<{
   subtotal: number
   shipping: number
   totalDiscount: number
-  handling: number
-  bagCount: number
+  waitingTime: number
+  waitingFee: number
+  totalItem: number
 }>()
 
 const total = computed(() =>
-  props.subtotal + props.shipping + props.handling - props.totalDiscount
+  props.subtotal + props.shipping + props.waitingFee - props.totalDiscount
 )
 </script>
