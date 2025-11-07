@@ -10,7 +10,7 @@
         <img
           :src="item.image"
           alt=""
-          class="w-20 h-20 rounded-full object-contain border-1 border-gray-200"
+          class=" w-16 h-16 rounded-md object-contain "
         />
         <span class="mt-2 text-sm font-medium text-gray-700">
           {{ item.label }}
@@ -43,64 +43,151 @@ const categories = ref([
   {
     label: 'All',
     value: 'all',
-    image: '/images/categories/all.png',
+    image: '/images/all.jpg',
     category: 'all',
   },
+  // 👕 Tops
   {
-    label: 'Tshirt',
-    value: 'tshirt',
-    image: '/images/categories/T-shirt.png',
-    category: 'men',
-
-  },
-  {
-    label: 'Shirt',
-    value: 'shirt',
-    image: '/images/categories/shirt.png',
+    label: 'T Shirt',
+    value: 't_shirt',
+    image: '/images/categories/men/t_shirt.png',
     category: 'men',
   },
+   {
+    label: 'Polo',
+    value: 'polo',
+    image: '/images/categories/men/polo.png',
+    category: 'men',
+  },
   {
-    label: 'Gowen',
-    value: 'gowen',
-    image: '/images/categories/gowen.png',
-     category: 'women',
+    label: 'Casual Shirt',
+    value: 'casual_shirt',
+    image: '/images/categories/men/casual_shirt.png',
+    category: 'men',
+  },
+  {
+    label: 'Formal Shirt',
+    value: 'formal_shirt',
+    image: '/images/categories/men/formal_shirt.png',
+    category: 'men',
+  },
+  {
+    label: 'Hoodie',
+    value: 'hoodie',
+    image: '/images/categories/men/hoodie.png',
+    category: 'men',
+  },
+  
+  {
+    label: 'Jacket',
+    value: 'jacket',
+    image: '/images/categories/men/jacket.png',
+    category: 'men',
   },
   {
     label: 'Kurta',
     value: 'kurta',
-    image: '/images/categories/kurta.png',
-    category: 'women',
-  },
-  {
-    label: 'Sneakers',
-    value: 'sneakers',
-    image: '/images/categories/sneakers.png',
+    image: '/images/categories/men/kurta.png',
     category: 'men',
   },
   {
-    label: 'Sneakers',
-    value: 'sneakers',
-    image: '/images/categories/sneakers.png',
-    category: 'women',
+    label: 'Inner Wear',
+    value: 'inner_wear',
+    image: '/images/categories/men/inner_wear.png',
+    category: 'men',
+  },
+
+  // 👖 Bottoms
+  {
+    label: 'Jeans',
+    value: 'jeans',
+    image: '/images/categories/men/jeans.png',
+    category: 'men',
   },
   {
-    label: 'Heels',
-    value: 'heels',
-    image: '/images/categories/heels.png',
-    category: 'women',
+    label: 'Casual Pant',
+    value: 'casual_pant',
+    image: '/images/categories/men/casual_pant.png',
+    category: 'men',
   },
   {
-    label: 'Handbags',
-    value: 'handbags',
-    image: '/images/categories/handbags.png',
-    category: 'women',
+    label: 'Formal Pant',
+    value: 'formal_pant',
+    image: '/images/categories/men/formal_pant.png',
+    category: 'men',
   },
   {
-    label: 'Necklace',
-    value: 'necklace',
-    image: '/images/categories/necklace.png',
-    category: 'women',
+    label: 'Shorts',
+    value: 'shorts',
+    image: '/images/categories/men/shorts.png',
+    category: 'men',
   },
+
+
+  // 👟 Footwear (Casual → Formal → Ethnic → Open)
+   {
+    label: 'Slipper',
+    value: 'slipper',
+    image: '/images/categories/men/slipper.png',
+    category: 'men',
+  },
+  {
+    label: 'Casual Shoe',
+    value: 'casual_shoe',
+    image: '/images/categories/men/casual_shoe.png',
+    category: 'men',
+  },
+  {
+    label: 'Sports Shoe',
+    value: 'sports_shoe',
+    image: '/images/categories/men/sports_shoe.png',
+    category: 'men',
+  },
+  {
+    label: 'Formal Shoe',
+    value: 'formal_shoe',
+    image: '/images/categories/men/formal_shoe.png',
+    category: 'men',
+  },
+  {
+    label: 'Loafer',
+    value: 'loafer',
+    image: '/images/categories/men/loafer.png',
+    category: 'men',
+  },
+ 
+  {
+    label: 'Sports Sandal',
+    value: 'sports_sandal',
+    image: '/images/categories/men/sports_sandal.png',
+    category: 'men',
+  },
+  {
+    label: 'Formal Sandal',
+    value: 'formal_sandal',
+    image: '/images/categories/men/formal_sandal.png',
+    category: 'men',
+  },
+  {
+    label: 'Ethnic Sandal',
+    value: 'ethnic_sandal',
+    image: '/images/categories/men/ethnic_sandal.png',
+    category: 'men',
+  },
+  {
+    label: 'Open Shoe',
+    value: 'open_shoe',
+    image: '/images/categories/men/open_shoe.png',
+    category: 'men',
+  },
+  {
+    label: 'Clogs',
+    value: 'clogs',
+    image: '/images/categories/men/clogs.png',
+    category: 'men',
+  },
+
+  
 ])
 
 function onSelect(value: string) {

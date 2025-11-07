@@ -2,19 +2,19 @@
   <ion-footer>
     <div class="flex justify-around border-t border-gray-200 bg-white py-2">
       <!-- 🏬 Store -->
-      <button @click="$router.push('/')" class="flex flex-col items-center text-green-800">
+      <button @click="$router.push('/')" class="flex flex-col items-center text-[#53816C]">
         <ion-icon :icon="storefrontOutline" class="w-6 h-6"></ion-icon>
         <span class="text-sm">Store</span>
       </button>
 
       <!-- ❤️ Wishlist -->
-      <button @click="$router.push('/whishlist')" class="flex flex-col items-center text-green-800">
+      <button @click="$router.push('/whishlist')" class="flex flex-col items-center text-[#53816C]">
         <ion-icon :icon="heartOutline" class="w-6 h-6"></ion-icon>
         <span class="text-sm">Wishlist</span>
       </button>
 
       <!-- 🛒 Cart -->
-      <button @click="$router.push('/cart')" class="relative flex flex-col items-center text-green-800">
+      <button @click="$router.push('/cart')" class="relative flex flex-col items-center text-[#53816C]">
         <ion-icon :icon="cartOutline" class="w-6 h-6"></ion-icon>
 
         <!-- 🔢 Badge -->

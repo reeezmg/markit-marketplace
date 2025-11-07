@@ -1,7 +1,12 @@
 <template>
   <ion-page>
-    <!-- Header -->
-    <ion-header class="bg-white ion-no-border">
+    <ion-content
+      class="relative"
+      :fullscreen="true"
+      @ionScroll="onScroll"
+      scrollEvents="true"
+    >
+      <!-- ✅ HEADER SECTION MOVED INTO CONTENT -->
       <div
         class="ion-no-border relative rounded-b-3xl transition-all duration-300 ease-in-out"
         :style="headerStyle"
@@ -12,9 +17,9 @@
 
         <!-- Tagline + Button -->
         <div v-if="!isCollapsed" class="transition-opacity duration-300 text-center">
-          <div class="text-xl text-[#097D4C] font-bold py-3 px-2 flex flex-col items-center justify-center">
-            <div class="bg-[#F4FBE3] w-fit px-2 rounded-md">Choose • Try • Buy</div>
-            <div class="bg-[#F4FBE3] w-fit px-2 rounded-md mt-1">Make your home trial room</div>
+          <div class="text-xl text-[#53816C] font-bold py-3 px-2 flex flex-col items-center justify-center">
+            <div class="w-fit px-2 rounded-md">Choose • Try • Buy</div>
+            <div class="w-fit px-2 rounded-md mt-1">Make your home trial room</div>
 
             <ion-button
               class="mt-3"
@@ -22,22 +27,22 @@
               fill="solid"
               size="small"
               shape="round"
-              @click="() => router.push('/knowmore')"
+              @click="openKnowMoreModal"
             >
               Know more
             </ion-button>
           </div>
         </div>
       </div>
-
+      <div class="ion-padding ">
       <!-- Category Buttons -->
-      <div class="grid grid-cols-4 gap-2 w-full px-3 my-5">
+      <div class="grid grid-cols-4 gap-2 w-full my-4">
         <ion-button
           v-for="(btn, i) in categoryButtons"
           :key="i"
           size="small"
           expand="block"
-          :color="activeCategory === i ? 'primary' : 'medium'"
+          :color="activeCategory === i ? 'primary' : 'primary'"
           :fill="activeCategory === i ? 'solid' : 'outline'"
           @click="activeCategory = i"
         >
@@ -45,23 +50,16 @@
         </ion-button>
       </div>
 
-      <!-- Sticky Category -->
-      <div class="my-3 sticky top-0 z-50 bg-white">
+      <!-- Category Filter -->
+      <div class="sticky top-0 z-30 bg-white py-4">
         <Category @select="searchTerm = $event" :selectedCategory="selectedCategory" />
       </div>
-    </ion-header>
 
-    <!-- Content -->
-    <ion-content
-      class="ion-padding relative"
-      :fullscreen="true"
-      @ionScroll="onScroll"
-      scrollEvents="true"
-    >
+      <!-- Shops Section -->
       <Heading title="Explore Shops" />
 
       <div v-if="loading" class="grid gap-4">
-        <!-- Skeletons -->
+       <ShopCardSkeleton v-for="n in 4" :key="n" />
       </div>
 
       <div v-else class="mb-24">
@@ -76,17 +74,19 @@
         </div>
       </div>
 
-      <!-- ✅ Floating Try & Pay Banner (Manual Swipe Only) -->
+      <!-- ✅ Floating Try & Pay Banner (Swipe + Drag) -->
       <div
         v-if="packStore.packList.length"
-        class="fixed bottom-[70px] left-0 right-0 bg-black text-white z-50 m-2 rounded-2xl"
+        class="fixed bottom-[70px] left-0 right-0 bg-black text-white z-50 m-2 rounded-2xl select-none"
       >
         <div
           class="flex items-center justify-center pt-3 overflow-hidden relative"
           @touchstart="startTouch"
           @touchend="endTouch"
+          @mousedown="startMouseDrag"
+          @mouseup="endMouseDrag"
         >
-          <Transition name="slide-fade" mode="out-in">
+          <Transition :name="`slide-${slideDirection}`" mode="out-in">
             <div
               v-if="activePack"
               :key="activePack.trynbuy_id"
@@ -124,11 +124,15 @@
           ></div>
         </div>
       </div>
+      </div>
     </ion-content>
 
     <ion-footer class="ion-no-border">
       <TabsPage />
     </ion-footer>
+    <KnowMoreModal
+      :is-open="isKnowMoreModalOpen"
+      @close="closeKnowMoreModal"/>
   </ion-page>
 </template>
 
@@ -137,11 +141,10 @@ import {
   IonPage,
   IonFooter,
   IonButton,
-  IonHeader,
   IonContent,
   onIonViewWillEnter,
 } from '@ionic/vue'
-import { ref, computed, onMounted, onBeforeUnmount } from 'vue'
+import { ref, computed } from 'vue'
 import { useRouter } from 'vue-router'
 import Topbar from '@/components/Index/Topbar.vue'
 import Shopcard from '@/components/Index/Shopcard.vue'
@@ -152,6 +155,11 @@ import { usePackStore } from '@/store/usePackStore'
 import { useLocationStore } from '@/composables/useLocationStore'
 import { useNearbyStore } from '@/store/useNearbyStore'
 import { getAllShop } from '@/api/api'
+import { modalController } from '@ionic/vue'
+import KnowMoreModal from '../components/KnowMore.vue'
+import ShopCardSkeleton from '@/components/Index/ShopCardSkeleton.vue'
+
+
 
 const router = useRouter()
 const packStore = usePackStore()
@@ -161,31 +169,57 @@ const shops = ref<any[]>([])
 const loading = ref(true)
 const searchTerm = ref('')
 const isCollapsed = ref(false)
+const isKnowMoreModalOpen = ref(false)
 
 const activeIndex = ref(0)
 const activePack = computed(() => packStore.packList[activeIndex.value] || null)
-
-/* ✅ Removed auto-slide — manual swipe only */
-function nextPack() {
-  if (packStore.packList.length === 0) return
-  activeIndex.value = (activeIndex.value + 1) % packStore.packList.length
+const slideDirection = ref<'left' | 'right'>('left')
+const openKnowMoreModal = () => {
+  isKnowMoreModalOpen.value = true
 }
-function prevPack() {
-  if (packStore.packList.length === 0) return
-  activeIndex.value = (activeIndex.value - 1 + packStore.packList.length) % packStore.packList.length
+const closeKnowMoreModal = () => {
+  isKnowMoreModalOpen.value = false
 }
 
-/* ---- Swipe gestures ---- */
-let touchStartX = 0
+/* ---- Swipe + Mouse Drag Support ---- */
+let startX = 0
+let isDragging = false
+
 function startTouch(e: TouchEvent) {
-  touchStartX = e.changedTouches[0].screenX
+  startX = e.changedTouches[0].screenX
 }
 function endTouch(e: TouchEvent) {
-  const diff = e.changedTouches[0].screenX - touchStartX
+  const diff = e.changedTouches[0].screenX - startX
+  handleSwipe(diff)
+}
+function startMouseDrag(e: MouseEvent) {
+  isDragging = true
+  startX = e.clientX
+}
+function endMouseDrag(e: MouseEvent) {
+  if (!isDragging) return
+  isDragging = false
+  const diff = e.clientX - startX
+  handleSwipe(diff)
+}
+function handleSwipe(diff: number) {
   if (diff > 60) prevPack()
   else if (diff < -60) nextPack()
 }
 
+/* ---- Pack Navigation ---- */
+function nextPack() {
+  if (packStore.packList.length === 0) return
+  slideDirection.value = 'left'
+  activeIndex.value = (activeIndex.value + 1) % packStore.packList.length
+}
+function prevPack() {
+  if (packStore.packList.length === 0) return
+  slideDirection.value = 'right'
+  activeIndex.value = (activeIndex.value - 1 + packStore.packList.length) % packStore.packList.length
+}
+
+/* ---- Helpers ---- */
 function formatStatus(status: string | null): string {
   if (!status) return ''
   return status
@@ -199,7 +233,7 @@ function formatStatus(status: string | null): string {
 const { getLocation } = useLocationStore()
 const location = ref({ name: '', formattedAddress: '', lat: 0, lng: 0 })
 
-const categoryButtons = ['Men', 'Women', 'Kids', 'Newborn']
+const categoryButtons = ['Men', 'Women', 'Girls', 'Boys']
 const activeCategory = ref(0)
 const selectedCategory = computed(() => categoryButtons[activeCategory.value].toLowerCase())
 
@@ -244,7 +278,7 @@ const filteredShops = computed(() => {
 /* ---- Collapsible Header ---- */
 function onScroll(ev: CustomEvent) {
   const scrollTop = ev.detail.scrollTop
-  isCollapsed.value = scrollTop > 0
+  isCollapsed.value = scrollTop > 50
 }
 
 const headerStyle = computed(() => {
@@ -258,16 +292,31 @@ const headerStyle = computed(() => {
 </script>
 
 <style scoped>
-.slide-fade-enter-active,
-.slide-fade-leave-active {
-  transition: all 0.5s ease;
+/* ✅ Slide Transitions */
+.slide-left-enter-active,
+.slide-left-leave-active,
+.slide-right-enter-active,
+.slide-right-leave-active {
+  transition: all 0.3s ease;
 }
-.slide-fade-enter-from {
+
+/* Slide Left (Next) */
+.slide-left-enter-from {
+  transform: translateX(100%);
   opacity: 0;
-  transform: translateX(30px);
 }
-.slide-fade-leave-to {
+.slide-left-leave-to {
+  transform: translateX(-100%);
   opacity: 0;
-  transform: translateX(-30px);
+}
+
+/* Slide Right (Previous) */
+.slide-right-enter-from {
+  transform: translateX(-100%);
+  opacity: 0;
+}
+.slide-right-leave-to {
+  transform: translateX(100%);
+  opacity: 0;
 }
 </style>

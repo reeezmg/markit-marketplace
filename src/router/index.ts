@@ -79,7 +79,7 @@ const routes: Array<RouteRecordRaw> = [
   },
   {
     path: '/knowmore',
-    component: () => import('@/views/KnowMore.vue'),
+    component: () => import('@/components/KnowMore.vue'),
     meta: { requiresAuth: false }
   },
   {

@@ -1,5 +1,5 @@
 <template>
-  <div class="text-[#097D4C]">
+  <div class="text-[#53816C]">
     <!-- Location & Profile -->
     <div
       class="flex justify-between items-center transition-all duration-300 ease-in-out"
@@ -8,13 +8,13 @@
       <!-- Left Section -->
       <div class="flex-1 min-w-0" @click="setLocation">
         <div class="flex items-center space-x-1">
-          <ion-icon :icon="navigate" class="text-[#097D4C] w-7 h-7"></ion-icon>
+          <ion-icon :icon="navigate" class="text-[#53816C] w-7 h-7"></ion-icon>
           <span class="font-semibold text-xl">
             {{ location.houseDetails || location.name }}
           </span>
-          <ion-icon :icon="chevronDownOutline" class="w-5 h-5 text-[#097D4C]"></ion-icon>
+          <ion-icon :icon="chevronDownOutline" class="w-5 h-5 text-[#53816C]"></ion-icon>
         </div>
-        <p class="text-md text-[#097D4C] font-semibold truncate">
+        <p class="text-md text-[#53816C] font-semibold truncate">
           {{ location.formattedAddress }}
         </p>
       </div>
@@ -24,7 +24,7 @@
         <ion-icon
           @click="router.push('/account')"
           :icon="personCircleOutline"
-          class="text-[#097D4C] w-8 h-8"
+          class="text-[#53816C] w-8 h-8"
         ></ion-icon>
       </div>
     </div>

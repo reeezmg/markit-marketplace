@@ -12,6 +12,7 @@
     "lint": "eslint ."
   },
   "dependencies": {
+    "@capacitor-firebase/authentication": "^7.4.0",
     "@capacitor/android": "7.4.2",
     "@capacitor/app": "^7.0.2",
     "@capacitor/core": "7.4.2",
@@ -26,6 +27,7 @@
     "@tanstack/vue-query": "^5.87.1",
     "axios": "^1.11.0",
     "date-fns": "^4.1.0",
+    "firebase": "^11.10.0",
     "install": "^0.13.0",
     "ionicons": "^7.0.0",
     "localforage": "^1.10.0",
