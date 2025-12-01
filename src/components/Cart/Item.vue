@@ -132,6 +132,7 @@ const emit = defineEmits<{
       companyLogo: string
       companyLat: string
       companyLng: string
+      companyLocationId: string
       items: any[]
     }[]
   }): void

@@ -32,6 +32,7 @@ export interface CompanyGroup {
   companyLogo: string
   companyLat: number
   companyLng: number
+  companyLocationId: string
   items: CartItem[]
 }
 
@@ -73,6 +74,7 @@ export const useCartStore = defineStore('cart', {
             companyLogo: item.companyLogo,
             companyLat: item.companyLat,
             companyLng: item.companyLng,
+            companyLocationId: item.companyLocationId,
             items: [item],
           })),
         }))
@@ -91,6 +93,7 @@ export const useCartStore = defineStore('cart', {
               companyLogo: old.items[0]?.companyLogo,
               companyLat: old.items[0]?.companyLat,
               companyLng: old.items[0]?.companyLng,
+              companyLocationId: old.items[0]?.companyLocationId,
               items: old.items,
             },
           ],
@@ -198,6 +201,7 @@ export const useCartStore = defineStore('cart', {
           companyLogo: variant.companyLogo,
           companyLat: variant.companyLat,
           companyLng: variant.companyLng,
+          companyLocationId: variant.companyLocationId,
           items: [],
         }
         targetGroup.companies.push(targetCompany)

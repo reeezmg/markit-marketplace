@@ -4,64 +4,68 @@
 
     <ion-content class="ion-padding">
       <div v-if="order">
-        <!-- Product List -->
-        <div v-for="item in order.cartitems" :key="item.id" class="flex mb-6">
-          <!-- Product Image -->
-          <div class="w-24 h-28 rounded-md overflow-hidden bg-gray-100">
-            <img
-              :src="`https://images.markit.co.in/${item.images[0]}`"
-              alt="product"
-              class="w-full h-full object-cover"
-            />
+        <!-- Companies -->
+        <div
+          v-for="company in order.companies"
+          :key="company.id"
+          class="mb-8 border-b border-gray-200 pb-4"
+        >
+          <div class="font-semibold text-lg mb-3">
+            {{ company.name }}
           </div>
 
-          <!-- Info -->
-          <div class="ml-4 flex-1">
-            <div class="font-semibold text-gray-900">
-              {{ order.company.name }}
-            </div>
-            <div class="text-sm text-gray-600">
-              {{ item.name }}
-            </div>
-            <div class="text-sm text-gray-500">
-              Size : {{ item.size }}
-            </div>
-            <div class="text-sm text-gray-500">
-              Quantity : {{ item.quantity }}
-            </div>
-          </div>
-
-          <!-- Price + Actions -->
-          <div class="text-right flex flex-col justify-between">
-            <div class="text-gray-900 font-semibold">
-              ₹ {{ item.d_price }}
-            </div>
-            <div
-              v-if="item.s_price && item.s_price > item.d_price"
-              class="text-gray-400 text-sm line-through"
-            >
-              ₹ {{ item.s_price }}
+          <!-- Company Items -->
+          <div
+            v-for="item in company.cartitems"
+            :key="item.id"
+            class="flex mb-6"
+          >
+            <!-- Product Image -->
+            <div class="w-24 h-28 rounded-md overflow-hidden bg-gray-100">
+              <img
+                :src="`https://images.markit.co.in/${item.images[0]}`"
+                alt="product"
+                class="w-full h-full object-cover"
+              />
             </div>
 
-            <!-- Action Buttons -->
-            <div class="flex mt-2 gap-2">
-              <ion-button
-                color="danger"
-                size="small"
-                :fill="decisions[item.id] === 'return' ? 'solid' : 'outline'"
-                @click="toggleDecision(item.id, 'return')"
+            <!-- Info -->
+            <div class="ml-4 flex-1">
+              <div class="text-sm text-gray-600 font-medium">{{ item.name }}</div>
+              <div class="text-sm text-gray-500">Size: {{ item.size }}</div>
+              <div class="text-sm text-gray-500">Qty: {{ item.quantity }}</div>
+            </div>
+
+            <!-- Price + Actions -->
+            <div class="text-right flex flex-col justify-between">
+              <div class="text-gray-900 font-semibold">₹ {{ item.d_price }}</div>
+              <div
+                v-if="item.s_price && item.s_price > item.d_price"
+                class="text-gray-400 text-sm line-through"
               >
-                Return
-              </ion-button>
+                ₹ {{ item.s_price }}
+              </div>
 
-              <ion-button
-                color="primary"
-                size="small"
-                :fill="decisions[item.id] === 'keep' ? 'solid' : 'outline'"
-                @click="toggleDecision(item.id, 'keep')"
-              >
-                Keep
-              </ion-button>
+              <!-- Actions -->
+              <div class="flex mt-2 gap-2">
+                <ion-button
+                  color="danger"
+                  size="small"
+                  :fill="decisions[item.id] === 'return' ? 'solid' : 'outline'"
+                  @click="toggleDecision(item.id, 'return')"
+                >
+                  Return
+                </ion-button>
+
+                <ion-button
+                  color="primary"
+                  size="small"
+                  :fill="decisions[item.id] === 'keep' ? 'solid' : 'outline'"
+                  @click="toggleDecision(item.id, 'keep')"
+                >
+                  Keep
+                </ion-button>
+              </div>
             </div>
           </div>
         </div>
@@ -87,13 +91,11 @@
             <span>- ₹{{ summary.discount }}</span>
           </div>
 
-          <!-- ✅ Waiting Fees -->
           <div class="flex justify-between text-sm mb-1">
             <span>Waiting Fees</span>
             <span>₹ {{ order.waiting_fee || 0 }}</span>
           </div>
 
-          <!-- ✅ Waiting Time -->
           <div class="flex justify-between text-sm mb-1">
             <span>Waiting Time</span>
             <span>{{ order.waiting_time || 0 }} mins</span>
@@ -127,64 +129,63 @@
 
 <script setup lang="ts">
 import { ref, computed, onMounted } from 'vue'
-import { useRoute } from 'vue-router'
+import { useRoute, useRouter } from 'vue-router'
 import Topbar from '@/components/Topbar.vue'
 import { usePackStore } from '@/store/usePackStore'
 import { IonPage, IonContent, IonButton, IonFooter } from '@ionic/vue'
 import { createTrynBuyBill, initiatePayment, verifyPayment } from '@/api/api'
 
 const route = useRoute()
+const router = useRouter()
 const id = route.params.id as string
 const packStore = usePackStore()
 const order = ref<any | null>(null)
 const decisions = ref<Record<string, 'keep' | 'return' | null>>({})
-
 const RAZORPAY_KEY_ID = 'rzp_test_RYuGLP5Z8RaUqo'
 
-// --- All decided check ---
-const allDecided = computed(() => {
-  if (!order.value) return false
-  return order.value.cartitems.every((item: any) => decisions.value[item.id])
+// ------------------- Computed -------------------
+const allItems = computed(() => {
+  if (!order.value) return []
+  return order.value.companies.flatMap((c: any) => c.cartitems)
 })
 
-// --- Simplified Summary ---
-const summary = computed(() => {
-  if (!order.value) {
-    return { subtotal: 0, delivery: 0, discount: 0, total: 0 }
-  }
+const allDecided = computed(() => {
+  if (!allItems.value.length) return false
+  return allItems.value.every((item: any) => decisions.value[item.id])
+})
 
-  const keptItems = order.value.cartitems.filter(
-    (i: any) => decisions.value[i.id] === 'keep'
-  )
+const summary = computed(() => {
+  if (!order.value) return { subtotal: 0, delivery: 0, discount: 0, total: 0 }
+
+  const keptItems = allItems.value.filter((i: any) => decisions.value[i.id] === 'keep')
   const subtotal = keptItems.reduce((sum: number, i: any) => sum + i.d_price, 0)
-  const discount =
-    keptItems.reduce((sum: number, i: any) => sum + i.s_price, 0) - subtotal
+  const discount = keptItems.reduce((sum: number, i: any) => sum + (i.s_price - i.d_price), 0)
 
   const delivery = order.value.shipping || 0
   const waitingFees = Number(order.value.waiting_fee) || 0
-
   const total = subtotal + delivery + waitingFees - discount
 
   return { subtotal, delivery, discount, total }
 })
 
-// --- Mount logic ---
+// ------------------- Lifecycle -------------------
 onMounted(async () => {
   await packStore.loadFromStorage()
   order.value = packStore.getById(id)
   if (order.value) {
-    order.value.cartitems.forEach((item: any) => {
-      decisions.value[item.id] = null
+    order.value.companies.forEach((company: any) => {
+      company.cartitems.forEach((item: any) => {
+        decisions.value[item.id] = null
+      })
     })
   }
 })
 
-// --- Decision toggle ---
+// ------------------- Functions -------------------
 function toggleDecision(itemId: string, decision: 'keep' | 'return') {
   decisions.value[itemId] = decision
 }
 
-// --- Proceed (same as before) ---
 async function proceed() {
   try {
     const amount = summary.value.total
@@ -200,40 +201,73 @@ async function proceed() {
       key: RAZORPAY_KEY_ID,
       amount: orderData.amount,
       currency: orderData.currency,
-      name: order.value.company?.name || 'Markit Try & Buy',
+      name: 'Markit Try & Buy',
       description: 'Payment for Try & Buy order',
       order_id: orderData.id,
-      prefill: {
-        name: order.value.client?.name || 'Guest User',
-        email: order.value.client?.email || 'test@example.com',
-        contact: order.value.client?.phone || '9999999999',
-      },
+
       handler: async (response: any) => {
         const verify = await verifyPayment(response)
         const result = verify.data
 
-        if (result.success) {
+        if (!result.success) {
+          alert('❌ Payment verification failed.')
+          return
+        }
+
+        // ✅ Create bills per company
+        const billPromises = order.value.companies.map(async (company: any) => {
+          const keptItems = company.cartitems.filter(
+            (i: any) => decisions.value[i.id] === 'keep'
+          )
+          const returnedItems = company.cartitems.filter(
+            (i: any) => decisions.value[i.id] === 'return'
+          )
+
+          // Skip if no items to keep
+          // if (!keptItems.length && !returnedItems.length) {
+          //   console.warn(`⚠️ No items selected for ${company.name}`)
+          //   return null
+          // }
+
           const payload = {
             trynbuyId: order.value.trynbuy_id,
-            companyId: order.value.company.id,
+            companyId: company.id,
             paymentMethod: 'UPI',
             transactionId: response.razorpay_payment_id,
-            subtotal: summary.value.subtotal,
-            grandTotal: summary.value.total,
-            discount: summary.value.discount,
-            deliveryFees: summary.value.delivery,
-            waitingFees: order.value.waiting_fee,
-            waitingTime: order.value.waiting_time,
-            keptItems: order.value.cartitems.filter((i: any) => decisions.value[i.id] === 'keep'),
-            returnedItems: order.value.cartitems.filter((i: any) => decisions.value[i.id] === 'return'),
+            subtotal: keptItems.reduce((s, i) => s + i.d_price, 0),
+            grandTotal: keptItems.reduce((s, i) => s + i.d_price, 0),
+            discount: keptItems.reduce((s, i) => s + (i.s_price - i.d_price), 0),
+            deliveryFees: order.value.shipping || 0,
+            waitingFees: order.value.waiting_fee || 0,
+            waitingTime: order.value.waiting_time || 0,
+            keptItems,
+            returnedItems,
           }
 
-          const res = await createTrynBuyBill(payload)
-          if (res.data.success) alert('✅ Bill created successfully!')
-          else alert('⚠️ Payment succeeded but bill creation failed.')
-        } else {
-          alert('❌ Payment verification failed.')
+          try {
+            const billRes = await createTrynBuyBill(payload)
+            return { company: company.name, success: billRes.data.success }
+          } catch (err) {
+            console.error(`❌ Failed bill for ${company.name}:`, err)
+            return { company: company.name, success: false, error: err }
+          }
+        })
+
+        const results = await Promise.allSettled(billPromises)
+
+        const successful = results.filter(r => r.value?.success).length
+        const failed = results.length - successful
+
+        if (successful > 0) {
+          alert(`✅  checkout successfully!`)
         }
+        if (failed > 0) {
+          alert(`⚠️ checkout failed. Please retry later.`)
+        }
+
+        // ✅ Remove the order locally
+        packStore.remove(order.value.trynbuy_id)
+        router.push('/')
       },
     }
 
@@ -245,3 +279,4 @@ async function proceed() {
   }
 }
 </script>
+

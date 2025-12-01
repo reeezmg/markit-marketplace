@@ -1,8 +1,8 @@
 import { Preferences } from '@capacitor/preferences';
 import api from './client';
 
-export const login = async (phone, otp) => {
-  const res = await api.post("/auth/login", { phone, otp });
+export const login = async (phone) => {
+  const res = await api.post("/auth/login", { phone });
   const data = res.data;
 
   if (data.token) {

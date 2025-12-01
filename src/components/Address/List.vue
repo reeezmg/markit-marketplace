@@ -71,6 +71,7 @@ const confirmLocation = async (address:Address) => {
 
 // 🔹 Load addresses on mount
 onMounted(async () => {
+  console.log(store.addresses)
   // Try local cache first, then fallback to API if empty
   await store.loadFromStorage()
   if (!store.addresses.length) {

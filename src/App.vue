@@ -59,7 +59,8 @@ onMounted(async () => {
       } else {
         packStore.add(data)
       }
-      tryHistoryStore.updateOrderStatus(data.trynbuy_id, data.order_status)
+      packStore.updateCartItemStatus(data.trynbuy_id)
+     
     })
 
   } else {

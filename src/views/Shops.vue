@@ -144,7 +144,7 @@ import {
   IonContent,
   onIonViewWillEnter,
 } from '@ionic/vue'
-import { ref, computed } from 'vue'
+import { ref, computed, watch } from 'vue'
 import { useRouter } from 'vue-router'
 import Topbar from '@/components/Index/Topbar.vue'
 import Shopcard from '@/components/Index/Shopcard.vue'
@@ -155,6 +155,7 @@ import { usePackStore } from '@/store/usePackStore'
 import { useLocationStore } from '@/composables/useLocationStore'
 import { useNearbyStore } from '@/store/useNearbyStore'
 import { getAllShop } from '@/api/api'
+import { useAddressStore } from '@/store/useAddressStore';
 import { modalController } from '@ionic/vue'
 import KnowMoreModal from '../components/KnowMore.vue'
 import ShopCardSkeleton from '@/components/Index/ShopCardSkeleton.vue'
@@ -164,6 +165,7 @@ import ShopCardSkeleton from '@/components/Index/ShopCardSkeleton.vue'
 const router = useRouter()
 const packStore = usePackStore()
 const nearbyStore = useNearbyStore()
+const addressStore = useAddressStore()
 
 const shops = ref<any[]>([])
 const loading = ref(true)
@@ -173,6 +175,12 @@ const isKnowMoreModalOpen = ref(false)
 
 const activeIndex = ref(0)
 const activePack = computed(() => packStore.packList[activeIndex.value] || null)
+watch(
+  () => packStore.packList,
+  (newList) => {
+    console.log('Pack list updated:', newList)
+  }
+)
 const slideDirection = ref<'left' | 'right'>('left')
 const openKnowMoreModal = () => {
   isKnowMoreModalOpen.value = true
@@ -239,8 +247,16 @@ const selectedCategory = computed(() => categoryButtons[activeCategory.value].to
 
 onIonViewWillEnter(async () => {
   await packStore.loadFromStorage()
+  if(addressStore.addresses.length===0){
+    await addressStore.fetchFromApi()
+  }
+
   const saved = await getLocation()
-  if (saved) location.value = saved
+  if (saved) {
+    location.value = saved
+  }else{
+     router.push('/account/address')
+  }
 
   await nearbyStore.fetchNearbyShops()
   try {

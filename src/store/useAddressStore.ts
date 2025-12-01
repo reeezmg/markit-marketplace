@@ -20,9 +20,9 @@ export const useAddressStore = defineStore('address', {
     },
 
     async fetchFromApi() {
-      const res = await getAddresses() // 🔹 now call API (no clientId needed if you send JWT)
+      const res = await getAddresses()
       this.addresses = res
-     await addressStorage.setItem('list', JSON.parse(JSON.stringify(this.addresses)))
+      await addressStorage.setItem('list', JSON.parse(JSON.stringify(this.addresses)))
     },
 
     async add(address: Address) {
@@ -41,5 +41,12 @@ export const useAddressStore = defineStore('address', {
       this.addresses = this.addresses.filter(a => a.id !== id)
       await addressStorage.setItem('list', JSON.parse(JSON.stringify(this.addresses)))
     },
+
+    // ⭐ NEW FUNCTION
+    async clear() {
+      this.addresses = []
+      await addressStorage.removeItem('list')   // delete only this item
+      // OR: await addressStorage.clear()      // clears entire address storage
+    }
   },
 })

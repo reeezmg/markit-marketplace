@@ -57,6 +57,8 @@ import { getAuth, RecaptchaVerifier, signInWithPhoneNumber } from 'firebase/auth
 import Login from '@/components/Login/Login.vue'
 import Phone from '@/components/Login/Phone.vue'
 import Otp from '@/components/Login/Otp.vue'
+import { login } from '@/api/auth'
+import { useAddressStore } from '@/store/useAddressStore';
 
 const router = useRouter()
 const showPhone = ref(false)
@@ -65,6 +67,7 @@ const phoneNumber = ref('')
 const otp = ref('')
 const verificationId = ref('')
 const isNative = Capacitor.getPlatform() !== 'web'
+const addressStore = useAddressStore()
 
 // ✅ Handle phone submit
 const handlePhoneSubmitClicked = async (data: { phone: string }) => {
@@ -127,6 +130,10 @@ const handleOtpSubmitClicked = async (data: { otp: string }) => {
       const result = await window.confirmationResult.confirm(otp.value)
       console.log('✅ Web Firebase login success:', result.user)
     }
+   await login(phoneNumber.value)
+   await addressStore.clear() 
+   await addressStore.fetchFromApi() 
+
 
     router.push('/')
   } catch (err) {

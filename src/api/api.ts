@@ -26,6 +26,8 @@ export const verifyPayment = (data) => api.post('/razorpay/verify', data);
 export const initiatePayment = (data) => api.post('/razorpay/initiate', data);
 export const createTrynBuyBill = (data) => api.post('/checkout/trynbuy/bill', data);
 
+export const updateTryNBuyPackingStatus = (id, status) => api.put(`/pack/trynbuy/${id}/packing-status`, { status });
+
 export const getProfile = () => api.get('/client')
 export const updateProfile = (data) => api.put('/client', data)
 export const deleteProfile = () => api.delete('/client')

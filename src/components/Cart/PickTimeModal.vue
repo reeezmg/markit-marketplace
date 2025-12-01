@@ -53,7 +53,7 @@ const buttonDisabled = computed(() => {
 
 function onAction() {
   if (selectedOption.value === "instant") {
-    emit("proceed", { type: "instant" });
+    emit("proceed", { type: "instant", slot: new Date()});
     close();
   } else if (selectedOption.value === "later") {
     openSelectSlot();

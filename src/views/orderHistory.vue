@@ -1,6 +1,6 @@
 <template>
   <ion-page>
-    <Topbar/>
+    <Topbar />
 
     <ion-content color="light">
       <div
@@ -14,18 +14,17 @@
   </ion-page>
 </template>
 
-
 <script setup lang="ts">
 import { onMounted } from 'vue'
-import { IonPage, IonButtons,IonTitle, IonBackButton, IonHeader, IonContent } from '@ionic/vue'
+import { IonPage, IonContent } from '@ionic/vue'
 import { useTryHistoryStore } from '@/store/useTryHistoryStore'
 import Trynbuy from '@/components/History/Trynbuy.vue'
-import { heartOutline, heart, cartOutline } from "ionicons/icons";
-import Topbar from '@/components/Topbar.vue';
+import Topbar from '@/components/Topbar.vue'
 
 const trynbuys = useTryHistoryStore()
 
 onMounted(async () => {
+   await trynbuys.fetchFromApi()
   await trynbuys.loadFromStorage()
   console.log(trynbuys.tryHistoryList)
   if (!trynbuys.tryHistoryList.length) {

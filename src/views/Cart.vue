@@ -98,17 +98,26 @@ import {
 } from '@ionic/vue'
 import { ref, computed } from 'vue'
 import { useCartStore } from '@/store/useCartStore'
-import { useTryHistoryStore } from '@/store/useTryHistoryStore'
 import { useLocationStore } from '@/composables/useLocationStore'
 import { postOrder } from '@/api/api'
 import { format, addHours } from 'date-fns'
 import { useRouter } from 'vue-router'
 import { getDistanceInKm } from '@/composables/useDistance'
+import { usePackStore } from '@/store/usePackStore'
+import { useTryHistoryStore } from '@/store/useTryHistoryStore'
+import { Preferences } from '@capacitor/preferences';
+
+// store instance
+const packStore = usePackStore()
+const tryHistoryStore = useTryHistoryStore()
+
 
 const router = useRouter()
 const cart = useCartStore()
 const tryHistory = useTryHistoryStore()
 const { getLocation } = useLocationStore()
+
+console.log(cart)
 
 const loading = ref(false)
 const location = ref<any>(null)
@@ -124,6 +133,7 @@ const activeGroups = ref<
       companyLogo: string
       companyLat: number
       companyLng: number
+      companyLocationId: string
       items: any[]
     }[]
   }[]
@@ -201,7 +211,16 @@ const waitingFee = computed(() => waitingTime.value * 0.5)
 /* ========== PICK TIME MODAL ========== */
 const isPickTimeModalOpen = ref(false)
 const closePickTimeModal = () => (isPickTimeModalOpen.value = false)
-const openPickTimeModal = () => (isPickTimeModalOpen.value = true)
+
+const openPickTimeModal = async () => {
+  const { value: token } = await Preferences.get({ key: 'token' })
+
+  if (token) {
+    isPickTimeModalOpen.value = true
+  } else {
+    router.push('/login')
+  }
+}
 
 /* ========== DELIVERY TIME ========== */
 const deliveryTime = ref<string | null>(null)
@@ -277,11 +296,14 @@ const checkout = async () => {
         companyLogo: company.companyLogo,
         companyLat: company.companyLat,
         companyLng: company.companyLng,
+        companyLocationId: company.companyLocationId,
         items: company.items
       }))
     }))
 
-    await postOrder({
+
+
+    const Orderres = await postOrder({
       groups: payloadGroups,
       locationId: location.value.id,
       checkoutMethod: checkoutMethod.value,
@@ -295,6 +317,18 @@ const checkout = async () => {
       waitingFee: waitingFee.value,
       totalItem: totalItem.value
     })
+    const orderRes = Orderres.data
+    console.log('✅ Order placed successfully:', orderRes)
+    console.log(deliveryTime.value)
+
+     const existing = packStore.getById(orderRes.trynbuy.trynbuy_id)
+      if (existing) {
+        packStore.update(orderRes.trynbuy.trynbuy_id, orderRes.trynbuy)
+      } else {
+        packStore.add(orderRes.trynbuy)
+      }
+      tryHistoryStore.updateOrderStatus(orderRes.trynbuy.trynbuy_id, orderRes.order_status)
+    
 
     await tryHistory.fetchFromApi()
 
