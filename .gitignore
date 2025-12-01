@@ -30,6 +30,6 @@ npm-debug.log*
 /platforms
 /plugins
 /www
-
+.env
 auto-imports.d.ts
 components.d.ts
