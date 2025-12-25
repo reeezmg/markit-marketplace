@@ -1,7 +1,7 @@
 <template>
   <ion-page>
     <ion-header>
-      <Topbar/>
+      <Topbar title="Wishlist"/>
     </ion-header>
 
     <ion-content :fullscreen="true" class="ion-padding">
@@ -29,9 +29,6 @@
         </ion-button>
       </div>
 </ion-content>
-    <ion-footer class="ion-no-border ">
-       <TabsPage/>
-      </ion-footer>
   </ion-page>
 </template>
 

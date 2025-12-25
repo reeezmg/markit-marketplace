@@ -73,6 +73,16 @@ const routes: Array<RouteRecordRaw> = [
     meta: { requiresAuth: false }
   },
   {
+    path: '/account/privacy-policy',
+    component: () => import('@/views/PrivacyPolicy.vue'),
+    meta: { requiresAuth: false }
+  },
+  {
+    path: '/account/terms-of-use',
+    component: () => import('@/views/TermsOfUse.vue'),
+    meta: { requiresAuth: false }
+  },
+  {
     path: '/pack/:id',
     component: () => import('@/views/orderTryPack.vue'),
     meta: { requiresAuth: false }

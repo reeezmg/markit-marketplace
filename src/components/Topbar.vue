@@ -1,8 +1,8 @@
 <template>
   <ion-header class="ion-no-border ion-padding bg-white">
-    <div class="flex flex-row justify-between">
+    <div class="flex flex-row justify-between items-center">
       <ion-buttons slot="start">
-        <ion-back-button default-href="/" text="Cart"></ion-back-button>
+        <ion-back-button default-href="/" :text="title"></ion-back-button>
       </ion-buttons>
 
       <div class="flex flex-row gap-4 justify-center">
@@ -46,6 +46,11 @@ import {
 import { heartOutline, cartOutline } from 'ionicons/icons'
 import { useCartStore } from '@/store/useCartStore'
 import { onMounted, computed } from 'vue'
+
+/* PROPS */
+const props = defineProps({
+  title: String,
+});
 
 const router = useRouter()
 const cartStore = useCartStore()

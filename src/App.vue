@@ -32,6 +32,7 @@ import { Preferences } from '@capacitor/preferences'
 import socket from '@/services/socket'
 import { usePackStore } from '@/store/usePackStore'
 import { useTryHistoryStore } from '@/store/useTryHistoryStore'
+import { useProfileStore } from './store/useProfileStore'
 
 // store instance
 const packStore = usePackStore()
@@ -40,13 +41,22 @@ const tryHistoryStore = useTryHistoryStore()
 // reactive refs
 const token = ref<string | null>(null)
 const client = ref<Record<string, any> | null>(null)
+const profileStore = useProfileStore()
 
 onMounted(async () => {
+  await profileStore.loadFromStorage()
+   await profileStore.fetchFromApi()
+})
+
+onMounted(async () => {
+
   // load from Preferences
   const storedToken = await Preferences.get({ key: 'token' })
   const storedClient = await Preferences.get({ key: 'client' })
   token.value = storedToken.value
   client.value = storedClient.value ? JSON.parse(storedClient.value) : null
+
+ 
 
   if (token.value && client.value) {
     // join client room

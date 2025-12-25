@@ -249,5 +249,9 @@ export const useCartStore = defineStore('cart', {
       this.groups = this.groups.filter(g => g.cartNumber !== cartNumber2)
       await this.saveCart()
     },
+    async clearStorage() {
+      this.groups = []
+      await cartStorage.clear()
+    },
   },
 })

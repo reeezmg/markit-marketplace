@@ -159,8 +159,11 @@ import { useAddressStore } from '@/store/useAddressStore';
 import { modalController } from '@ionic/vue'
 import KnowMoreModal from '../components/KnowMore.vue'
 import ShopCardSkeleton from '@/components/Index/ShopCardSkeleton.vue'
+import { useProfileStore } from '@/store/useProfileStore'
 
 
+const profileStore = useProfileStore()
+const isLoggedIn = computed(() => !!profileStore.profile)
 
 const router = useRouter()
 const packStore = usePackStore()
@@ -247,27 +250,85 @@ const selectedCategory = computed(() => categoryButtons[activeCategory.value].to
 
 onIonViewWillEnter(async () => {
   await packStore.loadFromStorage()
-  if(addressStore.addresses.length===0){
-    await addressStore.fetchFromApi()
+
+  // 1️⃣ Logged-in user → use saved address
+  if (isLoggedIn.value) {
+    if (addressStore.addresses.length === 0) {
+      await addressStore.fetchFromApi()
+    }
+
+    const saved = await getLocation()
+
+    if (saved) {
+      location.value = saved
+    } else {
+      router.push('/account/address')
+      return
+    }
   }
 
-  const saved = await getLocation()
-  if (saved) {
-    location.value = saved
-  }else{
-     router.push('/account/address')
-  }
+// 2️⃣ Logged-out user → GPS fallback
+else {
+  const cached = await getLocation()
 
-  await nearbyStore.fetchNearbyShops()
+  if (cached) {
+    location.value = cached
+  } else {
+    try {
+      const gps = await getCurrentLocation()
+
+      location.value = {
+        name: 'Current Location',
+        formattedAddress: 'Near you',
+        lat: gps.lat,
+        lng: gps.lng,
+      } as any
+
+      console.log(location.value, 'lll')
+
+      await setLocation(location.value) // ✅ SAME INSTANCE
+    } catch (e) {
+      console.error('Location access denied', e)
+      loading.value = false
+      return
+    }
+  }
+}
+
+
+  // 3️⃣ Fetch nearby shops (common for both)
   try {
-    const response = await getAllShop(location.value.lat, location.value.lng)
-    shops.value = response.data
-  } catch (error) {
-    console.error('Failed to fetch shops:', error)
-  } finally {
-    loading.value = false
-  }
-})
+  console.log(location.value, 'ccc') // ✅ WILL PRINT NOW
+
+  const { lat, lng } = location.value
+  const response = await getAllShop(lat, lng)
+
+  shops.value = response.data
+} catch (error) {
+  console.error('Failed to fetch shops:', error)
+} finally {
+  loading.value = false
+}
+}) // ✅ now properly closed
+
+const getCurrentLocation = (): Promise<{ lat: number; lng: number }> => {
+  return new Promise((resolve, reject) => {
+    if (!navigator.geolocation) {
+      reject('Geolocation not supported')
+    }
+
+    navigator.geolocation.getCurrentPosition(
+      (pos) => {
+        resolve({
+          lat: pos.coords.latitude,
+          lng: pos.coords.longitude,
+        })
+      },
+      (err) => reject(err),
+      { enableHighAccuracy: true, timeout: 10000 }
+    )
+  })
+}
 
 function onSearch(value: string) {
   searchTerm.value = (value || '').toLowerCase().trim()

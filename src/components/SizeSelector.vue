@@ -2,8 +2,8 @@
   <ion-modal
     :is-open="isOpen"
     @didDismiss="close"
-    :initial-breakpoint="0.5"
-    :breakpoints="[0, 0.5, 0.75]"
+    :initial-breakpoint="0.4"
+    :breakpoints="[0, 0.4, 0.5]"
     :handle-behavior="'cycle'"
     :can-dismiss="true"
     :backdrop-dismiss="true"
@@ -11,8 +11,8 @@
     swipe-to-close
   >
     <div class="p-4">
-      <div class="flex items-center justify-between mb-4">
-        <h2 class="text-lg font-semibold">Select Sizes</h2>
+      <div class="flex items-center justify-between mb-6">
+        <p class="text-[18px] font-semibold  text-gray-700">Select Sizes</p>
       </div>
 
       <div class="flex flex-wrap gap-2 mb-4">
@@ -28,10 +28,18 @@
           {{ size }}
         </ion-button>
       </div>
-
+<!-- 
       <ion-button expand="block" @click="confirmSizes">
         Add to Cart
-      </ion-button>
+      </ion-button> -->
+
+      <button
+        class="w-[100%] !py-3 !px-4 !rounded-[8px] !bg-[#097D4C] !text-white !border !border-transparent"
+        @click="confirmSizes"
+      >
+        Add to Cart
+      </button>
+
     </div>
   </ion-modal>
 </template>

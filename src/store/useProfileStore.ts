@@ -49,6 +49,10 @@ export const useProfileStore = defineStore('profile', {
       await deleteProfile() // call server to mark deleted
       this.profile = null
       await profileStorage.removeItem('profile')
-    }
+    },
+    async clearStorage() {
+      this.profile = null
+      await profileStorage.clear()
+    },
   }
 })

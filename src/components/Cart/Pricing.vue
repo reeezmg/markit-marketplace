@@ -33,7 +33,10 @@
     <div v-if="shipping > 0" class="flex flex-col">
       <div class="flex items-center justify-between text-gray-600">
         <div class="text-sm">Delivery</div>
-        <div class="text-sm font-medium">₹{{ shipping.toFixed(2) }}</div>
+        <div class="text-sm font-medium">
+          <span class="line-through">₹{{ shipping.toFixed(2) }}</span>
+          <span class="font-bold text-[#097D4C] ml-1">₹0</span>
+        </div>
       </div>
       <div class="text-xs text-green-600 ml-1">
         ₹15 deductible on purchase of every ₹500
@@ -45,7 +48,10 @@
     <div v-if="waitingFee > 0" class="flex flex-col">
       <div class="flex items-center justify-between text-gray-600">
         <div class="text-sm">Waiting Fee</div>
-        <div class="text-sm font-medium">₹{{ waitingFee.toFixed(2) }}</div>
+        <div class="text-sm font-medium">
+           <span class="line-through">₹{{ waitingFee.toFixed(2) }}</span>
+          <span class="font-bold text-[#097D4C] ml-1">₹0</span>
+        </div>
       </div>
       <div class="text-xs text-gray-500 ml-1">
         ₹0.50 per minute of waiting time
