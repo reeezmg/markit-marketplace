@@ -15,6 +15,12 @@
         <span class="mt-2 text-sm font-medium text-gray-700">
           {{ item.label }}
         </span>
+
+                      <!-- Green underline -->
+        <div
+          v-if="isActive(item.value)"
+          class="mt-[2px] h-1 w-12 rounded-full bg-[#53816C]"
+        />
       </div>
     </div>
   </div>
@@ -39,6 +45,8 @@ const emit = defineEmits<{
   (e: 'select', value: string): void
 }>()
 
+const activeValue = ref('all')
+
 // JSON Data
 const categories = ref([
   {
@@ -54,12 +62,20 @@ const categories = ref([
 ])
 
 function onSelect(value: string) {
+
+  activeValue.value = value
+
   // Reset if "all" is clicked
   if (value === 'all') {
     emit('select', '') // send empty to reset searchTerm
   } else {
     emit('select', value)
   }
+}
+
+
+function isActive(value: string) {
+  return activeValue.value === value
 }
 </script>
 

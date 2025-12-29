@@ -53,7 +53,7 @@ const mensCategory = [
     // 👖 Bottoms
     {
         label: 'Jeans',
-        value: 'jeans',
+        value: 'jeans_pant',
         image: '/images/categories/men/jeans.png',
         category: 'men',
     },

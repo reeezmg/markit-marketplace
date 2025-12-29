@@ -147,5 +147,10 @@ export const usePackStore = defineStore('pack', {
         }
       }
     },
+
+    async clearStorage() {
+      this.packList = []
+      await packStorage.clear()
+    },
   },
 })

@@ -1,26 +1,25 @@
 <template>
   <ion-page>
-    <Topbar/>
+    <Topbar />
 
     <ion-content class="ion-padding">
+      <!-- Header -->
       <div v-if="isLoggedIn" class="pb-4">
-  <h2 class="text-xl font-semibold">Hi, {{ client.name }} 👋</h2>
-  <p class="text-gray-500 text-sm">{{ client.phone }}</p>
-</div>
+        <h2 class="text-xl font-semibold">Hi, {{ client.name }} 👋</h2>
+        <p class="text-gray-500 text-sm">{{ client.phone }}</p>
+      </div>
 
-<div v-else class="pb-4">
-  <h2 class="text-xl font-semibold">Welcome 👋</h2>
-  <p class="text-gray-500 text-sm">Please login to continue</p>
-</div>
+      <div v-else class="pb-4">
+        <h2 class="text-xl font-semibold">Welcome 👋</h2>
+        <p class="text-gray-500 text-sm">Please login to continue</p>
+      </div>
 
-
-      <div class="flex-1 h-[0.5px] bg-[#097D4C] px-2"></div>
+      <div class="my-4 h-[0.5px] bg-[#097D4C]" />
 
       <ion-list lines="none">
-
-          <ion-item v-if="!isLoggedIn" button @click="goToLogin" detail>
-            <ion-label>Login / Sign Up</ion-label>
-          </ion-item>
+        <ion-item v-if="!isLoggedIn" button @click="goToLogin" detail>
+          <ion-label class="font-bold">Login / Sign Up</ion-label>
+        </ion-item>
 
         <ion-item v-if="isLoggedIn" button @click="navigate('orderHistory')" detail>
           <ion-label>Order History</ion-label>
@@ -46,16 +45,14 @@
           <ion-label>Your Profile</ion-label>
         </ion-item>
 
-<ion-item
-  v-if="isLoggedIn"
-  button
-  @click="logoutUser"
-  detail
->
-  <ion-label color="danger">Logout</ion-label>
-</ion-item>
-
-
+        <ion-item
+          v-if="isLoggedIn"
+          button
+          @click="logoutUser"
+          detail
+        >
+          <ion-label color="danger">Logout</ion-label>
+        </ion-item>
       </ion-list>
     </ion-content>
   </ion-page>
@@ -67,36 +64,28 @@ import {
   IonPage, IonContent, IonList, IonItem, IonLabel
 } from '@ionic/vue'
 import { useRouter } from 'vue-router'
-import { onMounted, computed, watch,ref } from 'vue'
-import { useProfileStore } from '@/store/useProfileStore'   // 👈 use Pinia store
-import { logout } from '@/api/auth'
+import { computed, onMounted } from 'vue'
+import { useProfileStore } from '@/store/useProfileStore'
 import { useAddressStore } from '@/store/useAddressStore'
 import { Preferences } from '@capacitor/preferences'
-import localforage from 'localforage'
+import { logout } from '@/api/auth'
 import { clearMarkitIndexedDB } from '@/store/utils'
 
 const router = useRouter()
 const profileStore = useProfileStore()
-const addressStore = useAddressStore()  // 👈 to clear user address on logout
-const isLoggedIn = ref(false) 
+const addressStore = useAddressStore()
 
-// Expose a computed client object for template
-const client = computed(() => profileStore.profile ?? { name: '', phone: '' })
-// const { value: token } = await Preferences.get({ key: 'token' })
+/* ✅ SINGLE SOURCE OF TRUTH */
+const isLoggedIn = computed(() => !!profileStore.profile)
 
+const client = computed(() =>
+  profileStore.profile ?? { name: '', phone: '' }
+)
+
+/* ✅ HYDRATE PINIA ON PAGE LOAD */
 onMounted(async () => {
-  // load from Preferences
-  const storedToken = await Preferences.get({ key: 'token' })
-  isLoggedIn.value = !!storedToken.value
+  await profileStore.loadFromStorage()
 })
-
-// const isLoggedIn = computed(() => !!profileStore.profile)
-
-watch(isLoggedIn, (newVal) => {
-  console.log('isLoggedIn changed:', newVal);
-});
-
-
 
 const goToLogin = () => {
   router.push('/login')
@@ -108,27 +97,21 @@ const navigate = (route: string) => {
 
 const openWhatsApp = () => {
   const phone = '9538340789'
-  const message = encodeURIComponent('Hello, I need help');
-  window.open(`https://wa.me/91${phone}?text=${message}`, '_blank');
+  const message = encodeURIComponent('Hello, I need help')
+  window.open(`https://wa.me/91${phone}?text=${message}`, '_blank')
 }
-
 
 const logoutUser = async () => {
   try {
     await logout()
   } catch {}
-  console.log('Logging out user...')
-  await Preferences.remove({ key: 'token' })
 
-  // 💣 ACTUALLY clears IndexedDB
+  await Preferences.remove({ key: 'token' })
   await clearMarkitIndexedDB()
 
-  // Reset Pinia memory state
   profileStore.$reset()
   addressStore.$reset()
 
-  // ⛔ Force reload to avoid stale memory
-  window.location.href = '/'
+  router.replace('/')
 }
-
 </script>
