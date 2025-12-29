@@ -1,21 +1,31 @@
 <template>
   <ion-page>
-    <Topbar/>
+    <Topbar />
 
     <ion-content class="ion-padding">
-      <div class="pb-4">
+      <!-- Header -->
+      <div v-if="isLoggedIn" class="pb-4">
         <h2 class="text-xl font-semibold">Hi, {{ client.name }} 👋</h2>
         <p class="text-gray-500 text-sm">{{ client.phone }}</p>
       </div>
 
-      <div class="flex-1 h-[0.5px] bg-[#097D4C] px-2"></div>
+      <div v-else class="pb-4">
+        <h2 class="text-xl font-semibold">Welcome 👋</h2>
+        <p class="text-gray-500 text-sm">Please login to continue</p>
+      </div>
+
+      <div class="my-4 h-[0.5px] bg-[#097D4C]" />
 
       <ion-list lines="none">
-        <ion-item button @click="navigate('orderHistory')" detail>
+        <ion-item v-if="!isLoggedIn" button @click="goToLogin" detail>
+          <ion-label class="font-bold">Login / Sign Up</ion-label>
+        </ion-item>
+
+        <ion-item v-if="isLoggedIn" button @click="navigate('orderHistory')" detail>
           <ion-label>Order History</ion-label>
         </ion-item>
 
-        <ion-item button @click="navigate('address/account')" detail>
+        <ion-item v-if="isLoggedIn" button @click="navigate('address/account')" detail>
           <ion-label>Address Settings</ion-label>
         </ion-item>
 
@@ -27,15 +37,20 @@
           <ion-label>Terms of use</ion-label>
         </ion-item>
 
-        <ion-item button @click="navigate('contact-us')" detail>
+        <ion-item button @click="openWhatsApp" detail>
           <ion-label>Contact Us</ion-label>
         </ion-item>
 
-        <ion-item button @click="navigate('profile')" detail>
+        <ion-item v-if="isLoggedIn" button @click="navigate('profile')" detail>
           <ion-label>Your Profile</ion-label>
         </ion-item>
 
-        <ion-item button @click="logout" detail>
+        <ion-item
+          v-if="isLoggedIn"
+          button
+          @click="logoutUser"
+          detail
+        >
           <ion-label color="danger">Logout</ion-label>
         </ion-item>
       </ion-list>
@@ -49,29 +64,54 @@ import {
   IonPage, IonContent, IonList, IonItem, IonLabel
 } from '@ionic/vue'
 import { useRouter } from 'vue-router'
-import { onMounted, computed } from 'vue'
-import { useProfileStore } from '@/store/useProfileStore'   // 👈 use Pinia store
+import { computed, onMounted } from 'vue'
+import { useProfileStore } from '@/store/useProfileStore'
+import { useAddressStore } from '@/store/useAddressStore'
+import { Preferences } from '@capacitor/preferences'
+import { logout } from '@/api/auth'
+import { clearMarkitIndexedDB } from '@/store/utils'
 
 const router = useRouter()
 const profileStore = useProfileStore()
+const addressStore = useAddressStore()
 
-// Expose a computed client object for template
-const client = computed(() => profileStore.profile ?? { name: '', phone: '' })
+/* ✅ SINGLE SOURCE OF TRUTH */
+const isLoggedIn = computed(() => !!profileStore.profile)
 
+const client = computed(() =>
+  profileStore.profile ?? { name: '', phone: '' }
+)
+
+/* ✅ HYDRATE PINIA ON PAGE LOAD */
 onMounted(async () => {
-  // 1️⃣ load cached profile immediately
   await profileStore.loadFromStorage()
-
-  // 2️⃣ fetch latest profile from server and update cache
-  await profileStore.fetchFromApi()
 })
+
+const goToLogin = () => {
+  router.push('/login')
+}
 
 const navigate = (route: string) => {
   router.push(`/account/${route}`)
 }
 
-const logout = () => {
-  console.log('Logging out…')
-  // e.g. clear token/redirect
+const openWhatsApp = () => {
+  const phone = '9538340789'
+  const message = encodeURIComponent('Hello, I need help')
+  window.open(`https://wa.me/91${phone}?text=${message}`, '_blank')
+}
+
+const logoutUser = async () => {
+  try {
+    await logout()
+  } catch {}
+
+  await Preferences.remove({ key: 'token' })
+  await clearMarkitIndexedDB()
+
+  profileStore.$reset()
+  addressStore.$reset()
+
+  router.replace('/')
 }
 </script>

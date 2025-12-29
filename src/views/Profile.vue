@@ -22,8 +22,9 @@
             :fill="form.gender === g.value ? 'solid' : 'outline'"
             :color="form.gender === g.value ? 'primary' : 'medium'"
             @click="form.gender = g.value"
+            class="flex items-center"
           >
-            <ion-icon :icon="g.icon" slot="start" />
+            <!-- <ion-icon :icon="g.icon" slot="start" class="mr-1" /> -->
             {{ g.label }}
           </ion-button>
         </div>
@@ -43,8 +44,8 @@
     </ion-content>
 
     <ion-footer class="ion-no-border">
-      <div class="text-center mt-10 text-red-600 text-sm border-t py-2">
-        <ion-button fill="clear" color="danger" @click="deleteAccount">
+      <div class="text-center mt-10 text-red-600 text-sm py-2 px-4">
+        <ion-button class="w-[100%]" color="danger" @click="deleteAccount">
           Delete Account
         </ion-button>
       </div>
@@ -81,7 +82,6 @@ const genders = [
 onMounted(async () => {
   try {
     // Load cached profile first (instant display)
-    await profileStore.loadFromStorage()
 
     if (profileStore.profile) {
       form.name   = profileStore.profile.name

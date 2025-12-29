@@ -32,5 +32,10 @@ export const useLikeStore = defineStore('likes', {
     isLiked(variantId: string) {
       return this.liked.some(v => v.id === variantId)
     },
+
+    async clearStorage() {
+      this.liked = []
+      await Preferences.remove({ key: STORAGE_KEY })
+    },
   },
 })

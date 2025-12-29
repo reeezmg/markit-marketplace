@@ -3,7 +3,7 @@
     <ion-content>
       <!-- Header -->
       <div class="bg-[#097D4C] text-white pt-5 pb-6 h-1/3">
-        <div class="flex items-center px-3">
+        <div class="flex items-center px-3" @click="$router.back()">
           <ion-icon :icon="arrowBackOutline" class="text-2xl" />
         </div>
 
@@ -59,6 +59,7 @@ import Phone from '@/components/Login/Phone.vue'
 import Otp from '@/components/Login/Otp.vue'
 import { login } from '@/api/auth'
 import { useAddressStore } from '@/store/useAddressStore';
+import { useProfileStore } from '@/store/useProfileStore'
 
 const router = useRouter()
 const showPhone = ref(false)
@@ -68,6 +69,7 @@ const otp = ref('')
 const verificationId = ref('')
 const isNative = Capacitor.getPlatform() !== 'web'
 const addressStore = useAddressStore()
+const profileStore = useProfileStore()
 
 // ✅ Handle phone submit
 const handlePhoneSubmitClicked = async (data: { phone: string }) => {
@@ -133,6 +135,7 @@ const handleOtpSubmitClicked = async (data: { otp: string }) => {
    await login(phoneNumber.value)
    await addressStore.clear() 
    await addressStore.fetchFromApi() 
+   await profileStore.fetchFromApi()
 
 
     router.push('/')

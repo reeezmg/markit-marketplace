@@ -39,7 +39,7 @@
           v-model="q"
           @input="onInput"
           type="text"
-          placeholder="Search..."
+          placeholder="Search for shops..."
           class="bg-transparent w-full focus:outline-none text-base"
         />
         <button v-if="q" @click="clear" class="ms-2 text-sm">Clear</button>

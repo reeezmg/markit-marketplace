@@ -1,6 +1,6 @@
 <template>
   <ion-page>
-    <Topbar />
+    <Topbar title="Cart" />
     <ion-content :fullscreen="true" color="light">
       <!-- Show cart when we have any groups -->
       <div v-if="hasCart">

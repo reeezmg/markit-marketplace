@@ -47,6 +47,11 @@ export const useAddressStore = defineStore('address', {
       this.addresses = []
       await addressStorage.removeItem('list')   // delete only this item
       // OR: await addressStorage.clear()      // clears entire address storage
-    }
+    },
+
+    async clearStorage() {
+      this.addresses = []
+      await addressStorage.clear()
+    },
   },
 })

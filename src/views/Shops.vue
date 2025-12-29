@@ -52,7 +52,7 @@
 
       <!-- Category Filter -->
       <div class="sticky top-0 z-30 bg-white py-4">
-        <Category @select="searchTerm = $event" :selectedCategory="selectedCategory" />
+        <Category @select="subCategoryFilter = $event" :selectedCategory="selectedCategory" />
       </div>
 
       <!-- Shops Section -->
@@ -64,12 +64,12 @@
 
       <div v-else class="mb-24">
         <Shopcard
-          v-for="shop in filteredShops"
+          v-for="shop in shopsList"
           :key="shop.id"
           :shop="shop"
           @click="() => router.push(`shop/${shop.id}/${shop.name}`)"
         />
-        <div v-if="!filteredShops.length" class="text-center py-8 text-gray-500">
+        <div v-if="!shopsList.length" class="text-center py-8 text-gray-500">
           No shops found.
         </div>
       </div>
@@ -159,8 +159,12 @@ import { useAddressStore } from '@/store/useAddressStore';
 import { modalController } from '@ionic/vue'
 import KnowMoreModal from '../components/KnowMore.vue'
 import ShopCardSkeleton from '@/components/Index/ShopCardSkeleton.vue'
+import { useProfileStore } from '@/store/useProfileStore'
+import api from '@/api/client'
 
 
+const profileStore = useProfileStore()
+const isLoggedIn = computed(() => !!profileStore.profile)
 
 const router = useRouter()
 const packStore = usePackStore()
@@ -170,6 +174,9 @@ const addressStore = useAddressStore()
 const shops = ref<any[]>([])
 const loading = ref(true)
 const searchTerm = ref('')
+const subCategoryFilter = ref('')
+let filteredBySubcategoryShops: any = ref([]);
+let shopsList: any = ref([]);
 const isCollapsed = ref(false)
 const isKnowMoreModalOpen = ref(false)
 
@@ -247,49 +254,146 @@ const selectedCategory = computed(() => categoryButtons[activeCategory.value].to
 
 onIonViewWillEnter(async () => {
   await packStore.loadFromStorage()
-  if(addressStore.addresses.length===0){
-    await addressStore.fetchFromApi()
+
+  // 1️⃣ Logged-in user → use saved address
+  if (isLoggedIn.value) {
+    if (addressStore.addresses.length === 0) {
+      await addressStore.fetchFromApi()
+    }
+
+    const saved = await getLocation()
+
+    if (saved) {
+      location.value = saved
+    } else {
+      router.push('/account/address')
+      return
+    }
   }
 
-  const saved = await getLocation()
-  if (saved) {
-    location.value = saved
-  }else{
-     router.push('/account/address')
-  }
+// 2️⃣ Logged-out user → GPS fallback
+else {
+  const cached = await getLocation()
 
-  await nearbyStore.fetchNearbyShops()
+  if (cached) {
+    location.value = cached
+  } else {
+    try {
+      const gps = await getCurrentLocation()
+
+      location.value = {
+        name: 'Current Location',
+        formattedAddress: 'Near you',
+        lat: gps.lat,
+        lng: gps.lng,
+      } as any
+
+
+      // await setLocation(location.value) // ✅ SAME INSTANCE
+    } catch (e) {
+      console.error('Location access denied', e)
+      loading.value = false
+      return
+    }
+  }
+}
+
+
+  // 3️⃣ Fetch nearby shops (common for both)
   try {
-    const response = await getAllShop(location.value.lat, location.value.lng)
-    shops.value = response.data
-  } catch (error) {
-    console.error('Failed to fetch shops:', error)
-  } finally {
-    loading.value = false
-  }
-})
+
+  const { lat, lng } = location.value
+  const response = await getAllShop(lat, lng)
+
+  shops.value = response.data
+} catch (error) {
+  console.error('Failed to fetch shops:', error)
+} finally {
+  loading.value = false
+}
+}) // ✅ now properly closed
+
+const getCurrentLocation = (): Promise<{ lat: number; lng: number }> => {
+  return new Promise((resolve, reject) => {
+    if (!navigator.geolocation) {
+      reject('Geolocation not supported')
+    }
+
+    navigator.geolocation.getCurrentPosition(
+      (pos) => {
+        resolve({
+          lat: pos.coords.latitude,
+          lng: pos.coords.longitude,
+        })
+      },
+      (err) => reject(err),
+      { enableHighAccuracy: true, timeout: 10000 }
+    )
+  })
+}
 
 function onSearch(value: string) {
   searchTerm.value = (value || '').toLowerCase().trim()
 }
 
-/* ---- Filtering ---- */
 const filteredShops = computed(() => {
-  const q = searchTerm.value
-  const categoryFilter = selectedCategory.value
+  // For now , filter on FE for search, Backend api is available but not integrated yet
+  const q = searchTerm.value.toLowerCase().trim()
+  const genderCategory = selectedCategory.value?.toLowerCase()
 
   return shops.value.filter((shop) => {
-    const nameMatch = (shop.name || '').toLowerCase().includes(q)
-    const shopCategory = (shop.category || []).map((c: string) => c.toLowerCase())
-    const categoryMatch = shopCategory.includes(categoryFilter)
+    // ---- Search (FE) ----
+    const name = (shop.name || '').toLowerCase()
+    const matchesSearch = q ? name.includes(q) : true
 
-    const matchesSearch = q
-      ? nameMatch || shopCategory.some((c) => c.includes(q))
-      : true
+    // ---- Gender Category (FE) ----
+    const shopCategories = Array.isArray(shop.category)
+      ? shop.category.map((c: string) => c.toLowerCase())
+      : []
 
-    return matchesSearch && categoryMatch
+    const matchesGender =
+      !genderCategory || genderCategory === 'all'
+        ? true
+        : shopCategories.includes(genderCategory)
+
+    return matchesSearch && matchesGender
   })
 })
+
+
+async function fetchShopsBySubCategory() {
+  const subCategory = subCategoryFilter.value
+  if (!subCategory) return
+
+  const { lat, lng } = location.value
+
+  try {
+    const res = await api.get('/shops/by-category', {
+      params: {
+        lat,
+        lng,
+        category: subCategory // 👈 casual_shirt, sports_shoes
+      }
+    })
+
+    console.log('SUB CATEGORY RESULT:', res.data)
+    filteredBySubcategoryShops.value = res.data
+  } catch (err) {
+    console.error('Failed to fetch shops by sub category', err)
+  }
+}
+
+watch(subCategoryFilter, (newVal) => {
+  if (!newVal) return
+  fetchShopsBySubCategory()
+})
+
+shopsList = computed(() => {
+  return subCategoryFilter?.value ? filteredBySubcategoryShops.value : filteredShops.value;
+});
+
+console.log(shopsList, 'filtered after subc');
+// shopsList = subCategoryFilter?.value ? filteredShops : shops;
 
 /* ---- Collapsible Header ---- */
 function onScroll(ev: CustomEvent) {

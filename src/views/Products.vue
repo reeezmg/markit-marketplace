@@ -4,105 +4,114 @@
       <Topbar @search="onSearch" :name="companyName" />
     </ion-header>
 
-    <ion-content :fullscreen="true" class="ion-padding" color="light">
-      <ul class="grid grid-cols-2 gap-4 mb-10 ">
-        <!-- Skeleton Loader (only if nothing loaded yet) -->
-        <template v-if="loading && variants.length === 0">
-          <li
-            v-for="n in 6"
-            :key="n"
-            class="col-span-1 flex flex-col space-y-2 border border-gray-300 rounded-lg overflow-hidden animate-pulse p-2"
-          >
-            <div class="w-full aspect-[4/5] bg-gray-300 dark:bg-gray-700 rounded-md"></div>
-            <div class="h-5 bg-gray-300 dark:bg-gray-700 rounded w-3/4"></div>
-            <div class="h-5 bg-gray-300 dark:bg-gray-700 rounded w-1/2"></div>
-            <div class="flex gap-2 mt-2">
-              <div class="flex-1 h-10 bg-gray-300 dark:bg-gray-700 rounded"></div>
-              <div class="flex-1 h-10 bg-gray-300 dark:bg-gray-700 rounded"></div>
-            </div>
-          </li>
-        </template>
+    <ion-content :fullscreen="true" color="light">
+      <div class="px-4 py-2 bg-white">
+      
+      <!-- Skeleton Loader -->
+      <ul class="grid grid-cols-2 gap-3 mb-10" v-if="loading && variants.length === 0">
+        <li
+          v-for="n in 6"
+          :key="n"
+          class="col-span-1 flex flex-col space-y-2 border border-gray-300 rounded-lg overflow-hidden animate-pulse p-2"
+        >
+          <div class="w-full aspect-[4/5] bg-gray-300 rounded-md"></div>
+          <div class="h-5 bg-gray-300 rounded w-3/4"></div>
+          <div class="h-5 bg-gray-300 rounded w-1/2"></div>
+          <div class="flex gap-2 mt-2">
+            <div class="flex-1 h-10 bg-gray-300 rounded"></div>
+            <div class="flex-1 h-10 bg-gray-300 rounded"></div>
+          </div>
+        </li>
+      </ul>
 
-        <!-- Real Variants -->
+      <!-- Real Variants -->
+      <ul class="grid grid-cols-2 gap-3 mb-10">
         <VariantCard
-          v-for="(variant, index) in filteredVariants"
+          v-for="variant in variants"
           :key="variant.id"
           :variant="variant"
           @click="toProductDetailsPage(variant)"
         />
       </ul>
 
-      <!-- Fixed Normal Button -->
-      <ion-button
-        class="fixed bottom-20 right-4 z-50"
-        @click="isCategoryOpen = true"
-      >
-        Category
-      </ion-button>
+<BottomFilterBar
+   @open="type => openFilterModal(type)" 
+  :categoryCount="selectedCategory.length"
+  :sizeCount="selectedSize.length"
+  :sortCount="selectedSort ? 1 : 0"
+/>
 
-      <!-- Category Modal -->
-      <ion-modal
-        :is-open="isCategoryOpen"
-        :breakpoints="[0, 0.5, 1]"
-        :initial-breakpoint="0.5"
-        @didDismiss="isCategoryOpen = false"
-        :expand-to-scroll="false"
-      >
-        <ion-content class="ion-padding">
-          <ul class="grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-4 gap-4">
-            <!-- All option -->
-            <li
-              :key="'all'"
-              @click="selectCategory(null)"
-              class="p-2 rounded-lg border cursor-pointer transition-all duration-200 text-center font-medium"
-              :class="allClass"
-            >
-              All
-            </li>
+    </div>
+  </ion-content>
 
-            <li
-              v-for="c in categories"
-              :key="c.id"
-              @click="selectCategory(c)"
-              class="p-2 rounded-lg border cursor-pointer transition-all duration-200 text-center font-medium"
-              :class="categoryClass(c)"
-            >
-              {{ c.name }}
-            </li>
-          </ul>
-        </ion-content>
-      </ion-modal>
-    </ion-content>
-    <ion-footer class="ion-no-border ">
-       <TabsPage/>
-      </ion-footer>
+    <!-- <ion-footer class="ion-no-border">
+      <TabsPage />
+    </ion-footer> -->
   </ion-page>
 </template>
 
 <script setup lang="ts">
-import {
-  IonPage,
-  IonHeader,
-  IonContent,
-  IonModal,
-  IonButton,
-  IonFooter
-} from "@ionic/vue";
-import VariantCard from "@/components/Store/VariantCard.vue";
-import Topbar from "@/components/Store/Topbar.vue";
+import { IonPage, IonHeader, IonContent, IonFooter } from "@ionic/vue";
+import { ref, onMounted } from "vue";
 import { useRoute, useRouter } from "vue-router";
-import { ref, computed } from "vue";
-import { onIonViewWillEnter } from "@ionic/vue";
-import { getAllCategories } from "@/api/api";
+
+import VariantCard from "@/components/Store/VariantCard.vue";
+import BottomFilterBar from "@/components/Store/BottomFilterBar.vue";
+import FilterModal from "@/components/Store/FilterModal.vue";
+import Topbar from "@/components/Store/Topbar.vue";
 import TabsPage from "./TabsPage.vue";
 
+import { getAllCategories } from "@/api/api";
+// parent component script setup
+import { modalController } from '@ionic/vue';
+
+async function openFilterModal(filterType: 'category' | 'size' | 'sort') {
+  // choose items & initial selected based on filterType
+  const items = filterType === 'category' ? categories.value : (filterType === 'size' ? sizeOptions.value : sortOptions.value);
+  const initialSelected = filterType === 'category' ? selectedCategory.value : (filterType === 'size' ? selectedSize.value : selectedSort.value);
+
+  const modal = await modalController.create({
+    component: FilterModal,
+    componentProps: {
+      title: filterType === 'category' ? 'Category' : (filterType === 'size' ? 'Size' : 'Sort by'),
+      items,
+      selected: initialSelected,
+      multi: filterType !== 'sort',
+      filterType: filterType
+    },
+    backdropDismiss: true,
+    // swipeToClose: true,
+    initialBreakpoint: 0.4,
+    breakpoints: [0, 0.4, 1],
+    handleBehavior: 'cycle',
+    presentingElement: document.querySelector('ion-router-outlet') || undefined
+  });
+
+  await modal.present();
+
+  const { data } = await modal.onDidDismiss(); // { data: { selected: [...] } } or undefined
+
+  if (data?.selected) {
+    // apply selection to parent state depending on filterType
+    if (filterType === 'category') {
+      selectedCategory.value = data.selected;
+    } else if (filterType === 'size') {
+      selectedSize.value = data.selected;
+    } else {
+      // sort returns an array for uniformity — choose first or handle as you want
+      selectedSort.value = data.selected?.[0] ?? null;
+    }
+
+    // now trigger streamVariants or update UI as needed
+    streamVariants(companyId);
+  }
+}
+
+/* ---------------- Types ---------------- */
 type CompanyVariant = {
   id: string;
-  companyId: string;
-  companyName: string;
-  companyLogo: string;
   name: string;
-  productName?: string | null;
+  productName?: string;
   images: string[];
   sprice: number;
   dprice: number;
@@ -110,195 +119,135 @@ type CompanyVariant = {
   isNew: boolean;
   outOfStock: boolean;
   items: { id: string; size: string; qty: number }[];
-  // possible category props (not guaranteed) - used for filtering
-  categoryId?: string;
-  productCategoryId?: string;
-  category?: { id?: string; name?: string } | string;
 };
 
+/* ---------------- State ---------------- */
 const route = useRoute();
 const router = useRouter();
+
+const companyId = route.params.companyId as string;
+const companyName = route.params.companyName;
+
+const sizeOptions = ref(["XS", "S", "M", "L", "XL", "XXL", "3XL", "4XL", "5XL", "6XL"]); 
+const sortOptions = ref(["Price: Low to High", "Price: High to Low"]);
+/* ---------------- State ---------------- */
 const loading = ref(true);
 const variants = ref<CompanyVariant[]>([]);
-const isCategoryOpen = ref(false);
-const categories = ref<{ id: string; name: string }[]>([]);
-const selectedCategory = ref<{ id: string; name: string } | null>(null);
+
+const selectedCategory = ref<any[]>([]);
+const selectedSize = ref<any[]>([]);
+const selectedSort = ref<any>(null);
 const searchTerm = ref("");
-const companyName = route.params.companyName
+
+const isCategoryOpen = ref(false);
+const isSortOpen = ref(false);
+const isSizeOpen = ref(false);
 
 
-// fetch categories
-onIonViewWillEnter(async () => {
+const categories = ref<{ id: string; name: string }[]>([]);
+
+onMounted(async () => {
   try {
-    const response = await getAllCategories(route.params.companyId as string);
-    // handle both response and response.data shapes
-    const data = response?.data ?? response;
-    categories.value = Array.isArray(data) ? data : [];
-  } catch (error) {
-    console.error("Failed to fetch categories:", error);
+    const res = await getAllCategories(companyId);
+
+    // --- Normalize response safely ---
+    const data = Array.isArray(res)
+      ? res
+      : Array.isArray(res?.data)
+      ? res.data
+      : [];
+
+    categories.value = data as { id: string; name: string }[];
+
+  } catch (err) {
+    console.error("Categories error:", err);
     categories.value = [];
-  } finally {
-    // don't flip loading off here because variants streaming controls the main loader
   }
 });
 
-// stream variants (unchanged)
-async function streamVariants(companyId: string) {
-  const response = await fetch(`http://localhost:3005/api/products/company/${companyId}`);
 
-  if (!response.body) throw new Error("No response body from server");
 
-  const reader = response.body.getReader();
+
+// console.log('isCategoryOpen:',isCategoryOpen,'isSizeOpen:',isSizeOpen,'isSortOpen:',isSortOpen,'iiii');
+
+/* ---------------- Streaming loader ---------------- */
+let abortController: AbortController | null = null;
+
+async function streamVariants(cid: string) {
+  if (!cid) return;
+
+  if (abortController) abortController.abort();
+  abortController = new AbortController();
+
+  const params = new URLSearchParams();
+
+  if (selectedCategory.value.length)
+    selectedCategory.value.forEach(c =>
+      params.append("categoryId", c.id)
+    );
+
+if (selectedSize.value.length)
+  selectedSize.value.forEach(s =>
+    params.append("size", String(s))
+  );
+
+
+  if (selectedSort.value === "Price: Low to High") params.append("sort", "price_low");
+  if (selectedSort.value === "Price: High to Low") params.append("sort", "price_high");
+  if (searchTerm.value) params.append("search", searchTerm.value);
+
+  loading.value = true;
+  variants.value = [];
+
+  const url = `http://localhost:3005/api/products/company/${cid}?${params}`;
+
+  const res = await fetch(url, { signal: abortController.signal });
+  const reader = res.body?.getReader();
+  if (!reader) return;
+
   const decoder = new TextDecoder();
   let buffer = "";
-  let firstChunk = true; // track first variant
+  let first = true;
 
   while (true) {
     const { done, value } = await reader.read();
     if (done) break;
 
-    buffer += decoder.decode(value, { stream: true });
-    let lines = buffer.split("\n");
-
-    // keep last incomplete line
+    buffer += decoder.decode(value);
+    const lines = buffer.split("\n");
     buffer = lines.pop() || "";
 
     for (const line of lines) {
       if (!line.trim()) continue;
-      try {
-        const variant = JSON.parse(line) as CompanyVariant;
-        variants.value.push(variant);
 
-        // stop showing skeleton when first variant arrives
-        if (firstChunk) {
-          loading.value = false;
-          firstChunk = false;
-        }
+      variants.value.push(JSON.parse(line));
 
-        console.log("Received variant:", variants);
-      } catch (err) {
-        console.error("Failed to parse line:", line, err);
+      if (first) {
+        loading.value = false;
+        first = false;
       }
     }
   }
 
-  // if nothing was streamed at all
-  if (firstChunk) {
-    loading.value = false;
-  }
+  loading.value = false;
 }
 
-onIonViewWillEnter(async () => {
-  const companyId = route.params.companyId as string;
-  if (!companyId) {
-    console.error("Company ID is missing from route params");
-    return;
-  }
+/* ---------------- Debounce Search ---------------- */
+let debounceTimer: any = null;
+function onSearch(v: string) {
+  searchTerm.value = (v || "").toLowerCase();
+  clearTimeout(debounceTimer);
+  debounceTimer = setTimeout(() => streamVariants(companyId), 350);
+}
 
-  loading.value = true;
-  variants.value = [];
-
-  // stream in background (catch inside)
-  streamVariants(companyId).catch(err => {
-    console.error("Streaming error:", err);
-    loading.value = false;
-  });
+/* ---------------- Initial Load ---------------- */
+onMounted(() => {
+  streamVariants(companyId);
 });
 
-// helper: determine if a variant matches selected category
-function variantMatchesCategory(variant: CompanyVariant, category: { id: string; name: string } | null) {
-  if (!category) return true;
 
-  const id = category.id;
-  const name = category.name?.toString?.().toLowerCase?.() ?? "";
-
-  // check multiple possible properties
-  if (variant.categoryId && variant.categoryId === id) return true;
-  if ((variant as any).productCategoryId && (variant as any).productCategoryId === id) return true;
-
-  // category could be an object or a string
-  if (variant.category) {
-    if (typeof variant.category === "string") {
-      if (variant.category === id || variant.category.toLowerCase() === name) return true;
-    } else if (typeof variant.category === "object") {
-      if ((variant.category as any).id && (variant.category as any).id === id) return true;
-      if ((variant.category as any).name && (variant.category as any).name.toLowerCase() === name) return true;
-    }
-  }
-
-  // fallback: try matching by comparing variant.name/productName to category name (loose)
-  if (variant.name && variant.name.toLowerCase().includes(name)) return true;
-  if (variant.productName && variant.productName.toLowerCase().includes(name)) return true;
-
-  return false;
-}
-
-function variantMatchesSearch(variant: CompanyVariant, q: string) {
-  if (!q) return true;
-  const lowerQ = q.toLowerCase();
-
-  if (variant.name && variant.name.toLowerCase().includes(lowerQ)) return true;
-  if (variant.productName && variant.productName.toLowerCase().includes(lowerQ)) return true;
-
-  // try category name on variant (object or string)
-  if (variant.category) {
-    if (typeof variant.category === "string") {
-      if (variant.category.toLowerCase().includes(lowerQ)) return true;
-    } else if (typeof variant.category === "object" && variant.category.name) {
-      if ((variant.category.name as string).toLowerCase().includes(lowerQ)) return true;
-    }
-  }
-
-  // fallback: match category names from categories list (categoryId -> name)
-  if (variant.categoryId) {
-    const cat = categories.value.find(c => c.id === variant.categoryId);
-    if (cat && cat.name.toLowerCase().includes(lowerQ)) return true;
-  }
-
-  return false;
-}
-
-const filteredVariants = computed(() => {
-  return variants.value.filter(v => {
-    // 1) category filter
-    const passCategory = variantMatchesCategory(v, selectedCategory.value);
-    if (!passCategory) return false;
-
-    // 2) search filter
-    const passSearch = variantMatchesSearch(v, searchTerm.value);
-    return passSearch;
-  });
-});
-
-// handler from search component
-function onSearch(value: string) {
-  searchTerm.value = (value || "").toLowerCase();
-}
-
-
-// select category (null for All)
-function selectCategory(c: { id: string; name: string } | null) {
-  selectedCategory.value = c;
-  // optionally keep modal open; if you want to close modal on select, uncomment next line:
-  // isCategoryOpen.value = false;
-}
-
-// CSS classes for selected/unselected categories
-const allClass = computed(() =>
-  selectedCategory.value === null
-    ? "border-transparent bg-[#097D4C] text-white"
-    : "bg-white text-gray-700"
-);
-
-function categoryClass(c: { id: string; name: string }) {
-  const isSelected = selectedCategory.value?.id === c.id;
-  return isSelected
-    ? "border-transparent bg-[#097D4C] text-white"
-    : "bg-white text-gray-700";
-}
-
-const toProductDetailsPage = (variant: CompanyVariant) => {
+function toProductDetailsPage(variant: CompanyVariant) {
   localStorage.setItem("product", JSON.stringify(variant));
   router.push(`/product/${variant.id}`);
-};
+}
 </script>
