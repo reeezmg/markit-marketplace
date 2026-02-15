@@ -1,30 +1,20 @@
 <template>
-  <ion-page>
-    <ion-header>
-      <Topbar/>
-    </ion-header>
+  <ion-page class="no-topbar-bg">
+    <Topbar title="Add Address" />
 
-    <ion-content>
+    <ion-content class="address-content">
       <div class="map-container-wrapper">
         <div ref="mapContainer" class="map-container"></div>
         <ion-button expand="block" class="use-location-btn" @click="useCurrentLocation">Use Current Location</ion-button>
       </div>
 
       <div class="ion-padding bottom-div">
-        <div class="relative w-full" @click="openSearchModal">
-          <div class="mt-4 relative w-full">
-            <div class="flex items-center w-full px-4 py-3 rounded-xl bg-gray-100 focus-within:ring-2 ring-gray-300">
-              <ion-icon :icon="searchOutline" class="text-gray-600 me-3 w-6 h-6"></ion-icon>
-              <input
-                type="text"
-                placeholder="Search..."
-                class="bg-transparent w-full focus:outline-none text-base"
-              />
-            </div>
-          </div>
-        </div>
+        <button class="address-search-trigger glass-card" type="button" @click="openSearchModal">
+          <ion-icon :icon="searchOutline" class="address-search-icon"></ion-icon>
+          <span class="address-search-text">Search place...</span>
+        </button>
         
-        <div class="latlng-display">
+        <div v-if="name || formattedAddress" class="latlng-display">
           <div class="flex flex-col">
             <div class="text-2xl font-bold mb-2">{{ name }}</div>
             <div class="text-lg">{{ formattedAddress }}</div>
@@ -61,7 +51,6 @@
 <script setup>
 import {
   IonPage,
-  IonHeader,
   IonContent,
   IonButton,
   IonIcon,
@@ -71,7 +60,7 @@ import { ref, onMounted } from 'vue'
 import { create, searchOutline } from 'ionicons/icons'
 import Topbar from '@/components/Topbar.vue'
 import SearchModal from '@/components/Address/SearchModal.vue'
-import MoreDetailsModal from '@/components/Address/MoreDetailsModel.vue'
+import MoreDetailsModal from '@/components/Address/MoreDetailsModal.vue'
 import { useLocationStore } from '@/composables/useLocationStore'
 import { useRouter, useRoute } from 'vue-router';
 import { createAddress } from '@/api/address';
@@ -264,7 +253,13 @@ const confirmLocation = async (data) => {
       lng: lng.value,
     })
 
-     router.push(`/${redirect}`);
+     if (redirect === 'cart') {
+      router.push({ name: 'cart' })
+     } else if (redirect === 'account') {
+      router.push({ name: 'account' })
+     } else {
+      router.push({ name: 'shops' })
+     }
 
      await createAddress({
       id: uuid,
@@ -306,24 +301,40 @@ const confirmProceed = () => {
 
 }
 
+.address-content {
+  --padding-top: 10px;
+  --padding-start: 12px;
+  --padding-end: 12px;
+  --padding-bottom: calc(106px + env(safe-area-inset-bottom, 0px));
+}
+
 .map-container-wrapper {
   position: relative;
-  height: 60%;
+  height: 44vh;
+  border-radius: var(--markit-radius-xl);
+  border: 1px solid var(--markit-glass-border);
+  background: var(--markit-glass-surface-strong);
+  box-shadow: inset 0 1px 0 var(--markit-glass-highlight), var(--markit-glass-shadow);
+  overflow: hidden;
 }
 
 .bottom-div {
-  height: 40%;
+  min-height: 38vh;
 }
 
 .use-location-btn {
-  margin-top: 0.5rem;
-  width: 100%;
+  width: calc(100% - 16px);
   position: absolute;
-  left: 0;
-  bottom: 0;
+  left: 8px;
+  bottom: 8px;
   z-index: 10;
-  --border-radius: 0px;
-
+  --border-radius: var(--markit-radius-pill);
+  --background: var(--ion-color-primary);
+  --background-hover: var(--ion-color-primary);
+  --background-activated: var(--ion-color-primary);
+  --color: #ffffff;
+  font-weight: 700;
+  letter-spacing: 0.01em;
 }
 
 .map-container {
@@ -333,7 +344,94 @@ const confirmProceed = () => {
 }
 
 .latlng-display {
-  margin-top: 1rem;
+  margin-top: 12px;
+  padding: 16px;
+  border-radius: var(--markit-radius-xl);
+  border: 1px solid var(--markit-glass-border);
+  background: var(--markit-glass-surface);
+  box-shadow: inset 0 1px 0 var(--markit-glass-highlight), var(--markit-glass-shadow);
+}
+
+.address-search-trigger {
+  width: 100%;
+  margin-top: 4px;
+  min-height: 52px;
+  border-radius: var(--markit-radius-xl);
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  padding: 0 16px;
+  color: var(--markit-text-muted);
+}
+
+.address-search-icon {
+  width: 20px;
+  height: 20px;
+}
+
+.address-search-text {
+  font-size: 18px;
+  line-height: 1;
+}
+
+@media (max-height: 780px) {
+  .map-container-wrapper {
+    height: 40vh;
+  }
+
+  .bottom-div {
+    min-height: 42vh;
+  }
+}
+
+@media (max-height: 700px) {
+  .address-content {
+    --padding-top: 8px;
+    --padding-bottom: calc(98px + env(safe-area-inset-bottom, 0px));
+  }
+
+  .map-container-wrapper {
+    height: 36vh;
+  }
+
+  .bottom-div {
+    min-height: 44vh;
+  }
+
+  .use-location-btn {
+    width: calc(100% - 12px);
+    left: 6px;
+    bottom: 6px;
+    font-size: 14px;
+  }
+
+  .address-search-trigger {
+    min-height: 48px;
+    padding: 0 14px;
+  }
+
+  .address-search-text {
+    font-size: 16px;
+  }
+}
+
+:deep(.gm-style .gm-style-mtc button),
+:deep(.gm-fullscreen-control),
+:deep(.gm-svpc),
+:deep(.gm-bundled-control .gmnoprint) {
+  border-radius: 14px !important;
+  border: 1px solid var(--markit-glass-border) !important;
+  box-shadow: inset 0 1px 0 var(--markit-glass-highlight), var(--markit-glass-shadow) !important;
+}
+
+:deep(.gm-style .gm-style-mtc button) {
+  background: rgba(255, 255, 255, 0.92) !important;
+  color: var(--markit-text) !important;
+}
+
+:deep(.gm-style .gm-style-mtc button[aria-pressed="true"]) {
+  background: color-mix(in srgb, var(--ion-color-primary) 22%, #ffffff) !important;
+  color: var(--ion-color-primary-shade) !important;
 }
 
 </style>

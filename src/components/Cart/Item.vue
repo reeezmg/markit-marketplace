@@ -1,108 +1,141 @@
 <template>
-  <!-- Header: Switch between cart groups -->
-  <div class="flex justify-between items-center mb-4 bg-white p-3 mx-2 my-3 rounded-lg">
-    <Badge
-      size="lg"
-      v-if="groupCount > 1"
+  <div class="cart-group-switch bg-white mb-4 p-3 mx-2 my-3">
+    <div class="cart-group-strip flex justify-between items-center">
+    <button
+      v-if="storeCount > 1"
+      type="button"
+      class="cart-switch-arrow"
+      aria-label="Previous cart group"
       @click="prevGroup"
-      color="secondary"
-      variant="outline"
-    >&lt;</Badge>
+    >
+      <IonIcon :icon="chevronBackOutline" />
+    </button>
 
-    <!-- Active cart group display -->
-    <div class="flex flex-row justify-center items-center gap-4">
-      <template v-for="(company, idx) in activeGroup.companies" :key="company.companyId">
-        <div
-          class="flex flex-row items-center gap-2 transition-all duration-300"
-          :class="{ 'opacity-100': idx === 0, 'opacity-75': idx !== 0 }"
-        >
-          <div class="flex-shrink-0 w-16 h-10 rounded-lg overflow-hidden bg-gray-100">
-            <img
-              :src="`https://images.markit.co.in/${company.companyLogo}`"
-              alt="logo"
-              class="w-full h-full object-fill"
-            />
-          </div>
-          <div class="flex flex-col justify-between py-[1px]">
-            <div class="text-base font-semibold leading-none">{{ company.companyName }}</div>
-            <div class="text-xs text-[#097D4C]">View Products</div>
+    <div class="cart-group-companies flex items-center justify-center px-1">
+      <div
+        v-if="activeHeaderCompany"
+        class="cart-company-chip is-active flex flex-row items-center gap-2 transition-all duration-300"
+      >
+        <div class="cart-company-logo flex-shrink-0 w-16 h-10 overflow-hidden">
+          <img
+            v-if="hasCompanyLogo(activeHeaderCompany.companyLogo) && !failedCompanyLogos[activeHeaderCompany.companyId]"
+            :src="`https://images.markit.co.in/${activeHeaderCompany.companyLogo}`"
+            alt=""
+            class="w-full h-full object-fill"
+            @error="onCompanyLogoError(activeHeaderCompany.companyId)"
+          />
+          <div v-else class="cart-company-logo-fallback">
+            {{ companyInitial(activeHeaderCompany.companyName) }}
           </div>
         </div>
-      </template>
+        <div class="flex flex-col justify-between py-[1px]">
+          <div class="cart-company-name">{{ activeHeaderCompany.companyName }}</div>
+          <button
+            type="button"
+            class="cart-company-link w-fit"
+            @click.stop="goToShop(activeHeaderCompany)"
+          >
+            View Products
+          </button>
+        </div>
+      </div>
+
+      <button
+        v-else
+        type="button"
+        class="cart-company-chip cart-all-inline is-active transition-all duration-300"
+        @click="showAllStoresList"
+      >
+        <div class="cart-company-logo flex-shrink-0 w-16 h-10 overflow-hidden">
+          <div class="cart-company-logo-fallback">A</div>
+        </div>
+        <div class="flex flex-col justify-between py-[1px]">
+          <div class="cart-company-name">All Stores</div>
+        </div>
+      </button>
     </div>
 
-    <Badge
-      size="lg"
-      v-if="groupCount > 1"
+    <button
+      v-if="storeCount > 1"
+      type="button"
+      class="cart-switch-arrow"
+      aria-label="Next cart group"
       @click="nextGroup"
-      color="secondary"
-      variant="outline"
-    >&gt;</Badge>
+    >
+      <IonIcon :icon="chevronForwardOutline" />
+    </button>
+    </div>
+
   </div>
 
-  <!-- Item list -->
   <div>
-    <template v-if="activeGroup && activeGroup.companies?.length">
+    <template v-if="renderCompanies.length">
       <div
-        v-for="company in activeGroup.companies"
+        v-for="company in renderCompanies"
         :key="company.companyId"
-        class="bg-white p-3 mx-2 my-3 rounded-lg"
+        class="cart-company-card bg-white p-3 mx-2 my-3"
       >
         <div
-          class="flex items-center justify-center gap-2 text-lg font-semibold mb-3 w-full border-b border-gray-300 pb-1"
+          class="cart-company-heading flex items-center justify-center gap-2 mb-3 w-full pb-1"
         >
-          <IonIcon :icon="bagHandleOutline" class="text-gray-600 mb-2 w-7 h-7" />
-          {{ company.companyName }}’s Items
+          <IonIcon :icon="bagHandleOutline" class="cart-company-heading-icon mb-2 w-7 h-7" />
+          <span class="cart-company-heading-text">{{ company.companyName }}'s Items</span>
         </div>
 
-        <ul role="list" class="divide-y divide-gray-200">
+        <ul role="list" class="divide-y divide-[var(--markit-border)]">
           <li
             v-for="cartItem in company.items"
             :key="`${cartItem.id}-${cartItem.selectedSize || 'nosize'}`"
             class="flex py-6"
           >
-            <div class="flex justify-between w-full gap-x-5">
-              <div class="w-32 h-32 rounded-md">
+            <div class="cart-item-row flex justify-between w-full gap-x-5">
+              <RouterLink
+                :to="{ name: 'product', params: { variantId: cartItem.id } }"
+                class="cart-item-media w-32 h-32 rounded-md"
+              >
                 <img
                   v-if="cartItem.images?.length"
                   :src="`https://images.markit.co.in/${cartItem.images[0]}`"
                   class="w-full h-full object-cover rounded-md"
                 />
-              </div>
+              </RouterLink>
 
-              <div class="flex flex-col w-full justify-between p-1">
+              <div class="cart-item-content flex flex-col w-full justify-between p-1">
                 <div class="min-w-0">
-                  <div class="text-md">
-                    <a :href="`products/${cartItem.id}`" class="font-medium">
-                      {{ cartItem.productName }} - {{ cartItem.name }}
-                    </a>
+                  <div class="cart-item-title-wrap">
+                    <RouterLink
+                      :to="{ name: 'product', params: { variantId: cartItem.id } }"
+                      class="cart-item-title"
+                    >
+                      {{ formatProductTitle(cartItem.productName, cartItem.name) }}
+                    </RouterLink>
                   </div>
 
-                  <p v-if="cartItem.selectedSize" class="mt-1 text-sm text-gray-500">
-                    Size: {{ cartItem.selectedSize }}
+                  <p v-if="cartItem.selectedSize" class="cart-item-size mt-1">
+                    Size: {{ formatSize(cartItem.selectedSize) }}
                   </p>
 
                   <div>
-                    <p class="text-sm font-medium">
+                    <p class="cart-item-price">
                       <span v-if="cartItem.discount > 0">
-                        <del class="text-gray-400">₹{{ cartItem.sprice.toFixed(2) }}</del>
-                        <span class="ml-1 text-green-500">
-                          ₹{{ (cartItem.sprice * (1 - cartItem.discount / 100)).toFixed(2) }}
+                        <del class="cart-item-price-strike">&#8377;{{ Number(cartItem.sprice || 0).toFixed(2) }}</del>
+                        <span class="cart-item-price-sale ml-1">
+                          &#8377;{{ (Number(cartItem.sprice || 0) * (1 - Number(cartItem.discount || 0) / 100)).toFixed(2) }}
                         </span>
                       </span>
-                      <span v-else>₹{{ cartItem.sprice.toFixed(2) }}</span>
+                      <span v-else class="cart-item-price-main">&#8377;{{ Number(cartItem.sprice || 0).toFixed(2) }}</span>
                     </p>
                   </div>
                 </div>
 
-                <div class="flex flex-row justify-between items-center">
-                  <div class="flex items-center gap-3 me-4">
+                <div class="cart-item-actions flex flex-row justify-between items-center">
+                  <div class="cart-item-qty-controls flex items-center gap-3 me-4">
                     <Badge size="lg" @click="decrement(cartItem)" color="secondary" variant="outline">-</Badge>
-                    <span class="text-sm">{{ cartItem.quantity }}</span>
+                    <span class="cart-item-qty">{{ cartItem.quantity }}</span>
                     <Badge size="lg" @click="increment(cartItem)" color="secondary" variant="outline">+</Badge>
                   </div>
-                  <button @click="removeAll(cartItem)" class="text-gray-500 hover:text-red-500">
-                    <ion-icon :icon="trash" class="w-6 h-6 text-red-500"></ion-icon>
+                  <button @click="removeAll(cartItem)" class="cart-item-delete">
+                    <ion-icon :icon="trash" class="w-6 h-6"></ion-icon>
                   </button>
                 </div>
               </div>
@@ -117,11 +150,12 @@
 </template>
 
 <script setup lang="ts">
-import { trash, bagHandleOutline } from 'ionicons/icons'
+import { trash, bagHandleOutline, chevronBackOutline, chevronForwardOutline } from 'ionicons/icons'
 import { IonIcon, onIonViewWillEnter, createGesture } from '@ionic/vue'
 import Badge from '../Badge.vue'
 import { useCartStore } from '@/store/useCartStore'
-import { ref, computed, onMounted, watch } from 'vue'
+import { computed, onMounted, ref, watch } from 'vue'
+import { useRouter } from 'vue-router'
 
 const emit = defineEmits<{
   (e: 'groupedCart', payload: {
@@ -130,8 +164,8 @@ const emit = defineEmits<{
       companyId: string
       companyName: string
       companyLogo: string
-      companyLat: string
-      companyLng: string
+      companyLat: number
+      companyLng: number
       companyLocationId: string
       items: any[]
     }[]
@@ -139,29 +173,103 @@ const emit = defineEmits<{
 }>()
 
 const cart = useCartStore()
+const router = useRouter()
+const failedCompanyLogos = ref<Record<string, boolean>>({})
 
-/* --- Navigation between cart groups --- */
+/* --- Original cart logic: group-based navigation --- */
 const activeGroupIndex = ref(0)
 const groupCount = computed(() => cart.groups.length)
 const activeGroup = computed(() => cart.groups[activeGroupIndex.value] || { companies: [] })
 
+/* --- UI adapter bindings (display only) --- */
+const storeCount = computed(() => groupCount.value)
+const renderCompanies = computed(() => activeGroup.value?.companies || [])
+const activeHeaderCompany = computed(() => {
+  const companies = activeGroup.value?.companies || []
+  return companies.length === 1 ? companies[0] : null
+})
+
+function hasCompanyLogo(logo?: string | null) {
+  const value = String(logo || '').trim().toLowerCase()
+  return value !== '' && value !== 'undefined' && value !== 'null'
+}
+
+function companyInitial(name?: string | null) {
+  const value = String(name || '').trim()
+  return value ? value[0].toUpperCase() : 'S'
+}
+
+function onCompanyLogoError(companyId: string) {
+  failedCompanyLogos.value[companyId] = true
+}
+
+function formatLabel(value?: string | null) {
+  if (!value) return ''
+  return String(value)
+    .replace(/&/g, ' & ')
+    .replace(/_/g, ' ')
+    .replace(/\s+/g, ' ')
+    .trim()
+    .toLowerCase()
+    .split(' ')
+    .map((word) =>
+      word
+        .split('-')
+        .map((part) => (part ? part[0].toUpperCase() + part.slice(1) : part))
+        .join('-')
+    )
+    .join(' ')
+}
+
+function formatProductTitle(productName?: string | null, colorName?: string | null) {
+  const base = formatLabel(productName)
+  const color = formatLabel(colorName)
+  if (!base) return color
+  if (!color || color.toLowerCase() === base.toLowerCase()) return base
+  return `${base} (${color})`
+}
+
+function formatSize(size?: string | null) {
+  return String(size || '').trim().toUpperCase()
+}
+
 function nextGroup() {
+  if (!groupCount.value) return
   activeGroupIndex.value = (activeGroupIndex.value + 1) % groupCount.value
 }
 function prevGroup() {
+  if (!groupCount.value) return
   activeGroupIndex.value = (activeGroupIndex.value - 1 + groupCount.value) % groupCount.value
 }
 
-/* --- Emit active group --- */
+function showAllStoresList() {
+  // Intentionally no-op to preserve original cart grouping business logic.
+}
+
+function goToShop(company: { companyId: string; companyName: string }) {
+  if (!company?.companyId) return
+  const name = encodeURIComponent(company.companyName || 'shop')
+  router.push({ name: 'shop', params: { companyId: company.companyId, companyName: name } })
+}
+
 watch([() => cart.groups, activeGroupIndex], () => {
-  const currentGroup = activeGroup.value
+  const currentGroup = activeGroup.value || { cartNumber: 0, companies: [] }
   emit('groupedCart', {
     cartNumber: currentGroup.cartNumber,
     companies: currentGroup.companies || [],
   })
 }, { deep: true, immediate: true })
 
-/* --- Cart item controls --- */
+watch(() => cart.groups, (groups) => {
+  if (!groups.length) {
+    activeGroupIndex.value = 0
+    return
+  }
+  if (activeGroupIndex.value > groups.length - 1) {
+    activeGroupIndex.value = groups.length - 1
+  }
+}, { deep: true })
+
 function increment(item: any) {
   item.quantity += 1
   cart.saveCart()
@@ -184,17 +292,14 @@ function removeAll(item: any) {
     group.companies = group.companies.filter(c => c.items.length > 0)
   }
 
-  // Remove empty groups
   cart.groups = cart.groups.filter(g => g.companies.length > 0)
   cart.saveCart()
 }
 
-/* --- Load cart when view opens --- */
 onIonViewWillEnter(async () => {
   await cart.loadCart()
 })
 
-/* --- Swipe gesture between cart groups --- */
 onMounted(() => {
   if (groupCount.value > 1) {
     const gesture = createGesture({
@@ -209,3 +314,220 @@ onMounted(() => {
   }
 })
 </script>
+
+<style scoped>
+.cart-group-switch {
+  background: var(--markit-surface);
+  border: 1px solid var(--markit-border);
+  border-radius: var(--markit-radius-xl);
+}
+
+.cart-group-strip {
+  gap: 10px;
+}
+
+.cart-switch-arrow {
+  width: 34px;
+  min-width: 34px;
+  height: 34px;
+  border-radius: 10px;
+  border: 1px solid var(--markit-border);
+  color: var(--markit-text);
+  background: var(--markit-surface-muted);
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  transition: border-color .2s ease, color .2s ease, background-color .2s ease;
+}
+
+.cart-switch-arrow:hover {
+  border-color: var(--ion-color-primary);
+  color: var(--ion-color-primary);
+}
+
+.cart-group-companies {
+  flex: 1;
+  min-width: 0;
+  overflow: hidden;
+}
+
+.cart-company-chip {
+  width: min(100%, 330px);
+  min-height: 64px;
+  border: 1px solid transparent;
+  border-radius: 12px;
+  padding: 8px 10px;
+  cursor: pointer;
+  display: inline-flex;
+  align-items: center;
+  gap: 10px;
+}
+
+.cart-company-chip.is-active {
+  border-color: var(--markit-border);
+  background: color-mix(in srgb, var(--ion-color-primary) 7%, #ffffff);
+}
+
+.cart-all-inline {
+  justify-content: flex-start;
+}
+
+.cart-company-logo {
+  border: 1px solid var(--markit-border);
+  border-radius: 10px;
+  background: var(--markit-surface-muted);
+}
+
+.cart-company-logo-fallback {
+  width: 100%;
+  height: 100%;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-size: 1rem;
+  font-weight: 700;
+  color: var(--ion-color-primary);
+  background: color-mix(in srgb, var(--ion-color-primary) 12%, #ffffff);
+}
+
+.cart-company-name {
+  font-size: 0.98rem;
+  line-height: 1.15;
+  font-weight: 700;
+  color: var(--markit-text);
+}
+
+.cart-company-link {
+  font-size: 0.78rem;
+  line-height: 1.25;
+  font-weight: 600;
+  color: var(--markit-primary);
+}
+
+.cart-company-card {
+  background: var(--markit-surface);
+  border: 1px solid var(--markit-border);
+  border-radius: var(--markit-radius-xl);
+}
+
+.cart-company-heading {
+  border-bottom: 1px solid var(--markit-border);
+}
+
+.cart-company-heading-icon {
+  color: var(--markit-text-muted);
+}
+
+.cart-company-heading-text {
+  font-size: 1.06rem;
+  line-height: 1.25;
+  font-weight: 700;
+  color: var(--markit-text);
+}
+
+.cart-item-media {
+  background: var(--markit-surface-muted);
+  border: 1px solid var(--markit-border);
+  flex: 0 0 128px;
+}
+
+.cart-item-title {
+  font-size: 0.95rem;
+  line-height: 1.35;
+  font-weight: 600;
+  color: var(--markit-text);
+}
+
+.cart-item-size {
+  font-size: 0.8rem;
+  line-height: 1.3;
+  color: var(--markit-text-muted);
+}
+
+.cart-item-price {
+  margin-top: 3px;
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  flex-wrap: wrap;
+}
+
+.cart-item-price-main {
+  font-size: 0.93rem;
+  line-height: 1.3;
+  font-weight: 700;
+  color: var(--markit-text);
+}
+
+.cart-item-price-strike {
+  font-size: 0.83rem;
+  color: var(--markit-text-muted);
+}
+
+.cart-item-price-sale {
+  font-size: 0.93rem;
+  line-height: 1.3;
+  font-weight: 700;
+  color: var(--ion-color-primary);
+}
+
+.cart-item-qty {
+  min-width: 22px;
+  text-align: center;
+  font-size: 0.88rem;
+  line-height: 1.2;
+  font-weight: 600;
+  color: var(--markit-text);
+}
+
+.cart-item-delete {
+  color: #d33c3c;
+}
+
+.cart-item-delete :deep(ion-icon) {
+  font-size: 22px;
+}
+
+@media (max-width: 420px) {
+  .cart-company-chip {
+    width: 100%;
+  }
+
+  .cart-item-row {
+    gap: 12px;
+  }
+
+  .cart-item-media {
+    width: 106px;
+    height: 106px;
+    flex-basis: 106px;
+  }
+
+  .cart-item-content {
+    min-width: 0;
+  }
+
+  .cart-item-title {
+    font-size: 0.88rem;
+    line-height: 1.25;
+  }
+
+  .cart-item-size {
+    font-size: 0.74rem;
+  }
+
+  .cart-item-actions {
+    margin-top: 8px;
+  }
+
+  .cart-item-qty-controls {
+    gap: 8px;
+    margin-right: 8px;
+  }
+
+  .cart-item-delete :deep(ion-icon) {
+    font-size: 20px;
+  }
+}
+</style>
+

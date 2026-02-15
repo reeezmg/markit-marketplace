@@ -1,15 +1,15 @@
 <template>
-  <div class="fixed bottom-0 left-0 right-0 bg-white rounded-t-xl p-4 shadow-lg z-50 h-2/3">
-    <div class="max-w-md mx-auto">
-      <div class="text-lg font-semibold">Verify</div>
-      <div class="text-sm text-gray-500">Enter the OTP sent to your phone</div>
+  <div class="space-y-4">
+    <div>
+      <div class="text-lg font-semibold text-slate-900">Verify</div>
+      <div class="text-sm text-slate-600">Enter the OTP sent to your phone</div>
     </div>
-    <div class="max-w-md mx-auto mt-4">
+    <div class="mt-2 space-y-4">
       <ion-input-otp v-model="otp" size="medium" length="6">
         Didn't get a code?
         <a href="#">Resend the code</a>
       </ion-input-otp>
-      <ion-button expand="block" class="mt-6" @click="submitOtp">
+      <ion-button expand="block" class="mt-1 markit-cta" @click="submitOtp">
         Submit
       </ion-button>
     </div>

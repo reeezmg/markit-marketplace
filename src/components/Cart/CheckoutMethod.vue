@@ -1,8 +1,8 @@
 <template>
-  <div class="bg-white p-3 mx-2 rounded-lg my-3">
+  <div class="cart-checkout-card p-3 mx-2 my-3">
     <label
       for="checkoutMethod"
-      class="block font-semibold text-md mb-3 "
+      class="cart-checkout-label block mb-3"
     >
       Checkout Method
     </label>
@@ -39,3 +39,17 @@ function handleChange(value: string | number) {
   emit('update:method', String(value))
 }
 </script>
+
+<style scoped>
+.cart-checkout-card {
+  background: var(--markit-surface);
+  border: 1px solid var(--markit-border);
+  border-radius: var(--markit-radius-xl);
+}
+
+.cart-checkout-label {
+  font-size: 0.98rem;
+  font-weight: 700;
+  color: var(--markit-text);
+}
+</style>

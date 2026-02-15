@@ -1,13 +1,13 @@
 <template>
   <li
-    class="col-span-1 bg-white flex flex-col rounded-lg overflow-hidden border border-gray-200 hover:shadow-[0_6px_20px_rgba(10,10,10,0.08)] transition-transform duration-200 transform hover:-translate-y-1 relative cursor-pointer group"
+    class="variant-card col-span-1 bg-white flex flex-col rounded-lg overflow-hidden border border-gray-200 hover:shadow-[0_6px_20px_rgba(10,10,10,0.08)] transition-transform duration-200 transform hover:-translate-y-1 relative cursor-pointer group"
     @click="navigateToProduct"
     :class="{ 'opacity-60 pointer-events-none': variant.outOfStock }"
   >
     <!-- Out of Stock overlay -->
     <div
       v-if="variant.outOfStock"
-      class="absolute inset-0 z-30 flex items-center justify-center bg-white/80 dark:bg-gray-900/80"
+      class="absolute inset-0 z-30 flex items-center justify-center bg-white/85"
     >
       <span class="bg-red-600 text-white text-xs font-semibold px-3 py-1 rounded-full">
         Out of Stock
@@ -46,30 +46,30 @@
     </div>
 
       <!-- info -->
-      <div class="px-3 pt-2 pb-1 flex flex-col gap-1 flex-1">
-        <div class="text-[13px] leading-tight line-clamp-2">
-    <span class="text-gray-700 font-medium">
-      {{ variant.name }}
-    </span>
-        <span  v-if="variant.productName" class="text-gray-500 font-medium">
-      ({{ variant.productName }})
-    </span>
-  </div>
+      <div class="variant-card-body px-3 pt-2 pb-1 flex flex-col gap-1 flex-1">
+        <div class="variant-title line-clamp-2">
+          <span class="variant-title-main">
+            {{ formatLabel(variant.productName || variant.name) }}
+          </span>
+          <span v-if="variant.productName && variant.name" class="variant-title-sub">
+            ({{ formatLabel(variant.name) }})
+          </span>
+        </div>
 
 
-      <div class="flex items-center justify-between mt-auto">
+      <div class="variant-price-row flex items-center justify-between mt-auto">
         <div>
           <template v-if="variant.discount <= 0">
-            <div class="text-[15px] font-semibold text-gray-900">
+            <div class="variant-price-main">
               {{ formatPrice(variant.sprice) }}
             </div>
           </template>
           <template v-else>
             <div class="flex items-baseline gap-2">
-              <div class="text-[12px] text-gray-400 line-through">
+              <div class="variant-price-strike">
                 {{ formatPrice(variant.sprice) }}
               </div>
-              <div class="text-[15px] font-bold text-[#097D4C]">
+              <div class="variant-price-main variant-price-main--discount">
                 {{ formatPrice(variant.dprice) }}
               </div>
             </div>
@@ -162,8 +162,24 @@ const formatPrice = (p: number) => {
   return `₹${Number(p).toLocaleString('en-IN', { minimumFractionDigits: 2, maximumFractionDigits: 2 })}`;
 };
 
+const formatLabel = (value?: string | null) => {
+  if (!value) return '';
+
+  return value
+    .toLowerCase()
+    .split(' ')
+    .filter(Boolean)
+    .map((word) =>
+      word
+        .split('-')
+        .map((part) => (part ? part[0].toUpperCase() + part.slice(1) : part))
+        .join('-')
+    )
+    .join(' ');
+};
+
 const navigateToProduct = () => {
-  router.push(`/product/${props.variant.id}`);
+  router.push({ name: 'product', params: { variantId: props.variant.id } });
 };
 
 const toggleLike = () => {
@@ -194,5 +210,48 @@ const handleSizeSelect = (selectedSizes: string[]) => {
   -webkit-line-clamp: 2;
   -webkit-box-orient: vertical;
   overflow: hidden;
+}
+
+.variant-card {
+  border-color: var(--markit-border);
+  border-radius: var(--markit-radius-lg);
+  background: var(--markit-surface);
+}
+
+.variant-card-body {
+  gap: 6px;
+}
+
+.variant-title {
+  font-size: 0.92rem;
+  line-height: 1.3;
+}
+
+.variant-title-main {
+  color: var(--markit-text);
+  font-weight: 600;
+}
+
+.variant-title-sub {
+  color: var(--markit-text-muted);
+  font-weight: 500;
+}
+
+.variant-price-main {
+  font-size: 1rem;
+  line-height: 1.2;
+  font-weight: 700;
+  color: var(--markit-text);
+}
+
+.variant-price-main--discount {
+  color: #2d5444;
+}
+
+.variant-price-strike {
+  font-size: 0.8rem;
+  line-height: 1.2;
+  color: var(--markit-text-muted);
+  text-decoration: line-through;
 }
 </style>

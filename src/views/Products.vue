@@ -1,18 +1,18 @@
 <template>
   <ion-page>
-    <ion-header class="ion-padding ion-no-border bg-white">
+    <ion-header class="ion-no-border products-header">
       <Topbar @search="onSearch" :name="companyName" />
     </ion-header>
 
-    <ion-content :fullscreen="true" color="light">
-      <div class="px-4 py-2 bg-white">
+    <ion-content :fullscreen="true" color="light" class="products-page">
+      <div class="px-4 py-2 products-shell">
       
       <!-- Skeleton Loader -->
       <ul class="grid grid-cols-2 gap-3 mb-10" v-if="loading && variants.length === 0">
         <li
           v-for="n in 6"
           :key="n"
-          class="col-span-1 flex flex-col space-y-2 border border-gray-300 rounded-lg overflow-hidden animate-pulse p-2"
+          class="col-span-1 flex flex-col space-y-2 border rounded-xl overflow-hidden animate-pulse p-2 skeleton-card"
         >
           <div class="w-full aspect-[4/5] bg-gray-300 rounded-md"></div>
           <div class="h-5 bg-gray-300 rounded w-3/4"></div>
@@ -70,8 +70,14 @@ async function openFilterModal(filterType: 'category' | 'size' | 'sort') {
   const items = filterType === 'category' ? categories.value : (filterType === 'size' ? sizeOptions.value : sortOptions.value);
   const initialSelected = filterType === 'category' ? selectedCategory.value : (filterType === 'size' ? selectedSize.value : selectedSort.value);
 
+  const initialBreakpoint =
+    filterType === 'sort' ? 0.42 : filterType === 'size' ? 0.62 : 0.68;
+  const breakpoints =
+    filterType === 'sort' ? [0, 0.42, 0.6] : [0, initialBreakpoint, 0.9];
+
   const modal = await modalController.create({
     component: FilterModal,
+    cssClass: 'markit-filter-sheet',
     componentProps: {
       title: filterType === 'category' ? 'Category' : (filterType === 'size' ? 'Size' : 'Sort by'),
       items,
@@ -80,9 +86,8 @@ async function openFilterModal(filterType: 'category' | 'size' | 'sort') {
       filterType: filterType
     },
     backdropDismiss: true,
-    // swipeToClose: true,
-    initialBreakpoint: 0.4,
-    breakpoints: [0, 0.4, 1],
+    initialBreakpoint,
+    breakpoints,
     handleBehavior: 'cycle',
     presentingElement: document.querySelector('ion-router-outlet') || undefined
   });
@@ -248,6 +253,25 @@ onMounted(() => {
 
 function toProductDetailsPage(variant: CompanyVariant) {
   localStorage.setItem("product", JSON.stringify(variant));
-  router.push(`/product/${variant.id}`);
+  router.push({ name: 'product', params: { variantId: variant.id } });
 }
 </script>
+
+<style scoped>
+.products-page {
+  --background: var(--markit-bg);
+}
+
+.products-header {
+  background: transparent !important;  
+}
+
+.products-shell {
+  background: var(--markit-bg);
+}
+
+.skeleton-card {
+  border-color: var(--markit-border);
+  background: var(--markit-surface);
+}
+</style>

@@ -1,40 +1,271 @@
-/* For information on how to create your own theme, please see:
-http://ionicframework.com/docs/theming/ */
+/* Global Theme */
 @import "tailwindcss";
 
 :root {
-  /** Primary **/
-  --ion-color-primary: #53816C;
-  --ion-color-primary-rgb: 9, 125, 76;
+  --ion-font-family: 'Nunito', sans-serif;
+
+  /* Brand */
+  --ion-color-primary: #53816c;
+  --ion-color-primary-rgb: 83, 129, 108;
   --ion-color-primary-contrast: #ffffff;
   --ion-color-primary-contrast-rgb: 255, 255, 255;
-  --ion-color-primary-shade: #086f44; /* darker shade for pressed state */
-  --ion-color-primary-tint: #21936a;  /* lighter tint for hover/active */
-  
-  /** Optional extra color you already added **/
-  --ion-color-tertiary: #F8FDF3;
-  --ion-font-family: 'Nunito', sans-serif;
+  --ion-color-primary-shade: #476f5c;
+  --ion-color-primary-tint: #6e9885;
+
+  /* Neutral surfaces */
+  --markit-bg: #f3f5f4;
+  --markit-surface: #ffffff;
+  --markit-surface-muted: #f8faf9;
+  --markit-border: rgba(15, 23, 42, 0.08);
+  --markit-border-strong: rgba(15, 23, 42, 0.14);
+  --markit-text: #0f172a;
+  --markit-text-muted: #64748b;
+
+  /* Radius + shadow */
+  --markit-radius-lg: 18px;
+  --markit-radius-xl: 24px;
+  --markit-radius-pill: 999px;
+  --markit-shadow-soft: 0 10px 24px rgba(15, 23, 42, 0.06);
+
+  /* iOS glass tokens */
+  --markit-glass-surface: linear-gradient(180deg, rgba(255, 255, 255, 0.44) 0%, rgba(240, 247, 243, 0.28) 100%);
+  --markit-glass-surface-strong: linear-gradient(180deg, rgba(255, 255, 255, 0.56) 0%, rgba(236, 245, 240, 0.34) 100%);
+  --markit-glass-border: rgba(83, 129, 108, 0.24);
+  --markit-glass-border-hover: rgba(83, 129, 108, 0.42);
+  --markit-glass-highlight: rgba(255, 255, 255, 0.84);
+  --markit-glass-shadow: 0 10px 18px rgba(20, 34, 28, 0.09);
+  --markit-glass-shadow-lg: 0 14px 28px rgba(20, 34, 28, 0.12);
 }
 
-html, body, ion-app {
+html,
+body,
+ion-app {
   font-family: var(--ion-font-family) !important;
-   letter-spacing: 0.3px;
-   background-color: #f1f1f1;
+  letter-spacing: 0.15px;
+  background: var(--markit-bg);
+  color: var(--markit-text);
 }
 
+ion-content {
+  --background: var(--markit-bg);
+}
+
+/* Shared card primitive */
+.glass-card {
+  position: relative;
+  overflow: hidden;
+  background: var(--markit-glass-surface);
+  border: 1px solid var(--markit-glass-border);
+  border-radius: var(--markit-radius-xl);
+  box-shadow: inset 0 1px 0 var(--markit-glass-highlight), var(--markit-glass-shadow);
+  transition: border-color 0.2s ease, box-shadow 0.2s ease;
+}
+
+.glass-card::before {
+  content: "";
+  position: absolute;
+  inset: 0;
+  pointer-events: none;
+  background: linear-gradient(
+    145deg,
+    rgba(255, 255, 255, 0.5) 0%,
+    rgba(255, 255, 255, 0.12) 40%,
+    rgba(255, 255, 255, 0.02) 100%
+  );
+}
+
+.glass-surface {
+  background: var(--markit-glass-surface);
+  border: 1px solid var(--markit-glass-border);
+  box-shadow: inset 0 1px 0 var(--markit-glass-highlight), var(--markit-glass-shadow);
+  transition: border-color 0.2s ease, box-shadow 0.2s ease;
+}
+
+.glass-card:hover,
+.glass-card:focus-within,
+.glass-surface:hover,
+.glass-surface:focus-within {
+  border-color: var(--markit-glass-border-hover);
+  box-shadow: inset 0 1px 0 var(--markit-glass-highlight), var(--markit-glass-shadow-lg);
+}
+
+/* Reduce heavy default ionic surfaces */
+ion-card,
+ion-item {
+  --background: transparent;
+  --border-color: transparent;
+  box-shadow: none;
+}
+
+ion-searchbar::part(container),
+ion-input::part(native) {
+  border-radius: var(--markit-radius-pill);
+  background: var(--markit-glass-surface);
+  border: 1px solid var(--markit-glass-border);
+  box-shadow: inset 0 1px 0 var(--markit-glass-highlight), var(--markit-glass-shadow);
+  transition: border-color 0.2s ease, box-shadow 0.2s ease;
+}
+
+ion-input,
+ion-textarea {
+  --highlight-color-focused: transparent;
+  --highlight-color-valid: transparent;
+  --highlight-color-invalid: transparent;
+  --caret-color: #111111;
+}
+
+ion-input::part(native),
+ion-textarea::part(textarea) {
+  color: var(--markit-text) !important;
+  -webkit-text-fill-color: var(--markit-text) !important;
+  caret-color: #111111 !important;
+  opacity: 1 !important;
+}
+
+ion-searchbar.searchbar-has-focus::part(container),
+ion-searchbar:hover::part(container),
+ion-input.ion-focused::part(native),
+ion-input:hover::part(native),
+ion-textarea.ion-focused::part(native),
+ion-textarea:hover::part(native),
+ion-select.ion-focused::part(container),
+ion-select:hover::part(container) {
+  border-color: var(--markit-glass-border-hover);
+  box-shadow:
+    inset 0 1px 0 var(--markit-glass-highlight),
+    var(--markit-glass-shadow-lg);
+}
+
+ion-content input:not([type="checkbox"]):not([type="radio"]),
+ion-content textarea,
+ion-content select {
+  color: var(--markit-text);
+  caret-color: #111111;
+}
+
+ion-searchbar input:focus,
+ion-searchbar input:focus-visible {
+  outline: none !important;
+  box-shadow: none !important;
+}
+
+ion-content input:not([type="checkbox"]):not([type="radio"]):focus,
+ion-content textarea:focus,
+ion-content select:focus {
+  outline: none;
+  border-color: var(--markit-glass-border-hover);
+  box-shadow: none;
+}
+
+ion-button {
+  --border-radius: var(--markit-radius-pill);
+  --box-shadow: none;
+  text-transform: none;
+  letter-spacing: 0;
+}
+
+/* Hide content scrollbars */
 ion-content::part(scroll) {
-  -ms-overflow-style: none;  /* IE, Edge */
-  scrollbar-width: none;     /* Firefox */
+  -ms-overflow-style: none;
+  scrollbar-width: none;
 }
 
 ion-content::part(scroll)::-webkit-scrollbar {
-  display: none;  /* Chrome, Safari */
+  display: none;
 }
 
-.mobile-container {
-  width: 375px;         /* iPhone width */
-  max-width: 100%;      /* don’t overflow on small screens */
-  margin: 0 auto;       /* center horizontally */
-  border: 1px solid #ddd; /* optional: phone frame */
-  box-shadow: 0 0 20px rgba(0,0,0,0.1); /* optional */
+/* App shell width */
+.mobile-container,
+.app-container {
+  width: min(460px, 100%);
+  margin: 0 auto;
+}
+
+/* Back buttons: no hover/press/ripple effects */
+.markit-back-btn,
+.myntra-back-btn,
+ion-back-button {
+  --ripple-color: transparent;
+  --background: transparent !important;
+  --background-hover: transparent !important;
+  --background-activated: transparent !important;
+  --background-focused: transparent !important;
+  --background-activated-opacity: 0 !important;
+  --box-shadow: none !important;
+  --color-activated: inherit !important;
+}
+
+.markit-back-btn::part(native),
+.myntra-back-btn::part(native),
+ion-back-button::part(native) {
+  background: transparent !important;
+  box-shadow: none !important;
+  transition: none !important;
+}
+
+.markit-back-btn ion-ripple-effect,
+.myntra-back-btn ion-ripple-effect {
+  display: none;
+}
+
+/* Topbar background helpers */
+.no-topbar-bg ion-header,
+.no-topbar-bg ion-header::part(native) {
+  background: transparent !important;
+  box-shadow: none !important;
+}
+
+/* Shared filter bottom sheet */
+ion-modal.markit-filter-sheet::part(content) {
+  border-radius: 24px 24px 0 0;
+  overflow: hidden;
+  background: var(--markit-surface, #ffffff);
+  border: 1px solid var(--markit-border, rgba(15, 23, 42, 0.08));
+  border-bottom: 0;
+  box-shadow: 0 -8px 28px rgba(20, 34, 28, 0.12);
+}
+
+ion-modal.markit-filter-sheet::part(handle) {
+  width: 42px;
+  height: 5px;
+  border-radius: 999px;
+  background: rgba(100, 116, 139, 0.35);
+}
+
+/* Shared floating toast style */
+ion-toast.markit-toast {
+  --border-radius: 16px;
+  --box-shadow: 0 12px 28px rgba(15, 23, 42, 0.16);
+}
+
+ion-toast.markit-toast::part(container) {
+  border: 1px solid rgba(15, 23, 42, 0.08);
+  background: var(--markit-surface, #ffffff);
+  color: var(--markit-text, #0f172a);
+}
+
+ion-toast.markit-toast::part(icon) {
+  color: var(--ion-color-primary);
+  font-size: 22px;
+}
+
+ion-toast.markit-toast::part(header) {
+  font-weight: 700;
+  color: var(--markit-text, #0f172a);
+}
+
+ion-toast.markit-toast::part(message) {
+  color: var(--markit-text-muted, #64748b);
+}
+
+ion-toast.markit-toast-success::part(container) {
+  border-color: color-mix(in srgb, var(--ion-color-primary) 28%, rgba(15, 23, 42, 0.08));
+}
+
+ion-toast.markit-toast-warning::part(container) {
+  border-color: color-mix(in srgb, #f59e0b 30%, rgba(15, 23, 42, 0.08));
+}
+
+ion-toast.markit-toast-warning::part(icon) {
+  color: #f59e0b;
 }

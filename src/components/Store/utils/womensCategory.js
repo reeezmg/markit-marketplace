@@ -7,7 +7,7 @@ const womensCategory = [
         category: 'women',
     },
     {
-        label: 'T Shirts',
+        label: 'T-Shirts',
         value: 't_shirts',
         image: '/images/categories/women/tshirts_w.png',
         category: 'women',

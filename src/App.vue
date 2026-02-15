@@ -10,16 +10,28 @@
 <style>
 /* Full screen background */
 .app-container {
-  max-width: 460px;         /* lock mobile width */
+  max-width: 460px;
   width: 100%;
-  height: 100vh;
+  min-height: 100vh;
+  height: 100dvh;
   margin: 0 auto;
-  background: #fff;         /* make sure the inside is white */
-  box-shadow: 0 4px 12px rgba(0, 0, 0, 0.1); /* light shadow */
+  background: var(--markit-bg);
+  box-shadow: 0 10px 30px rgba(15, 23, 42, 0.08);
+  position: relative;
+  overflow: hidden;
+  isolation: isolate;
+}
+
+.app-container ion-router-outlet {
+  display: block;
+  width: 100%;
+  height: 100%;
+  overflow: hidden;
 }
 
 ion-modal {
   --max-width: 460px;
+  --border-radius: 24px;
 
 }
 

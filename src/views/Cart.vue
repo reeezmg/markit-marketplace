@@ -1,7 +1,7 @@
 <template>
   <ion-page>
     <Topbar title="Cart" />
-    <ion-content :fullscreen="true" color="light">
+    <ion-content :fullscreen="true" class="ion-padding cart-page">
       <!-- Show cart when we have any groups -->
       <div v-if="hasCart">
         <!-- Item component emits nearby company clusters -->
@@ -9,11 +9,11 @@
 
         <!-- Add products from nearby store -->
         <div
-          class="border-2 border-dashed border-gray-300 rounded-xl m-2 p-6 bg-white shadow-sm flex flex-col items-center justify-center text-center hover:border-green-500 transition-all duration-200 cursor-pointer"
+          class="nearby-add-card m-2 p-6 flex flex-col items-center justify-center text-center cursor-pointer"
           @click="goToNearbyShops"
         >
-          <IonIcon :icon="addOutline" class="text-gray-500 w-10 h-10 mb-2" />
-          <p class="text-sm text-gray-500">Add product from nearby store</p>
+          <IonIcon :icon="addOutline" class="nearby-add-icon w-10 h-10 mb-2" />
+          <p class="nearby-add-text">Add products from nearby stores</p>
         </div>
 
         <!-- Checkout Section -->
@@ -32,30 +32,36 @@
       </div>
 
       <!-- Empty Cart -->
-      <div v-else class="flex flex-col items-center justify-center h-full text-center">
-        <p class="text-gray-600 mb-4">No Products in cart.</p>
+      <div v-else class="flex flex-col items-center justify-center h-full text-center cart-empty empty-panel">
+        <div class="empty-icon">
+          <IonIcon :icon="bagHandleOutline" class="text-[#53816C] text-3xl" />
+        </div>
+        <h2 class="text-lg font-semibold text-gray-900 mt-4">Your cart is empty</h2>
+        <p class="text-gray-600 mt-2 max-w-[16rem]">
+          Add products you love and they'll show up here.
+        </p>
         <ion-button
           fill="solid"
           color="primary"
-          shape="round"
-          size="small"
-          @click="router.push('/')"
+          class="markit-cta mt-5"
+          @click="router.push({ name: 'shops' })"
         >
-          Go to Home
+          Browse Products
         </ion-button>
       </div>
     </ion-content>
 
     <!-- Footer -->
-    <ion-footer v-if="hasActiveItems" class="bg-white rounded-t-xl">
+    <ion-footer v-if="hasActiveItems" class="cart-footer">
       <div v-if="deliveryType" class="p-3 mx-2 my-2">
-        <p class="text-gray-700 font-medium">
+        <p class="cart-delivery-time">
           Delivery Time: {{ formattedDeliveryTime }}
         </p>
       </div>
 
       <div class="m-2">
         <ion-button
+          class="cart-pick-btn"
           expand="block"
           :disabled="loading"
           @click="deliveryType ? checkout() : openPickTimeModal()"
@@ -85,7 +91,7 @@ import Pricing from '@/components/Cart/Pricing.vue'
 import Topbar from '@/components/Topbar.vue'
 import Address from '@/components/Cart/Address.vue'
 import PickTimeModal from '@/components/Cart/PickTimeModal.vue'
-import { addOutline } from 'ionicons/icons'
+import { addOutline, bagHandleOutline } from 'ionicons/icons'
 import {
   IonPage,
   IonFooter,
@@ -218,7 +224,7 @@ const openPickTimeModal = async () => {
   if (token) {
     isPickTimeModalOpen.value = true
   } else {
-    router.push('/login')
+    router.push({ name: 'login' })
   }
 }
 
@@ -342,7 +348,7 @@ const checkout = async () => {
     deliveryType.value = null
     activeGroups.value = []
 
-    router.push('/ordersuccess')
+    router.push({ name: 'order-success' })
   } catch (error: any) {
     console.error('❌ Checkout failed:', error)
 
@@ -374,8 +380,99 @@ const goToNearbyShops = () => {
     .flatMap(g => g.companies)
     .map(c => `${c.companyLat},${c.companyLng}`)
 
-  const query = new URLSearchParams()
-  coords.forEach(coord => query.append('coords', coord))
-  router.push(`/nearbyshops?${query.toString()}`)
+  router.push({ name: 'nearby-shops', query: { coords } })
 }
 </script>
+
+<style scoped>
+.cart-page {
+  --background: var(--markit-bg);
+  --padding-bottom: calc(112px + env(safe-area-inset-bottom, 0px));
+}
+
+.cart-empty {
+  margin-top: -10vh;
+}
+
+.empty-icon {
+  width: 64px;
+  height: 64px;
+  border-radius: var(--markit-radius-lg);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  background: var(--markit-surface);
+  border: 1px solid var(--markit-border);
+  box-shadow: var(--markit-shadow-soft);
+}
+
+.empty-panel {
+  width: 100%;
+  background: var(--markit-bg);
+  border-radius: var(--markit-radius-lg);
+  padding: 48px 16px 56px;
+  margin: 0 4px;
+}
+
+.nearby-add-card {
+  border: 1px dashed var(--markit-glass-border-hover);
+  border-radius: var(--markit-radius-xl);
+  background: var(--markit-glass-surface-strong);
+  box-shadow: inset 0 1px 0 var(--markit-glass-highlight), var(--markit-glass-shadow);
+  transition: border-color 0.2s ease, box-shadow 0.2s ease;
+}
+
+.nearby-add-card:hover {
+  border-color: var(--markit-glass-border-hover);
+  box-shadow: inset 0 1px 0 var(--markit-glass-highlight), var(--markit-glass-shadow-lg);
+}
+
+.nearby-add-icon {
+  color: var(--markit-text-muted);
+}
+
+.nearby-add-text {
+  font-size: 0.9rem;
+  line-height: 1.3;
+  color: var(--markit-text-muted);
+}
+
+.cart-footer {
+  background: var(--markit-surface);
+  border-top: 1px solid var(--markit-border);
+  border-radius: var(--markit-radius-xl) var(--markit-radius-xl) 0 0;
+  box-shadow: var(--markit-shadow-soft);
+  backdrop-filter: blur(10px);
+  -webkit-backdrop-filter: blur(10px);
+  padding: 4px 0 calc(env(safe-area-inset-bottom, 0px) + 4px);
+}
+
+.cart-delivery-time {
+  color: var(--markit-text);
+  font-weight: 600;
+  font-size: 0.9rem;
+  line-height: 1.3;
+  background: color-mix(in srgb, var(--ion-color-primary) 10%, #ffffff);
+  border: 1px solid color-mix(in srgb, var(--ion-color-primary) 24%, var(--markit-border));
+  border-radius: 12px;
+  padding: 8px 10px;
+}
+
+.cart-pick-btn {
+  --background: var(--ion-color-primary);
+  --background-hover: var(--ion-color-primary);
+  --background-activated: var(--ion-color-primary);
+  --background-focused: var(--ion-color-primary);
+  --border-radius: 14px;
+  --box-shadow: none;
+  --color: #ffffff;
+  min-height: 46px;
+  font-weight: 700;
+  letter-spacing: 0.01em;
+}
+
+.cart-pick-btn::part(native) {
+  border: 1px solid color-mix(in srgb, var(--ion-color-primary) 70%, #ffffff);
+}
+</style>
+

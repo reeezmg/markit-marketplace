@@ -1,19 +1,9 @@
 <template>
   <ion-page>
-    <!-- HEADER -->
-    <ion-header>
-      <ion-toolbar>
-        <ion-buttons slot="start">
-          <ion-button @click="$router.back()">
-            <ion-icon :icon="arrowBackOutline" />
-          </ion-button>
-        </ion-buttons>
-        <ion-title>Terms of Use</ion-title>
-      </ion-toolbar>
-    </ion-header>
+    <Topbar title="Terms of Use" />
 
     <!-- CONTENT -->
-    <ion-content class="!pt-0 !pb-4 !px-3 bg-white">
+    <ion-content :fullscreen="true" class="ion-padding terms-content">
       <!-- TOP INFO -->
       <div class="flex flex-col items-center text-center pt-8 pb-6">
         <h1 class="text-2xl font-bold">TERMS OF USE</h1>
@@ -30,7 +20,7 @@
       </div>
 
       <!-- ACCORDIONS -->
-      <ion-accordion-group expand="inset" class="space-y-4 px-4">
+      <ion-accordion-group class="terms-accordion-group">
 
         <!-- INTRODUCTION -->
         <ion-accordion value="intro">
@@ -295,23 +285,70 @@
 <script setup>
 import {
   IonPage,
-  IonHeader,
-  IonToolbar,
-  IonTitle,
   IonContent,
   IonAccordionGroup,
   IonAccordion,
   IonItem,
-  IonLabel,
-  IonButtons,
-  IonButton,
-  IonIcon
+  IonLabel
 } from '@ionic/vue'
-import { arrowBackOutline } from 'ionicons/icons'
+import Topbar from '@/components/Topbar.vue'
 </script>
 
 <style scoped>
-ion-content {
-  --padding-top: 0 !important;
+.terms-content {
+  --padding-top: 6px !important;
+  --padding-bottom: 16px !important;
+  --padding-start: 12px !important;
+  --padding-end: 12px !important;
+  --background: var(--markit-bg);
+}
+
+.terms-content ion-item {
+  --background: transparent;
+  --background-hover: transparent;
+  --background-activated: transparent;
+  --background-focused: transparent;
+  --ripple-color: transparent;
+  border-radius: 16px;
+  margin-bottom: 10px;
+  overflow: hidden;
+}
+
+.terms-content ion-item::part(native) {
+  border: 1px solid var(--markit-glass-border);
+  background: var(--markit-glass-surface-strong);
+  box-shadow: inset 0 1px 0 var(--markit-glass-highlight), var(--markit-glass-shadow);
+  border-radius: 16px;
+}
+
+.terms-content ion-label {
+  font-weight: 600;
+  color: var(--markit-text);
+}
+
+.terms-content [slot='content'] {
+  color: var(--markit-text-muted);
+}
+
+.terms-accordion-group {
+  background: transparent !important;
+  border: 0 !important;
+  box-shadow: none !important;
+  padding: 0 !important;
+}
+
+.terms-accordion-group ion-accordion {
+  background: transparent !important;
+  border: 0 !important;
+  box-shadow: none !important;
+  margin: 0 0 10px 0;
+  border-radius: 16px;
+  overflow: hidden;
+}
+
+.terms-accordion-group ion-accordion::part(content) {
+  background: transparent !important;
+  border: 0 !important;
+  box-shadow: none !important;
 }
 </style>

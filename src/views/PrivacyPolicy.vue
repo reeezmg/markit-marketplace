@@ -1,19 +1,8 @@
 <template>
   <ion-page>
-<ion-header>
-  <ion-toolbar>
-    <ion-buttons slot="start">
-  <ion-button @click="$router.back()">
-    <ion-icon :icon="arrowBackOutline" />
-  </ion-button>
-</ion-buttons>
+    <Topbar title="Privacy Policy" />
 
-    <ion-title>Privacy Policy</ion-title>
-  </ion-toolbar>
-</ion-header>
-
-
-    <ion-content class="privacy-content">
+    <ion-content :fullscreen="true" class="ion-padding privacy-content">
 
         <div class="flex-col items-center justify-center px-10 pt-8">
             <p class="text-[28px] font-bold text-center">PRIVACY POLICY</p>
@@ -23,7 +12,7 @@
         </div>
         
 
-      <ion-accordion-group expand="inset" class="mt-6">
+      <ion-accordion-group class="mt-6 policy-accordion-group">
 
         <ion-accordion value="intro">
           <ion-item slot="header">
@@ -206,40 +195,73 @@
 <script setup>
 import {
   IonPage,
-  IonHeader,
-  IonToolbar,
-  IonTitle,
   IonContent,
   IonAccordionGroup,
   IonAccordion,
   IonItem,
   IonLabel,
 } from '@ionic/vue'
-import { arrowBackOutline } from 'ionicons/icons';
+import Topbar from '@/components/Topbar.vue'
 </script>
 
 <style scoped>
 .privacy-content {
-  --padding-top: 0 !important;
+  --padding-top: 6px !important;
   --padding-bottom: 16px !important;
   --padding-start: 12px !important;
   --padding-end: 12px !important;
+  --background: var(--markit-bg);
 }
 
 .accordion-content {
   padding: 12px 16px 20px;
-  font-size: 14px;
+  font-size: 0.92rem;
   line-height: 1.6;
-  color: #444;
+  color: var(--markit-text-muted);
 }
 
 ion-item {
-  --background: #fff;
-  border-radius: 10px;
-  margin-bottom: 6px;
+  --background: transparent;
+  --background-hover: transparent;
+  --background-activated: transparent;
+  --background-focused: transparent;
+  --ripple-color: transparent;
+  border-radius: 16px;
+  margin-bottom: 10px;
+  overflow: hidden;
+}
+
+ion-item::part(native) {
+  border: 1px solid var(--markit-glass-border);
+  background: var(--markit-glass-surface-strong);
+  box-shadow: inset 0 1px 0 var(--markit-glass-highlight), var(--markit-glass-shadow);
+  border-radius: 16px;
 }
 
 ion-label {
   font-weight: 600;
+  color: var(--markit-text);
+}
+
+.policy-accordion-group {
+  background: transparent !important;
+  border: 0 !important;
+  box-shadow: none !important;
+  padding: 0 !important;
+}
+
+.policy-accordion-group ion-accordion {
+  background: transparent !important;
+  border: 0 !important;
+  box-shadow: none !important;
+  margin: 0 0 10px 0;
+  border-radius: 16px;
+  overflow: hidden;
+}
+
+.policy-accordion-group ion-accordion::part(content) {
+  background: transparent !important;
+  border: 0 !important;
+  box-shadow: none !important;
 }
 </style>

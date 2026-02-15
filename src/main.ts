@@ -29,7 +29,6 @@ import '@ionic/vue/css/display.css';
 
 /* @import '@ionic/vue/css/palettes/dark.always.css'; */
 /* @import '@ionic/vue/css/palettes/dark.class.css'; */
-import '@ionic/vue/css/palettes/dark.system.css';
 import { VueQueryPlugin } from "@tanstack/vue-query";
 /* Theme variables */
 import './theme/variables.css';
@@ -43,3 +42,15 @@ const app = createApp(App)
 router.isReady().then(() => {
   app.mount('#app');
 });
+
+// Always scroll to top on route change (Ionic content + window fallback)
+router.afterEach(() => {
+  requestAnimationFrame(() => {
+    const content = document.querySelector('ion-content') as any
+    if (content && typeof content.scrollToTop === 'function') {
+      content.scrollToTop(600)
+    } else {
+      window.scrollTo({ top: 0, left: 0, behavior: 'smooth' })
+    }
+  })
+})

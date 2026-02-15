@@ -267,7 +267,7 @@ async function proceed() {
 
         // ✅ Remove the order locally
         packStore.remove(order.value.trynbuy_id)
-        router.push('/')
+        router.push({ name: 'shops' })
       },
     }
 

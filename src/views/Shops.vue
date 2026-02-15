@@ -1,138 +1,141 @@
 <template>
   <ion-page>
-    <ion-content
-      class="relative"
-      :fullscreen="true"
-      @ionScroll="onScroll"
-      scrollEvents="true"
-    >
+    <ion-content class="relative shop-page" :fullscreen="true" @ionScroll="onScroll" :scrollEvents="true">
+      <!-- 🔒 FIXED SEARCH BAR (STAYS ON TOP AFTER SCROLL) -->
+      <div slot="fixed" class="w-full z-50 transition-all duration-300 ease-out fixed-shell" :class="showFixedSearch
+        ? 'opacity-100 translate-y-0'
+        : 'opacity-0 -translate-y-2 pointer-events-none'">
+        <div class="fixed-surface">
+        <div class="fixed-search">
+          <div class="fixed-topbar-host">
+            <Topbar :location="location" :collapsed="true" @search="onSearch" @location-change="onLocationChange" />
+          </div>
+          <div
+            class="fixed-filters transition-all duration-400 ease-out"
+            :class="showFixedFilters ? 'opacity-100 translate-y-0' : 'fixed-filters--hidden opacity-0 -translate-y-2 pointer-events-none'"
+          >
+            <div class="px-4 pb-3">
+              <Category @select="subCategoryFilter = $event" :selectedCategory="selectedCategory" />
+            </div>
+            <div class="grid grid-cols-4 gap-2 w-full px-4 pb-3">
+              <ion-button v-for="(btn, i) in categoryButtons" :key="i" size="small" expand="block"
+                class="gender-btn"
+                :fill="activeCategory === i ? 'solid' : 'outline'" @click="activeCategory = i">
+                {{ btn }}
+              </ion-button>
+            </div>
+          </div>
+        </div>
+        </div>
+      </div>
+
+
       <!-- ✅ HEADER SECTION MOVED INTO CONTENT -->
-      <div
-        class="ion-no-border relative rounded-b-3xl transition-all duration-300 ease-in-out"
-        :style="headerStyle"
-      >
-        <div class="ion-padding">
-          <Topbar :location="location" @search="onSearch" />
+      <div class="ion-no-border relative transition-all duration-300 ease-in-out hero-header" :style="headerStyle">
+        <div class="relative z-10 droplet-shell">
+          <Topbar :location="location" :collapsed="isCollapsed" @search="onSearch" @location-change="onLocationChange" />
         </div>
 
         <!-- Tagline + Button -->
-        <div v-if="!isCollapsed" class="transition-opacity duration-300 text-center">
-          <div class="text-xl text-[#53816C] font-bold py-3 px-2 flex flex-col items-center justify-center">
-            <div class="w-fit px-2 rounded-md">Choose • Try • Buy</div>
-            <div class="w-fit px-2 rounded-md mt-1">Make your home trial room</div>
+        <div class="transition-all duration-300 ease-out text-center will-change-transform hero-copy" :class="isCollapsed
+          ? 'opacity-0 -translate-y-6 pointer-events-none'
+          : 'opacity-100 translate-y-0'">
 
-            <ion-button
-              class="mt-3"
-              color="primary"
-              fill="solid"
-              size="small"
-              shape="round"
-              @click="openKnowMoreModal"
-            >
+          <div class="text-xl text-[#2f5f49] font-bold py-3 px-2 flex flex-col items-center justify-center hero-title">
+            <div class="w-fit px-2 rounded-md">Choose • Try • Buy</div>
+            <div class="w-fit px-2 rounded-md mt-1 hero-subtitle">Make your home trial room</div>
+
+            <ion-button class="mt-3 markit-cta hero-cta" color="primary" fill="solid" size="small" @click="openKnowMoreModal">
               Know more
             </ion-button>
           </div>
         </div>
       </div>
-      <div class="ion-padding ">
-      <!-- Category Buttons -->
-      <div class="grid grid-cols-4 gap-2 w-full my-4">
-        <ion-button
-          v-for="(btn, i) in categoryButtons"
-          :key="i"
-          size="small"
-          expand="block"
-          :color="activeCategory === i ? 'primary' : 'primary'"
-          :fill="activeCategory === i ? 'solid' : 'outline'"
-          @click="activeCategory = i"
-        >
-          {{ btn }}
-        </ion-button>
-      </div>
-
-      <!-- Category Filter -->
-      <div class="sticky top-0 z-30 bg-white py-4">
-        <Category @select="subCategoryFilter = $event" :selectedCategory="selectedCategory" />
-      </div>
-
-      <!-- Shops Section -->
-      <Heading title="Explore Shops" />
-
-      <div v-if="loading" class="grid gap-4">
-       <ShopCardSkeleton v-for="n in 4" :key="n" />
-      </div>
-
-      <div v-else class="mb-24">
-        <Shopcard
-          v-for="shop in shopsList"
-          :key="shop.id"
-          :shop="shop"
-          @click="() => router.push(`shop/${shop.id}/${shop.name}`)"
-        />
-        <div v-if="!shopsList.length" class="text-center py-8 text-gray-500">
-          No shops found.
-        </div>
-      </div>
-
-      <!-- ✅ Floating Try & Pay Banner (Swipe + Drag) -->
-      <div
-        v-if="packStore.packList.length"
-        class="fixed bottom-[70px] left-0 right-0 bg-black text-white z-50 m-2 rounded-2xl select-none"
-      >
-        <div
-          class="flex items-center justify-center pt-3 overflow-hidden relative"
-          @touchstart="startTouch"
-          @touchend="endTouch"
-          @mousedown="startMouseDrag"
-          @mouseup="endMouseDrag"
-        >
-          <Transition :name="`slide-${slideDirection}`" mode="out-in">
-            <div
-              v-if="activePack"
-              :key="activePack.trynbuy_id"
-              class="flex justify-between items-center w-full px-6 transition-all duration-500 ease-in-out"
-            >
-              <!-- Left Column -->
-              <div class="flex flex-col justify-center">
-                <div class="text-green-400 font-semibold text-sm">
-                  Order #{{ activePack.order_number }} {{ formatStatus(activePack.order_status) }}
-                </div>
-                <div class="text-gray-400 text-xs">Pay after your trial</div>
-              </div>
-
-              <!-- Right Column -->
-              <ion-button
-                color="success"
-                size="small"
-                fill="solid"
-                shape="round"
-                @click="() => router.push(`/pack/${activePack.trynbuy_id}`)"
-              >
-                Try & Pay
-              </ion-button>
-            </div>
-          </Transition>
+      <div class="ion-padding content-wrap">
+        <!-- Category Buttons -->
+        <div class="transition-all duration-300"
+          :class="hideGender ? 'opacity-0 -translate-y-3 pointer-events-none' : 'opacity-100'">
+          <div class="grid grid-cols-4 gap-2 w-full my-4">
+            <ion-button v-for="(btn, i) in categoryButtons" :key="i" size="small" expand="block"
+              class="gender-btn"
+              :fill="activeCategory === i ? 'solid' : 'outline'" @click="activeCategory = i">
+              {{ btn }}
+            </ion-button>
+          </div>
         </div>
 
-        <!-- Dots -->
-        <div class="flex justify-center items-center gap-1 pb-2 mt-1">
+
+        <!-- Category Filter -->
+        <div class="sticky top-0 z-30 py-4 transition-all duration-300 category-sticky"
+          :class="hideCategory ? 'opacity-0 -translate-y-3 pointer-events-none' : 'opacity-100'">
+          <Category @select="subCategoryFilter = $event" :selectedCategory="selectedCategory" />
+        </div>
+
+        <!-- Shops Section -->
+        <div class="mt-4">
+          <Heading title="Explore Shops" />
+        </div>
+
+        <div v-if="loading" class="grid gap-4">
+          <ShopCardSkeleton v-for="n in 4" :key="n" />
+        </div>
+
+        <div v-else class="mb-24 shop-list">
           <div
-            v-for="(pack, i) in packStore.packList"
-            :key="pack.trynbuy_id"
-            class="w-1.5 h-1.5 rounded-full transition-all duration-300"
-            :class="i === activeIndex ? 'bg-white' : 'bg-gray-500'"
-          ></div>
+            v-for="(shop, index) in shopsList"
+            :key="shop.id"
+            class="shop-item"
+            :style="{ animationDelay: `${Math.min(index * 70, 420)}ms` }"
+          >
+            <ShopCard
+              :shop="shop"
+              @click="() => router.push({ name: 'shop', params: { companyId: shop.id, companyName: shop.name } })"
+            />
+          </div>
+          <div v-if="!shopsList.length" class="text-center py-8 text-gray-500">
+            No shops found.
+          </div>
         </div>
-      </div>
+
+        <!-- ✅ Floating Try & Pay Banner (Swipe + Drag) -->
+        <div v-if="packStore.packList.length"
+          class="fixed bottom-[70px] left-0 right-0 bg-black text-white z-50 m-2 rounded-2xl select-none">
+          <div class="flex items-center justify-center pt-3 overflow-hidden relative" @touchstart="startTouch"
+            @touchend="endTouch" @mousedown="startMouseDrag" @mouseup="endMouseDrag">
+            <Transition :name="`slide-${slideDirection}`" mode="out-in">
+              <div v-if="activePack" :key="activePack.trynbuy_id"
+                class="flex justify-between items-center w-full px-6 transition-all duration-500 ease-in-out">
+                <!-- Left Column -->
+                <div class="flex flex-col justify-center">
+                  <div class="text-green-400 font-semibold text-sm">
+                    Order #{{ activePack.order_number }} {{ formatStatus(activePack.order_status) }}
+                  </div>
+                  <div class="text-gray-400 text-xs">Pay after your trial</div>
+                </div>
+
+                <!-- Right Column -->
+                <ion-button color="success" size="small" fill="solid" shape="round"
+                  @click="() => router.push({ name: 'pack', params: { id: activePack.trynbuy_id } })">
+                  Try & Pay
+                </ion-button>
+              </div>
+            </Transition>
+          </div>
+
+          <!-- Dots -->
+          <div class="flex justify-center items-center gap-1 pb-2 mt-1">
+            <div v-for="(pack, i) in packStore.packList" :key="pack.trynbuy_id"
+              class="w-1.5 h-1.5 rounded-full transition-all duration-300"
+              :class="i === activeIndex ? 'bg-white' : 'bg-gray-500'"></div>
+          </div>
+        </div>
       </div>
     </ion-content>
 
     <ion-footer class="ion-no-border">
       <TabsPage />
     </ion-footer>
-    <KnowMoreModal
-      :is-open="isKnowMoreModalOpen"
-      @close="closeKnowMoreModal"/>
+    <KnowMoreModal :is-open="isKnowMoreModalOpen" @close="closeKnowMoreModal" />
   </ion-page>
 </template>
 
@@ -147,7 +150,7 @@ import {
 import { ref, computed, watch } from 'vue'
 import { useRouter } from 'vue-router'
 import Topbar from '@/components/Index/Topbar.vue'
-import Shopcard from '@/components/Index/Shopcard.vue'
+import ShopCard from '@/components/Index/ShopCard.vue'
 import Heading from '@/components/Heading.vue'
 import Category from '@/components/Store/Category.vue'
 import TabsPage from './TabsPage.vue'
@@ -266,52 +269,61 @@ onIonViewWillEnter(async () => {
     if (saved) {
       location.value = saved
     } else {
-      router.push('/account/address')
+      router.push({ name: 'account-address' })
       return
     }
   }
 
-// 2️⃣ Logged-out user → GPS fallback
-else {
-  const cached = await getLocation()
+  // 2️⃣ Logged-out user → GPS fallback
+  else {
+    const cached = await getLocation()
 
-  if (cached) {
-    location.value = cached
-  } else {
-    try {
-      const gps = await getCurrentLocation()
+    if (cached) {
+      location.value = cached
+    } else {
+      try {
+        const gps = await getCurrentLocation()
 
-      location.value = {
-        name: 'Current Location',
-        formattedAddress: 'Near you',
-        lat: gps.lat,
-        lng: gps.lng,
-      } as any
+        location.value = {
+          name: 'Current Location',
+          formattedAddress: 'Near you',
+          lat: gps.lat,
+          lng: gps.lng,
+        } as any
 
 
-      // await setLocation(location.value) // ✅ SAME INSTANCE
-    } catch (e) {
-      console.error('Location access denied', e)
-      loading.value = false
-      return
+        // await setLocation(location.value) // ✅ SAME INSTANCE
+      } catch (e) {
+        console.error('Location access denied', e)
+        loading.value = false
+        return
+      }
     }
   }
-}
 
 
-  // 3️⃣ Fetch nearby shops (common for both)
+  // 3) Fetch nearby shops (common for both)
+  await loadShopsByLocation(location.value.lat, location.value.lng)
+})
+
+const loadShopsByLocation = async (lat: number, lng: number) => {
   try {
-
-  const { lat, lng } = location.value
-  const response = await getAllShop(lat, lng)
-
-  shops.value = response.data
-} catch (error) {
-  console.error('Failed to fetch shops:', error)
-} finally {
-  loading.value = false
+    const response = await getAllShop(lat, lng)
+    shops.value = response.data
+  } catch (error) {
+    console.error('Failed to fetch shops:', error)
+  } finally {
+    loading.value = false
+  }
 }
-}) // ✅ now properly closed
+
+const onLocationChange = async (newLocation: any) => {
+  location.value = newLocation
+  loading.value = true
+  subCategoryFilter.value = ''
+  filteredBySubcategoryShops.value = []
+  await loadShopsByLocation(newLocation.lat, newLocation.lng)
+}
 
 const getCurrentLocation = (): Promise<{ lat: number; lng: number }> => {
   return new Promise((resolve, reject) => {
@@ -396,22 +408,209 @@ console.log(shopsList, 'filtered after subc');
 // shopsList = subCategoryFilter?.value ? filteredShops : shops;
 
 /* ---- Collapsible Header ---- */
-function onScroll(ev: CustomEvent) {
-  const scrollTop = ev.detail.scrollTop
-  isCollapsed.value = scrollTop > 50
-}
+const scrollY = ref(0)
+const showFixedSearch = computed(() => scrollY.value > 80)
+const showFixedFilters = computed(() => scrollY.value > 260)
+const hideGender = computed(() => scrollY.value > 200)
+const hideCategory = computed(() => scrollY.value > 300)
 
-const headerStyle = computed(() => {
-  if (isCollapsed.value) return { backgroundColor: '#ffffff' }
-  return {
-    backgroundImage: "url('design.png')",
-    backgroundSize: 'cover',
-    backgroundPosition: 'center',
-  }
-})
+function onScroll(ev: CustomEvent) {
+  scrollY.value = ev.detail.scrollTop
+  isCollapsed.value = scrollY.value > 80
+}
+const headerStyle = computed(() => ({
+  backgroundImage: "url('design.png')",
+  backgroundSize: 'cover',
+  backgroundRepeat: 'no-repeat',
+  backgroundPosition: 'center',
+}))
+
 </script>
 
 <style scoped>
+/* Page atmosphere */
+.shop-page {
+  --background: var(--markit-bg);
+  color: var(--markit-text);
+  --padding-bottom: calc(96px + env(safe-area-inset-bottom, 0px));
+}
+
+.fixed-shell {
+  top: 0;
+  left: 0;
+  right: 0;
+}
+
+.fixed-surface {
+  position: relative;
+  isolation: isolate;
+  overflow: hidden;
+  background: var(--markit-glass-surface);
+  border-bottom: none;
+  box-shadow: inset 0 1px 0 var(--markit-glass-highlight), 0 8px 18px rgba(20, 34, 28, 0.08);
+  backdrop-filter: blur(18px) saturate(145%);
+  -webkit-backdrop-filter: blur(18px) saturate(145%);
+}
+
+.fixed-search {
+  background: transparent;
+}
+
+.fixed-topbar-host {
+  padding: 0;
+}
+
+.droplet-shell :deep(.rounded-xl) {
+  background: var(--markit-surface);
+  border: 1px solid var(--markit-border);
+  box-shadow: none;
+  backdrop-filter: none;
+}
+
+.fixed-filters {
+  background: var(--markit-glass-surface-strong);
+  border-top: none;
+  box-shadow: inset 0 1px 0 rgba(255, 255, 255, 0.45);
+  overflow: hidden;
+  padding-top: 6px;
+  transition: max-height 0.3s ease, opacity 0.3s ease, transform 0.3s ease;
+  max-height: 220px;
+}
+
+.fixed-filters--hidden {
+  max-height: 0;
+  overflow: hidden;
+  padding-top: 0;
+  padding-bottom: 0;
+}
+
+.hero-header {
+  position: relative;
+  z-index: 40;
+  min-height: 220px;
+  padding-bottom: 12px;
+  background-position: center;
+  background-size: cover;
+  overflow: visible;
+  border-bottom: 1px solid var(--markit-border);
+}
+
+.hero-copy {
+  position: relative;
+  z-index: 1;
+  margin-top: 4px;
+}
+
+.hero-title {
+  font-size: 1.9rem;
+  line-height: 1.15;
+  font-weight: 700;
+  letter-spacing: 0.2px;
+  color: var(--markit-text);
+}
+
+.hero-subtitle {
+  font-size: 0.98rem;
+  line-height: 1.35;
+  font-weight: 600;
+  color: var(--markit-text-muted);
+}
+
+.hero-cta {
+  --border-radius: var(--markit-radius-lg);
+  --padding-start: 24px;
+  --padding-end: 24px;
+  --padding-top: 10px;
+  --padding-bottom: 10px;
+  --background: var(--ion-color-primary);
+  --box-shadow: none;
+  font-size: 0.96rem;
+  font-weight: 700;
+  letter-spacing: 0.2px;
+}
+
+.content-wrap {
+  position: relative;
+  z-index: 1;
+  padding-top: 14px;
+  padding-bottom: calc(88px + env(safe-area-inset-bottom, 0px));
+  max-width: 980px;
+  margin: 0 auto;
+}
+
+.gender-btn {
+  --border-radius: var(--markit-radius-lg);
+  --padding-top: 10px;
+  --padding-bottom: 10px;
+  --background: var(--markit-glass-surface-strong);
+  --color: #2d5444;
+  --border-color: var(--markit-glass-border);
+  --box-shadow: none;
+  font-weight: 600;
+  text-transform: none;
+}
+
+.gender-btn.button-outline {
+  --background: var(--markit-glass-surface-strong);
+  --color: #2d5444;
+  --border-color: var(--markit-glass-border);
+  --box-shadow: none;
+}
+
+.gender-btn.button-solid {
+  --background: var(--ion-color-primary);
+  --color: #f8fffb;
+  --border-color: var(--markit-border);
+  --box-shadow: none;
+}
+
+.category-sticky {
+  margin-top: 0;
+  border-radius: var(--markit-radius-lg);
+  border: none;
+  background: var(--markit-glass-surface-strong);
+  box-shadow: none;
+  backdrop-filter: blur(14px) saturate(140%);
+  -webkit-backdrop-filter: blur(14px) saturate(140%);
+}
+
+.shop-list {
+  display: grid;
+  gap: 14px;
+}
+
+.shop-item {
+  animation: shop-rise 0.5s ease both;
+}
+
+@keyframes shop-rise {
+  from {
+    opacity: 0;
+    transform: scale(0.98);
+  }
+  to {
+    opacity: 1;
+    transform: scale(1);
+  }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .shop-item {
+    animation: none;
+  }
+}
+
+@media (min-width: 900px) {
+  .content-wrap {
+    padding-left: 12px;
+    padding-right: 12px;
+  }
+
+  .shop-list {
+    gap: 18px;
+  }
+}
+
 /* ✅ Slide Transitions */
 .slide-left-enter-active,
 .slide-left-leave-active,
@@ -425,6 +624,7 @@ const headerStyle = computed(() => {
   transform: translateX(100%);
   opacity: 0;
 }
+
 .slide-left-leave-to {
   transform: translateX(-100%);
   opacity: 0;
@@ -435,8 +635,18 @@ const headerStyle = computed(() => {
   transform: translateX(-100%);
   opacity: 0;
 }
+
 .slide-right-leave-to {
   transform: translateX(100%);
   opacity: 0;
 }
+
+/* Ultra smooth scroll + header animation */
+.will-change-transform {
+  will-change: transform, opacity;
+}
 </style>
+ 
+
+
+

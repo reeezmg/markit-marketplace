@@ -1,7 +1,7 @@
 const mensCategory = [
     // 👕 Tops
     {
-        label: 'T Shirt',
+        label: 'T-Shirt',
         value: 't_shirt',
         image: '/images/categories/men/t_shirt.png',
         category: 'men',
@@ -44,7 +44,7 @@ const mensCategory = [
         category: 'men',
     },
     {
-        label: 'Inner Wear',
+        label: 'Innerwear',
         value: 'inner_wear',
         image: '/images/categories/men/inner_wear.png',
         category: 'men',

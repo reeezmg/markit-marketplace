@@ -1,10 +1,10 @@
 <template class="ion-padding">
-  <div class="fixed bottom-0 left-0 right-0 bg-white rounded-t-xl p-4 shadow-lg z-50 h-2/3">
-        <div class="max-w-md mx-auto">
-            <div class="text-lg font-semibold">Login</div>
-            <div class="text-sm text-gray-500">Enter your phone number to continue</div>
-        </div>
-      <div class="max-w-md mx-auto mt-4">
+  <div class="space-y-4">
+      <div>
+        <div class="text-lg font-semibold text-slate-900">Login</div>
+        <div class="text-sm text-slate-600">Enter your phone number to continue</div>
+      </div>
+      <div class="mt-2">
 
         <!-- Unified Row -->
         <div class="flex items-center border border-gray-300 rounded-lg shadow-sm bg-white">
@@ -43,12 +43,12 @@
         </div>
 
         <!-- Submit -->
-        <ion-button expand="block" class="mt-6" @click="submitOtp">
-      Submit
-    </ion-button>
+        <ion-button expand="block" class="mt-5 markit-cta" @click="submitOtp">
+          Submit
+        </ion-button>
 
       </div>
-      </div>
+    </div>
 </template>
 
 <script setup>

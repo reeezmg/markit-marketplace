@@ -1,7 +1,7 @@
 const boysCategory = [
     // 👕 Tops / Upper Wear
     {
-        label: 'T Shirt',
+        label: 'T-Shirt',
         value: 't_shirt_b',
         image: '/images/categories/boys/t_shirts.png',
         category: 'boys',
@@ -105,7 +105,7 @@ const boysCategory = [
         category: 'boys',
     },
     {
-        label: 'Formals Shoes',
+        label: 'Formal Shoes',
         value: 'formal_shoes_b',
         image: '/images/categories/boys/formal_shoes.png',
         category: 'boys',

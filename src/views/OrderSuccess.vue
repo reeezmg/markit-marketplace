@@ -104,9 +104,9 @@ const handleClose = async () => {
   const totalItems = getCartItemCount()
 
   if (totalItems > 0) {
-    router.push('/cart')
+    router.push({ name: 'cart' })
   } else {
-    router.push('/')
+    router.push({ name: 'shops' })
   }
 }
 </script>

@@ -1,10 +1,7 @@
 <template>
   <div class="p-4">
-
-    <!-- Header -->
     <p class="text-[18px] font-semibold mb-3 text-gray-700">{{ title }}</p>
 
-    <!-- Chips -->
     <div class="flex flex-wrap gap-2 mb-2">
       <div
         v-for="item in items"
@@ -12,15 +9,16 @@
         role="button"
         @click="toggleItem(item)"
         class="px-4 min-w-18 text-center py-[8px] text-sm rounded-md border cursor-pointer transition-all duration-150"
-        :class="isTempSelected(item)
-          ? 'bg-[#097D4C] text-white border-transparent shadow-sm'
-          : 'bg-white text-gray-700 border-gray-300'"
+        :class="
+          isTempSelected(item)
+            ? 'filter-chip-selected border-transparent shadow-sm'
+            : 'bg-white text-gray-700 border-gray-300'
+        "
       >
-        {{ itemLabel(item) }}
+        {{ displayLabel(item) }}
       </div>
     </div>
 
-    <!-- ⭐ Numeric Size Input -->
     <div v-if="filterType === 'size'" class="flex items-center gap-3 mb-8">
       <input
         type="number"
@@ -31,7 +29,6 @@
       />
     </div>
 
-    <!-- Buttons -->
     <div class="flex gap-4 mt-8">
       <button
         class="flex-1 !py-3 !px-4 !rounded-[8px] !border !border-gray-300 !text-gray-700 !bg-white"
@@ -41,97 +38,120 @@
       </button>
 
       <button
-        class="flex-1 !py-3 !px-4 !rounded-[8px] !bg-[#097D4C] !text-white !border !border-transparent"
+        class="flex-1 !py-3 !px-4 !rounded-[8px] !text-white !border !border-transparent filter-apply-btn"
         @click="onApply"
       >
         Apply
       </button>
     </div>
-
   </div>
 </template>
 
 <style scoped>
-/* Add space between number input arrows and border */
+.filter-chip-selected {
+  background: var(--ion-color-primary);
+  color: var(--ion-color-primary-contrast);
+}
+
+.filter-apply-btn {
+  background: var(--ion-color-primary) !important;
+  color: var(--ion-color-primary-contrast) !important;
+}
+
 input[type="number"]::-webkit-inner-spin-button {
-  margin-right: 4px;   /* adjust spacing here */
+  margin-right: 4px;
 }
 
 input[type="number"] {
-  padding-right: 16px; /* ensures text doesn’t overlap arrows */
+  padding-right: 16px;
 }
-
 </style>
 
 <script setup lang="ts">
-import { ref, watch } from 'vue';
-import { modalController } from '@ionic/vue';
+import { ref, watch } from "vue";
+import { modalController } from "@ionic/vue";
 
-/* PROPS */
 const props = defineProps({
   title: String,
   items: Array,
   selected: { type: [Array, Object, String, null], default: () => [] },
   multi: Boolean,
-  filterType: String
+  filterType: String,
 });
 
-/* TEMP SELECTION */
 const temp = ref<any[]>([]);
-
-/* ⭐ numeric input */
 const numericSize = ref<string | null>(null);
 
-/* Load temp + numeric size when opening */
 watch(
   () => props.selected,
   (s) => {
-    temp.value = Array.isArray(s) ? [...s] : [];
-
-    // ⭐ pick only numeric values from selected list
-    const found = temp.value.find(v => !isNaN(Number(v)));
-
+    if (Array.isArray(s)) temp.value = [...s];
+    else if (s !== null && s !== undefined && s !== "") temp.value = [s];
+    else temp.value = [];
+    const found = temp.value.find((v) => !isNaN(Number(v)));
     numericSize.value = found ? String(found) : null;
   },
   { immediate: true }
 );
 
-/* Helpers */
-const isString = (i) => typeof i === 'string';
-const itemLabel = (i) => isString(i) ? i : i.name;
-const itemKey   = (i) => isString(i) ? i : i.id;
+const isString = (i: any) => typeof i === "string";
+const itemLabel = (i: any) => (isString(i) ? i : i.name);
+const itemKey = (i: any) => (isString(i) ? i : i.id);
 
-/* Chip selection */
-function isTempSelected(item) {
-  if (isString(item)) return temp.value.includes(item);
-  return temp.value.some(x => x.id === item.id);
+function titleCase(value: string) {
+  return value
+    .toLowerCase()
+    .split(" ")
+    .filter(Boolean)
+    .map((word) =>
+      word
+        .split("-")
+        .map((part) => (part ? part[0].toUpperCase() + part.slice(1) : part))
+        .join("-")
+    )
+    .join(" ");
 }
-function toggleItem(item) {
+
+function displayLabel(item: any) {
+  const label = String(itemLabel(item) || "");
+  if (!label) return "";
+  if (props.filterType === "category") return titleCase(label);
+  return label;
+}
+
+function isTempSelected(item: any) {
+  if (isString(item)) return temp.value.includes(item);
+  return temp.value.some((x) => x.id === item.id);
+}
+
+function toggleItem(item: any) {
+  if (!props.multi) {
+    temp.value = isTempSelected(item) ? [] : [item];
+    return;
+  }
+
   let copy = [...temp.value];
   if (isString(item)) {
     copy = copy.includes(item)
-      ? copy.filter(x => x !== item)
+      ? copy.filter((x) => x !== item)
       : [...copy, item];
   } else {
-    const exists = copy.some(x => x.id === item.id);
+    const exists = copy.some((x) => x.id === item.id);
     copy = exists
-      ? copy.filter(x => x.id !== item.id)
+      ? copy.filter((x) => x.id !== item.id)
       : [...copy, item];
   }
   temp.value = copy;
 }
 
-/* Clear */
 function onClear() {
   temp.value = [];
-  numericSize.value = null;   // ⭐ CLEAR numeric size properly
+  numericSize.value = null;
 }
 
-/* Apply → send back to parent */
 async function onApply() {
-  let final = [...temp.value];
+  const final = [...temp.value];
 
-  // ⭐ ADD numeric size to selected
   if (numericSize.value !== null && numericSize.value !== "") {
     if (!final.includes(String(numericSize.value))) {
       final.push(String(numericSize.value));
@@ -139,7 +159,7 @@ async function onApply() {
   }
 
   await modalController.dismiss({
-    selected: final
+    selected: final,
   });
 }
 </script>

@@ -22,10 +22,11 @@
           :fill="selectedSizes.includes(size) ? 'solid' : 'outline'"
           shape="round"
           size="small"
+          class="size-chip"
           :color="selectedSizes.includes(size) ? 'primary' : 'medium'"
           @click="toggleSize(size)"
         >
-          {{ size }}
+          {{ formatSizeLabel(size) }}
         </ion-button>
       </div>
 <!-- 
@@ -33,10 +34,7 @@
         Add to Cart
       </ion-button> -->
 
-      <button
-        class="w-[100%] !py-3 !px-4 !rounded-[8px] !bg-[#097D4C] !text-white !border !border-transparent"
-        @click="confirmSizes"
-      >
+      <button class="size-selector-cta w-[100%] !py-3 !px-4 !rounded-[8px] !text-white !border !border-transparent" @click="confirmSizes">
         Add to Cart
       </button>
 
@@ -48,6 +46,7 @@
 import { ref } from 'vue'
 import { IonModal, IonButton } from '@ionic/vue'
 import { toastController } from '@ionic/vue'
+import { alertCircleOutline } from 'ionicons/icons'
 
 const props = defineProps<{
   isOpen: boolean
@@ -59,6 +58,8 @@ const emit = defineEmits(['close', 'select-sizes'])
 const selectedSizes = ref<string[]>([]) // ✅ allow multiple
 
 const close = () => emit('close')
+
+const formatSizeLabel = (size: string) => String(size || '').trim().toUpperCase()
 
 const toggleSize = (size: string) => {
   const idx = selectedSizes.value.indexOf(size)
@@ -72,10 +73,12 @@ const toggleSize = (size: string) => {
 const confirmSizes = async() => {
   if (!selectedSizes.value.length) {
      const toast = await toastController.create({
+        header: 'Select Size',
         message: 'Please select a size',
-        duration: 2000,
-        color: 'danger',
-        position: 'bottom'
+        icon: alertCircleOutline,
+        duration: 1700,
+        position: 'bottom',
+        cssClass: 'markit-toast markit-toast-warning'
       });
         await toast.present();
     return
@@ -85,3 +88,19 @@ const confirmSizes = async() => {
   selectedSizes.value = [];
 }
 </script>
+
+<style scoped>
+.size-chip::part(native) {
+  min-width: 38px;
+  height: 30px;
+  padding: 0 10px;
+  border-width: 1px;
+  font-weight: 600;
+  transition: none;
+}
+
+.size-selector-cta {
+  background: var(--ion-color-primary) !important;
+  color: var(--ion-color-primary-contrast) !important;
+}
+</style>

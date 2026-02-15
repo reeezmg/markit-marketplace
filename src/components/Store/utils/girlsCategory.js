@@ -25,7 +25,7 @@ const girlsCategory = [
         category: 'girls',
     },
     {
-        label: 'Line Tops',
+        label: 'Linen Tops',
         value: 'tunics_g',
         image: '/images/categories/girls/linetops.png',
         category: 'girls',

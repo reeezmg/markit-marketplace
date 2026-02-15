@@ -1,64 +1,73 @@
 <template>
   <ion-page>
-    <ion-header>
-      <Topbar/>
+    <ion-header class="ion-no-border">
+      <Topbar title="Profile" />
     </ion-header>
 
-    <ion-content>
-      <!-- Name -->
-      <div class="my-4">
-        <ion-item>
-          <ion-input v-model="form.name" label="Name" label-placement="stacked" placeholder="Enter Your Name"/>
-        </ion-item>
-      </div>
+    <ion-content :fullscreen="true" class="ion-padding profile-page">
+      <div class="profile-wrap ion-padding">
+        <div class="glass-card profile-form">
+          <div class="section-block">
+            <div class="section-title">Name</div>
+            <input
+              v-model="form.name"
+              type="text"
+              placeholder="Enter your name"
+              class="profile-native-input"
+            />
+          </div>
 
-      <!-- Gender -->
-      <div class="mb-4 ion-padding">
-        <label class="block text-sm text-gray-800 mb-2">Gender</label>
-        <div class="flex gap-3">
-          <ion-button
-            v-for="g in genders"
-            :key="g.value"
-            :fill="form.gender === g.value ? 'solid' : 'outline'"
-            :color="form.gender === g.value ? 'primary' : 'medium'"
-            @click="form.gender = g.value"
-            class="flex items-center"
-          >
-            <!-- <ion-icon :icon="g.icon" slot="start" class="mr-1" /> -->
-            {{ g.label }}
-          </ion-button>
+          <div class="section-divider" />
+
+          <div class="section-block">
+            <div class="section-title">Gender</div>
+            <div class="gender-row">
+              <button
+                v-for="g in genders"
+                :key="g.value"
+                type="button"
+                class="gender-chip"
+                :class="{ 'gender-chip--active': form.gender === g.value }"
+                @click="form.gender = g.value"
+              >
+                <ion-icon :icon="g.icon" class="gender-chip__icon" />
+                <span>{{ g.label }}</span>
+              </button>
+            </div>
+          </div>
+
+          <div class="section-divider" />
+
+          <div class="section-block">
+            <div class="section-title">Date of Birth</div>
+            <input v-model="form.dob" type="date" class="profile-native-input" />
+          </div>
         </div>
-      </div>
 
-      <!-- DOB -->
-      <div class="mb-6">
-        <ion-item>
-          <ion-input v-model="form.dob" type="date" label="DOB" label-placement="stacked"/>
-        </ion-item>
-      </div>
+        <ion-button expand="block" color="primary" class="profile-submit" @click="submit">
+          Save Profile
+        </ion-button>
 
-      <!-- Submit -->
-      <ion-button expand="block" color="primary" class="ion-padding" @click="submit">
-        Submit
-      </ion-button>
-    </ion-content>
-
-    <ion-footer class="ion-no-border">
-      <div class="text-center mt-10 text-red-600 text-sm py-2 px-4">
-        <ion-button class="w-[100%]" color="danger" @click="deleteAccount">
+        <ion-button
+          expand="block"
+          fill="outline"
+          color="danger"
+          class="profile-delete"
+          @click="deleteAccount"
+        >
           Delete Account
         </ion-button>
       </div>
-    </ion-footer>
+    </ion-content>
   </ion-page>
 </template>
 
 <script setup lang="ts">
 import {
-  IonPage, IonHeader, IonItem, IonContent, IonInput,
-  IonButton, IonFooter, IonIcon, toastController
+  IonPage, IonHeader, IonContent,
+  IonButton, IonIcon, toastController
 } from '@ionic/vue'
-import { male, female, transgender } from 'ionicons/icons'
+import { male, female, transgender, checkmarkCircleOutline } from 'ionicons/icons'
 import { reactive, onMounted } from 'vue'
 import Topbar from '@/components/Topbar.vue'
 import { useProfileStore } from '@/store/useProfileStore'   // 👈 Pinia store
@@ -110,10 +119,12 @@ const submit = async () => {
       dob: form.dob || null
     })
     const toast = await toastController.create({
+      header: 'Updated',
       message: 'Profile updated successfully',
-      duration: 2000,
-      color: 'success',
-      position: 'bottom'
+      icon: checkmarkCircleOutline,
+      duration: 1700,
+      position: 'bottom',
+      cssClass: 'markit-toast markit-toast-success'
     })
     await toast.present()
   } catch (err) {
@@ -152,3 +163,111 @@ const deleteAccount = async () => {
   }
 }
 </script>
+
+<style scoped>
+.profile-page {
+  --background: var(--markit-bg);
+}
+
+.profile-wrap {
+  display: grid;
+  gap: 14px;
+  padding-top: 12px;
+  padding-bottom: calc(20px + env(safe-area-inset-bottom, 0px));
+}
+
+.profile-form {
+  padding: 14px;
+  display: grid;
+  gap: 12px;
+}
+
+.section-block {
+  display: grid;
+  gap: 8px;
+}
+
+.section-divider {
+  height: 1px;
+  background: color-mix(in srgb, var(--markit-glass-border) 70%, transparent);
+}
+
+.section-title {
+  font-size: 0.84rem;
+  font-weight: 700;
+  letter-spacing: 0.3px;
+  color: var(--markit-text-muted);
+  margin-bottom: 0;
+}
+
+.profile-native-input {
+  width: 100%;
+  min-height: 46px;
+  padding: 12px;
+  font-size: 1.05rem;
+  color: var(--markit-text);
+  caret-color: #111111;
+  border-radius: 14px;
+  border: 1px solid var(--markit-glass-border);
+  background: var(--markit-glass-surface-strong);
+  box-shadow: inset 0 1px 0 var(--markit-glass-highlight);
+  outline: none;
+  transition: border-color 0.2s ease, box-shadow 0.2s ease, background-color 0.2s ease;
+}
+
+.profile-native-input::placeholder {
+  color: var(--markit-text-muted);
+  opacity: 0.8;
+}
+
+.profile-native-input:hover,
+.profile-native-input:focus {
+  border-color: rgba(var(--ion-color-primary-rgb), 0.55);
+  box-shadow:
+    0 0 0 3px rgba(var(--ion-color-primary-rgb), 0.22),
+    inset 0 1px 0 var(--markit-glass-highlight);
+}
+
+.gender-row {
+  display: grid;
+  grid-template-columns: repeat(3, minmax(0, 1fr));
+  gap: 8px;
+}
+
+.gender-chip {
+  border: 1px solid var(--markit-glass-border);
+  background: var(--markit-glass-surface-strong);
+  color: var(--markit-text);
+  border-radius: var(--markit-radius-pill);
+  min-height: 40px;
+  padding: 8px 10px;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  gap: 6px;
+  font-size: 0.92rem;
+  font-weight: 600;
+}
+
+.gender-chip__icon {
+  width: 16px;
+  height: 16px;
+}
+
+.gender-chip--active {
+  background: var(--ion-color-primary);
+  border-color: var(--ion-color-primary);
+  color: #fff;
+}
+
+.profile-submit {
+  margin-top: 4px;
+  min-height: 48px;
+  font-weight: 700;
+}
+
+.profile-delete {
+  min-height: 46px;
+  font-weight: 700;
+}
+</style>

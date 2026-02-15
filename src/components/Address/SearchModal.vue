@@ -1,6 +1,7 @@
 <!-- components/SearchLocationModal.vue -->
 <template>
   <ion-modal
+    class="search-modal markit-filter-sheet"
     :is-open="isOpen"
     @didDismiss="close"
     :initial-breakpoint="0.65"
@@ -11,7 +12,7 @@
     show-backdrop
     swipe-to-close
   >
-    <div class="p-4">
+    <div class="search-modal-body">
       <ion-searchbar
         v-model="searchQuery"
         @ionInput="handleSearchInput"
@@ -24,12 +25,15 @@
         <ion-spinner name="crescent"></ion-spinner>
       </div>
 
-      <ion-list v-else-if="searchResults.length > 0">
-        <ion-item
-          v-for="(result, index) in searchResults"
-          :key="index"
-          @click="select(result)"
-        >
+      <ion-list v-else-if="searchResults.length > 0" class="search-results-list">
+      <ion-item
+        v-for="(result, index) in searchResults"
+        :key="index"
+        button
+        lines="none"
+        @click="select(result)"
+        class="search-result-item"
+      >
           <ion-label class="py-2">
             <h3>{{ result.name }}</h3>
             <p>{{ result.formatted_address }}</p>
@@ -108,12 +112,67 @@ const close = () => {
 }
 
 const select = (place) => {
-  emit('select', place)
-  close()
+  if (place?.geometry?.location || !props.placesService || !place?.place_id) {
+    emit('select', place)
+    close()
+    return
+  }
+
+  props.placesService.getDetails(
+    {
+      placeId: place.place_id,
+      fields: ['name', 'formatted_address', 'geometry'],
+    },
+    (details, status) => {
+      if (status === google.maps.places.PlacesServiceStatus.OK) {
+        emit('select', details)
+      } else {
+        emit('select', place)
+      }
+      close()
+    }
+  )
 }
 </script>
 
 <style scoped>
+.search-modal::part(content) {
+  border-radius: 24px 24px 0 0;
+  overflow: hidden;
+}
+
+.search-modal-body {
+  padding: 14px 14px 18px;
+  background: var(--markit-bg);
+}
+
+ion-searchbar {
+  --background: transparent;
+  --box-shadow: none;
+  --placeholder-color: var(--markit-text-muted);
+  --color: var(--markit-text);
+  margin-bottom: 8px;
+}
+
+ion-searchbar::part(container) {
+  min-height: 52px;
+  border-radius: var(--markit-radius-xl);
+}
+
+.search-results-list {
+  background: transparent;
+  padding: 4px 0 2px;
+}
+
+.search-result-item {
+  --background: var(--markit-glass-surface-strong);
+  --border-color: transparent;
+  border: 1px solid var(--markit-glass-border);
+  border-radius: 16px;
+  margin-bottom: 8px;
+  box-shadow: inset 0 1px 0 var(--markit-glass-highlight), var(--markit-glass-shadow);
+}
+
 .search-loading {
   display: flex;
   justify-content: center;
@@ -124,15 +183,16 @@ const select = (place) => {
 .no-results {
   text-align: center;
   padding: 1rem;
-  color: #666;
+  color: var(--markit-text-muted);
 }
 
 ion-label h3 {
-  font-weight: 500;
+  font-weight: 700;
+  color: var(--markit-text);
 }
 
 ion-label p {
-  color: #666;
+  color: var(--markit-text-muted);
   font-size: 0.8rem;
   margin-top: 0.25rem;
 }

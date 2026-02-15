@@ -1,31 +1,28 @@
 <template>
-  <ion-footer>
-    <div class="flex justify-around border-t border-gray-200 bg-white py-2">
-      <!-- 🏬 Store -->
-      <button @click="$router.push('/')" class="flex flex-col items-center text-[#53816C]">
-        <ion-icon :icon="storefrontOutline" class="w-6 h-6"></ion-icon>
-        <span class="text-sm">Store</span>
+  <ion-footer class="tabs-shell">
+    <div class="tabs-capsule">
+      <button @click="$router.push({ name: 'shops' })" class="tab-btn" :class="{ 'is-active': isStoreActive }">
+        <ion-icon :icon="storefrontOutline" class="tab-icon"></ion-icon>
+        <span class="tab-label">Store</span>
       </button>
 
-      <!-- ❤️ Wishlist -->
-      <button @click="$router.push('/whishlist')" class="flex flex-col items-center text-[#53816C]">
-        <ion-icon :icon="heartOutline" class="w-6 h-6"></ion-icon>
-        <span class="text-sm">Wishlist</span>
+      <button @click="$router.push({ name: 'wishlist' })" class="tab-btn" :class="{ 'is-active': isWishlistActive }">
+        <ion-icon :icon="heartOutline" class="tab-icon"></ion-icon>
+        <span class="tab-label">Wishlist</span>
       </button>
 
-      <!-- 🛒 Cart -->
-      <button @click="$router.push('/cart')" class="relative flex flex-col items-center text-[#53816C]">
-        <ion-icon :icon="cartOutline" class="w-6 h-6"></ion-icon>
+      <button @click="$router.push({ name: 'cart' })" class="tab-btn" :class="{ 'is-active': isCartActive }">
+        <span class="tab-icon-wrap">
+          <ion-icon :icon="cartOutline" class="tab-icon"></ion-icon>
+          <ion-badge
+            v-if="totalCartCount > 0"
+            class="tab-badge rounded-full p-[1px] bg-danger w-[18px] h-[18px] text-xs"
+          >
+            {{ totalCartCount }}
+          </ion-badge>
+        </span>
 
-        <!-- 🔢 Badge -->
-        <ion-badge
-          v-if="totalCartCount > 0"
-          class="absolute -top-1 -right-2 rounded-full p-[1px] bg-danger w-[18px] h-[18px] text-xs"
-        >
-          {{ totalCartCount }}
-        </ion-badge>
-
-        <span class="text-sm">Cart</span>
+        <span class="tab-label">Cart</span>
       </button>
     </div>
   </ion-footer>
@@ -36,26 +33,99 @@ import { IonFooter, IonIcon, IonBadge } from '@ionic/vue'
 import { storefrontOutline, heartOutline, cartOutline } from 'ionicons/icons'
 import { useCartStore } from '@/store/useCartStore'
 import { onMounted, computed } from 'vue'
+import { useRoute } from 'vue-router'
 
 const cartStore = useCartStore()
+const route = useRoute()
 
 onMounted(async () => {
   await cartStore.loadCart()
 })
 
-// ✅ Correct total count for nested cartGroup → companies → items
 const totalCartCount = computed(() => {
   if (!Array.isArray(cartStore.groups)) return 0
 
   return cartStore.groups.reduce((total, group) => {
     const groupTotal = (group.companies ?? []).reduce((sum, company) => {
-      const companyTotal = (company.items ?? []).reduce(
-        (s, item) => s + (item.quantity ?? 0),
-        0
-      )
+      const companyTotal = (company.items ?? []).reduce((s, item) => s + (item.quantity ?? 0), 0)
       return sum + companyTotal
     }, 0)
     return total + groupTotal
   }, 0)
 })
+
+const isStoreActive = computed(() => route.name === 'shops' || route.name === 'nearby-shops')
+const isWishlistActive = computed(() => route.name === 'wishlist')
+const isCartActive = computed(() => route.name === 'cart')
 </script>
+
+<style scoped>
+.tabs-shell {
+  --background: transparent;
+  background: transparent;
+  position: fixed;
+  left: 0;
+  right: 0;
+  bottom: env(safe-area-inset-bottom, 0px);
+  width: 100%;
+  z-index: 1200;
+  pointer-events: auto;
+}
+
+.tabs-capsule {
+  display: flex;
+  justify-content: space-around;
+  align-items: center;
+  border-top: 1px solid var(--markit-border);
+  background: var(--markit-surface);
+  box-shadow: 0 -8px 20px rgba(18, 30, 25, 0.12);
+  border-radius: 0;
+  min-height: 64px;
+  width: 100%;
+  padding: 8px 10px calc(env(safe-area-inset-bottom, 0px) + 8px);
+}
+
+.tab-btn {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  color: var(--markit-text-muted);
+  gap: 3px;
+  min-width: 72px;
+  transition: color 0.2s ease, transform 0.2s ease;
+}
+
+.tab-btn.is-active {
+  color: var(--ion-color-primary);
+}
+
+.tab-icon {
+  width: 22px;
+  height: 22px;
+}
+
+.tab-icon-wrap {
+  position: relative;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+}
+
+.tab-badge {
+  position: absolute;
+  top: -7px;
+  right: -11px;
+}
+
+.tab-label {
+  font-size: 12px;
+  font-weight: 600;
+}
+
+/* Lift only by the browser-controls overlap on mobile dynamic viewport */
+@supports (height: 100dvh) {
+  .tabs-shell {
+    bottom: calc(env(safe-area-inset-bottom, 0px) + (100vh - 100dvh));
+  }
+}
+</style>
