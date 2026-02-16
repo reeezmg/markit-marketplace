@@ -42,7 +42,7 @@
           : 'opacity-100 translate-y-0'">
 
           <div class="text-xl text-[#2f5f49] font-bold py-3 px-2 flex flex-col items-center justify-center hero-title">
-            <div class="w-fit px-2 rounded-md">Choose • Try • Buy</div>
+            <div class="w-fit px-2 rounded-md text-gray-600">Choose • Try • Buy</div>
             <div class="w-fit px-2 rounded-md mt-1 hero-subtitle">Make your home trial room</div>
 
             <ion-button class="mt-3 markit-cta hero-cta" color="primary" fill="solid" size="small" @click="openKnowMoreModal">
