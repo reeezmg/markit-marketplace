@@ -185,22 +185,62 @@ const navigateToProduct = () => {
 const toggleLike = () => {
   likeStore.toggleLike(props.variant);
 };
+import { toastController } from '@ionic/vue'
 
-const addToCart = () => {
+const addToCart = async () => {
   // preserve original logic: open size selector only when necessary
-  const items = props.variant.items ?? [];
-  if (items.length > 1 || (items.length === 1 && items[0].size)) {
-    sizes.value = items.map(i => i.size).filter(Boolean) as string[];
-    isSizeSelectorOpen.value = true;
-  } else {
-    cartStore.addItem(props.variant, [null]);
-  }
-};
+  const items = props.variant.items ?? []
 
-const handleSizeSelect = (selectedSizes: string[]) => {
-  if (!selectedSizes || selectedSizes.length === 0) return;
-  cartStore.addItem(props.variant, selectedSizes);
-};
+  if (
+    items.length > 1 ||
+    (items.length === 1 && items[0].size)
+  ) {
+    sizes.value = items
+      .map(i => i.size)
+      .filter(Boolean) as string[]
+
+    isSizeSelectorOpen.value = true
+  } else {
+    const res = await cartStore.addItem(
+      props.variant,
+      [null]
+    )
+
+    const toast = await toastController.create({
+      message:
+        res?.message || 'Product added to cart',
+      duration: 2000,
+      color: res?.success ? 'success' : 'danger',
+      position: 'bottom',
+    })
+
+    await toast.present()
+  }
+}
+
+const handleSizeSelect = async (
+  selectedSizes: string[]
+) => {
+  if (!selectedSizes || selectedSizes.length === 0)
+    return
+
+  const res = await cartStore.addItem(
+    props.variant,
+    selectedSizes
+  )
+
+  const toast = await toastController.create({
+    message:
+      res?.message || 'Product added to cart',
+    duration: 2000,
+    color: res?.success ? 'success' : 'danger',
+    position: 'bottom',
+  })
+
+  await toast.present()
+}
+
+
 </script>
 
 <style scoped>

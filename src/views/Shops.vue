@@ -161,6 +161,9 @@ import KnowMoreModal from '../components/KnowMore.vue'
 import ShopCardSkeleton from '@/components/Index/ShopCardSkeleton.vue'
 import { useProfileStore } from '@/store/useProfileStore'
 import api from '@/api/client'
+import { toastController } from '@ionic/vue'
+import { alertCircleOutline } from 'ionicons/icons';
+
 
 
 const profileStore = useProfileStore()
@@ -267,6 +270,15 @@ onIonViewWillEnter(async () => {
       location.value = saved
     } else {
       router.push({ name: 'account-address' })
+      const toast = await toastController.create({
+        header: 'Select Address',
+        message: 'Please select an address to see nearby shops',
+        icon: alertCircleOutline,
+        duration: 1700,
+        position: 'bottom',
+        color: 'danger',
+      });
+  await toast.present()
       return
     }
   }

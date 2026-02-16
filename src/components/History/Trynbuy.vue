@@ -127,6 +127,13 @@ function formatStatus(status: string | null): string {
   padding: 10px 0 12px;
   border-bottom: 1px solid var(--markit-border);
   overflow-x: auto;
+  overflow-y: hidden;
+  scrollbar-width: none;
+
+}
+
+.order-items-row ::-webkit-scrollbar {
+  display: none;
 }
 
 .order-item-tile {

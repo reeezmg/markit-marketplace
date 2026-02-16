@@ -80,6 +80,7 @@ import { useRoute, useRouter } from 'vue-router'
 import type { Address } from '@/api/address'
 import { useAddressStore } from '@/store/useAddressStore'
 import { useLocationStore } from '@/composables/useLocationStore'
+import { Preferences } from '@capacitor/preferences'
 
 const props = defineProps<{ location: Partial<Address>; collapsed?: boolean }>()
 
@@ -133,9 +134,20 @@ const activeIcon = computed(() => {
   return ''
 })
 
-function openAddressSettings() {
+async function openAddressSettings() {
   showAddressMenu.value = false
-  router.push({ name: 'account-address' })
+
+  const storedClient = await Preferences.get({
+    key: 'client',
+  })
+
+  if (storedClient?.value) {
+    // User logged in
+    router.push({ name: 'account-address' })
+  } else {
+    // User logged out
+    router.push({ name: 'login' })
+  }
 }
 
 function toggleAddressMenu() {

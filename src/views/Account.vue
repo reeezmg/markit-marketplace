@@ -95,10 +95,16 @@ import { useAddressStore } from '@/store/useAddressStore'
 import { Preferences } from '@capacitor/preferences'
 import { logout } from '@/api/auth'
 import { clearMarkitIndexedDB } from '@/store/utils'
+import { useNearbyStore } from '@/store/useNearbyStore'
+import { usePackStore } from '@/store/usePackStore'
+import { useTryHistoryStore } from '@/store/useTryHistoryStore'
+import { useLocationStore } from '@/composables/useLocationStore'
 
 const router = useRouter()
 const profileStore = useProfileStore()
 const addressStore = useAddressStore()
+const nearbyStore = useNearbyStore()
+const { clearLocation } = useLocationStore()
 
 /* ✅ SINGLE SOURCE OF TRUTH */
 const isLoggedIn = computed(() => !!profileStore.profile)
@@ -144,6 +150,10 @@ const logoutUser = async () => {
 
   profileStore.$reset()
   addressStore.$reset()
+  nearbyStore.$reset()
+  usePackStore().$reset()
+  useTryHistoryStore().$reset()
+  clearLocation()
 
   router.replace({ name: 'shops' })
 }
