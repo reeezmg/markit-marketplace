@@ -1,6 +1,6 @@
 <template>
   <ion-page>
-    <ion-content fullscreen class="login-page">
+    <ion-content fullscreen class="login-page" :scroll-y="false">
 
       <!-- Background -->
       <div class="login-bg">
@@ -17,107 +17,72 @@
         <ion-img src="/Logo.png" class="w-28 h-28 animate-logo-intro" />
       </div>
 
-      <!-- HEADER -->
-      <div class="relative px-5 pt-6">
+      <!-- MAIN CONTENT -->
+      <div class="login-container">
+        
+        <!-- HEADER with back button -->
+        <div class="header-section">
+          <ion-button
+            fill="clear"
+            class="back-btn"
+            @click="handleBack"
+            aria-label="Go back"
+          >
+            <ion-icon :icon="arrowBackOutline" class="back-icon" />
+          </ion-button>
+        </div>
 
-        <!-- Back Button -->
-        <ion-button
-          fill="clear"
-          class="markit-back-btn"
-          @click="handleBack"
-          aria-label="Go back"
-        >
-          <ion-icon
-            :icon="arrowBackOutline"
-            class="text-[20px] text-[var(--ion-color-primary)]"
-          />
-        </ion-button>
-
-        <!-- Center Logo -->
-        <div class="flex flex-col items-center mt-6 text-center">
-          <ion-img
-            src="/Logo.png"
-            class="w-24 h-24 transition-all duration-500"
-          />
-
-          <h1 class="text-base font-semibold text-[var(--markit-text)] mt-4">
+        <!-- LOGO & TEXT -->
+        <div class="logo-section">
+          <ion-img src="/Logo.png" class="logo-img" />
+          
+          <h1 class="title-text">
             One app for your local fashion store
           </h1>
 
-          <p
-            class="text-sm text-[var(--markit-text-muted)] mt-2 max-w-[18rem]"
-          >
+          <p class="description-text">
             Discover fresh drops, track orders, and stay close to the brands you love.
           </p>
         </div>
-      </div>
 
-      <!-- PROGRESS -->
-      <div class="mt-6 px-6">
-        <div
-          class="h-[5px] rounded-full overflow-hidden"
-          style="background: rgba(255,255,255,0.6);"
-        >
-          <div
-            class="h-full progress-bar transition-all duration-300"
-            :style="{ width: progressWidth }"
-          />
+        <!-- PROGRESS BAR -->
+        <div class="progress-section">
+          <div class="progress-track">
+            <div
+              class="progress-bar"
+              :style="{ width: progressWidth }"
+            />
+          </div>
         </div>
-      </div>
 
-      <!-- CARD -->
-      <div
-        v-show="showContent"
-        class="mx-4 mt-6 login-card card-container fade-in"
-      >
-
-        <Login
-          v-if="step === 'login'"
-          @loginClicked="step = 'phone'"
-        />
-
-        <Transition name="slide">
-          <Phone
-            v-show="step === 'phone'"
-            @submitClicked="handlePhoneSubmitClicked"
+        <!-- LOGIN COMPONENT - NO OUTER BOX -->
+        <div v-show="showContent" class="content-section">
+          <Login
+            v-if="step === 'login'"
+            @loginClicked="step = 'phone'"
           />
-        </Transition>
 
-        <Transition name="slide">
-          <Otp
-            v-if="step === 'otp'"
-            @submitClicked="handleOtpSubmitClicked"
-          />
-        </Transition>
+          <Transition name="slide">
+            <Phone
+              v-show="step === 'phone'"
+              @submitClicked="handlePhoneSubmitClicked"
+            />
+          </Transition>
 
+          <Transition name="slide">
+            <Otp
+              v-if="step === 'otp'"
+              @submitClicked="handleOtpSubmitClicked"
+            />
+          </Transition>
+        </div>
+
+        <div id="recaptcha-container"></div>
+        
       </div>
-
-      <!-- FOOTER -->
-      <div
-        class="text-center text-xs text-[var(--markit-text-muted)] mt-8 px-6 pb-6"
-      >
-        By continuing, you agree to our
-        <span
-          class="underline cursor-pointer"
-          @click="router.push({ name: 'account-terms-of-use' })"
-        >
-          Terms of Use
-        </span>
-        &
-        <span
-          class="underline cursor-pointer"
-          @click="router.push({ name: 'account-privacy-policy' })"
-        >
-          Privacy Policy
-        </span>
-      </div>
-
-      <div id="recaptcha-container"></div>
-
     </ion-content>
   </ion-page>
 </template>
-
 
 <script setup lang="ts">
 import { arrowBackOutline } from 'ionicons/icons'
@@ -167,7 +132,7 @@ const progressWidth = computed(() =>
 function handleBack() {
   if (step.value === 'otp') step.value = 'phone'
   else if (step.value === 'phone') step.value = 'login'
-  else ionRouter.back({ animated: false })
+  else ionRouter.back()
 }
 
 const handlePhoneSubmitClicked = async ({ phone }: { phone: string }) => {
@@ -214,8 +179,6 @@ const handleOtpSubmitClicked = async ({ otp }: { otp: string }) => {
 }
 </script>
 
-
-
 <style scoped>
 .login-page {
   --background: var(--markit-bg);
@@ -229,6 +192,7 @@ const handleOtpSubmitClicked = async ({ otp }: { otp: string }) => {
   pointer-events: none;
 }
 
+/* Background orbs */
 .orb {
   position: absolute;
   width: 260px;
@@ -275,24 +239,166 @@ const handleOtpSubmitClicked = async ({ otp }: { otp: string }) => {
   opacity: 0.25;
 }
 
-.login-card {
-  background: var(--markit-glass-surface);
-  border: 1px solid var(--markit-glass-border);
-  backdrop-filter: blur(18px) saturate(145%);
-  -webkit-backdrop-filter: blur(18px) saturate(145%);
-  border-radius: var(--markit-radius-xl);
-  padding: 22px 20px 26px;
-  box-shadow:
-    inset 0 1px 0 var(--markit-glass-highlight),
-    var(--markit-glass-shadow);
+/* Main container */
+.login-container {
+  display: flex;
+  flex-direction: column;
+  height: 100%;
+  padding: 0 20px;
+  position: relative;
+  z-index: 10;
+}
+
+/* Header section */
+.header-section {
+  position: relative;
+  width: 100%;
+  padding: 16px 0 4px;
+  margin-bottom: 4px;
+  display: flex;
+  align-items: center;
+  justify-content: flex-start;
+}
+
+/* Back button */
+.back-btn {
+  width: 44px;
+  height: 44px;
+  --padding-start: 0;
+  --padding-end: 0;
+  --padding-top: 0;
+  --padding-bottom: 0;
+  margin: 4px 0 0 0px;
+  --border-radius: 8px;
+  --background: transparent;
+  --background-hover: transparent;
+  --background-hover-opacity: 0;
+  --background-focused: transparent;
+  --background-focused-opacity: 0;
+  --background-activated: transparent;
+  --background-activated-opacity: 0;
+  --ripple-color: transparent;
+  --color-hover: transparent;
+  --color-focused: transparent;
+  --color-activated: transparent;
+  --box-shadow: none;
+  outline: none;
+  --outline: none;
+  position: relative;
+  left: -4px;
+}
+
+.back-btn::part(native) {
+  background: transparent;
+  color: var(--ion-color-primary);
+  padding: 0;
+  margin: 0;
+  outline: none;
+  box-shadow: none;
+  --box-shadow: none;
+  transition: none;
+  transform: none;
+}
+
+.back-btn:hover,
+.back-btn:focus,
+.back-btn:active,
+.back-btn:focus-visible {
+  opacity: 1;
+  background: transparent;
+  --background: transparent;
+  transform: none;
+  transition: none;
+  outline: none;
+}
+
+.back-icon {
+  font-size: 24px;
+  color: var(--ion-color-primary);
+}
+
+/* Logo section */
+.logo-section {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  text-align: center;
+  margin-bottom: 16px;
+}
+
+.logo-img {
+  width: 90px;
+  height: 90px;
+  transition: all 0.5s ease;
+}
+
+.title-text {
+  font-size: 1rem;
+  font-weight: 600;
+  color: var(--markit-text);
+  margin-top: 8px;
+  margin-bottom: 4px;
+  max-width: 280px;
+  line-height: 1.4;
+}
+
+.description-text {
+  font-size: 0.85rem;
+  color: var(--markit-text-muted);
+  max-width: 280px;
+  line-height: 1.4;
+  margin: 0 auto;
+}
+
+/* Progress section */
+.progress-section {
+  margin-bottom: 20px;
+  padding: 0 4px;
+}
+
+.progress-track {
+  height: 4px;
+  border-radius: 999px;
+  overflow: hidden;
+  background: rgba(255, 255, 255, 0.5);
+  width: 100%;
 }
 
 .progress-bar {
+  height: 100%;
   background: linear-gradient(
     90deg,
     var(--ion-color-primary) 0%,
     color-mix(in srgb, var(--ion-color-primary) 70%, #ffffff) 100%
   );
+  transition: width 0.3s ease;
+  border-radius: 999px;
+}
+
+/* Content section - NO OUTER BOX */
+.content-section {
+  flex: 1;
+  display: flex;
+  flex-direction: column;
+  justify-content: flex-start;
+  min-height: 0;
+  width: 100%;
+}
+
+/* Slide transitions */
+.slide-enter-active,
+.slide-leave-active {
+  transition: all 0.25s ease;
+}
+
+.slide-enter-from {
+  opacity: 0;
+  transform: translateX(20px);
+}
+
+.slide-leave-to {
+  opacity: 0;
+  transform: translateX(-20px);
 }
 
 .fade-in {
@@ -300,7 +406,7 @@ const handleOtpSubmitClicked = async ({ otp }: { otp: string }) => {
 }
 
 @keyframes fadeIn {
-  from { opacity: 0; transform: translateY(12px); }
+  from { opacity: 0; transform: translateY(8px); }
   to { opacity: 1; transform: translateY(0); }
 }
 
@@ -308,5 +414,58 @@ const handleOtpSubmitClicked = async ({ otp }: { otp: string }) => {
   0%,100% { transform: translateY(0px); }
   50% { transform: translateY(14px); }
 }
-</style>
 
+/* Small device adjustments */
+@media (max-width: 360px) {
+  .logo-img {
+    width: 80px;
+    height: 80px;
+  }
+  
+  .title-text {
+    font-size: 0.9rem;
+    max-width: 260px;
+  }
+  
+  .description-text {
+    font-size: 0.8rem;
+    max-width: 260px;
+  }
+  
+  .back-btn {
+    width: 40px;
+    height: 40px;
+    left: -2px;
+  }
+  
+  .back-icon {
+    font-size: 22px;
+  }
+}
+
+/* Short screen adjustments */
+@media (max-height: 700px) {
+  .logo-img {
+    width: 75px;
+    height: 75px;
+  }
+  
+  .title-text {
+    margin-top: 4px;
+    font-size: 0.9rem;
+  }
+  
+  .description-text {
+    font-size: 0.8rem;
+  }
+  
+  .progress-section {
+    margin-bottom: 12px;
+  }
+}
+
+/* Ensure no scrolling */
+ion-content {
+  --overflow: hidden;
+}
+</style>

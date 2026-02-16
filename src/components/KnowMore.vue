@@ -1,69 +1,65 @@
 <template>
-<IonModal
-  :is-open="isOpen"
-  @didDismiss="close"
-  breakpoints="[0, 1]"
-  initial-breakpoint="1"
-  handle-behavior="cycle"
-  :can-dismiss="true"
-  :backdrop-dismiss="true"
-  show-backdrop
-  swipe-to-close
-  class="markit-filter-sheet"
->
+  <IonModal
+    :is-open="isOpen"
+    @didDismiss="close"
+    breakpoints="[0, 1]"
+    initial-breakpoint="1"
+    handle-behavior="cycle"
+    :can-dismiss="true"
+    :backdrop-dismiss="true"
+    show-backdrop
+    swipe-to-close
+    class="markit-filter-sheet"
+  >
       <div class="knowmore-sheet">
         <div class="km-hero">
-          <h2 class="km-title">Trial room at home in 60 mins</h2>
-          <p class="km-sub">Try first, pay only for what you keep. We handle the rest.</p>
+          <h2 class="km-title text-gray-700">Trial room at home in 60 mins</h2>
+          <p class="km-sub text-gray-700">Try first, pay only for what you keep. We handle the rest.</p>
         </div>
 
         <div class="km-steps ">
-          <div class="km-step iced">
-            <div class="km-dot"></div>
+          <div class="km-step white-box">
             <div class="km-icon">
               <ion-icon :icon="cartOutline" />
             </div>
             <div class="km-text">
-              <div class="km-label">Order up to 10 products</div>
+              <div class="km-label text-gray-700">Order up to 10 products</div>
               <div class="km-meta">Choose from up to 3 different stores</div>
             </div>
           </div>
 
           <div class="km-connector"></div>
 
-          <div class="km-step iced">
-            <div class="km-dot"></div>
+          <div class="km-step white-box">
             <div class="km-icon">
               <ion-icon :icon="homeOutline" />
             </div>
             <div class="km-text">
-              <div class="km-label">Try items at home</div>
+              <div class="km-label text-gray-700">Try items at home</div>
               <div class="km-meta">30‑minute trial window on delivery</div>
             </div>
           </div>
 
           <div class="km-connector"></div>
 
-          <div class="km-step iced">
-            <div class="km-dot"></div>
+          <div class="km-step white-box">
             <div class="km-icon">
               <ion-icon :icon="cardOutline" />
             </div>
             <div class="km-text">
-              <div class="km-label">Pay only for what you keep</div>
+              <div class="km-label text-gray-700">Pay only for what you keep</div>
               <div class="km-meta">Instantly return the rest</div>
             </div>
           </div>
 
           <div class="km-connector"></div>
 
-          <div class="km-step iced">
-            <div class="km-dot"></div>
+          <div class="km-step white-box">
             <div class="km-icon">
               <ion-icon :icon="repeatOutline" />
             </div>
             <div class="km-text">
-              <div class="km-label">Return within 30 minutes</div>
+              <div class="km-label text-gray-700">Return within 30 minutes</div>
               <div class="km-meta">Rider collects at your doorstep</div>
             </div>
           </div>
@@ -108,13 +104,11 @@ const close = () => {
   margin-top: 12px;
   font-size: 22px;
   font-weight: 700;
-  color: #1f2937;
 }
 
 .km-sub {
   margin-top: 8px;
   font-size: 14px;
-  color: #000000;
 }
 
 .km-steps {
@@ -122,18 +116,6 @@ const close = () => {
   flex-direction: column;
   gap: 5px;
   position: relative;
-  padding-left: 6px;
-}
-
-.km-steps::before {
-  content: "";
-  position: absolute;
-  left: 14px;
-  top: 8px;
-  bottom: 8px;
-  width: 2px;
-  
-  border-radius: 2px;
 }
 
 .km-step {
@@ -147,21 +129,11 @@ const close = () => {
   position: relative;
 }
 
-.iced{
-      background: var(--markit-glass-surface);
-  backdrop-filter: blur(20px) saturate(105%);
-  -webkit-backdrop-filter: blur(20px) saturate(105%);
+.white-box {
+  background: white !important;
+  backdrop-filter: none !important;
+  -webkit-backdrop-filter: none !important;
 }
-
-.km-dot {
-  width: 10px;
-  height: 10px;
-  border-radius: 999px;
-  background: #53816c;
-  box-shadow: 0 0 0 4px rgba(83, 129, 108, 0.15);
-  margin-left: -6px;
-}
-
 
 .km-icon {
   width: 44px;
@@ -182,7 +154,6 @@ const close = () => {
 .km-label {
   font-size: 16px;
   font-weight: 600;
-  color: #1f2937;
 }
 
 .km-meta {

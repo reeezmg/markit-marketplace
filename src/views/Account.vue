@@ -3,6 +3,7 @@
     <Topbar title="Account" />
 
     <ion-content :fullscreen="true" class="ion-padding account-page">
+
       <!-- Header -->
       <div v-if="isLoggedIn" class="pb-4">
         <div class="account-hero glass-card">
@@ -29,12 +30,26 @@
 
       <div class="my-4 h-[0.5px] bg-transparent" />
 
+      <!-- Account Section -->
       <div class="account-section">
         <p class="section-title">Account</p>
+
         <div class="account-list">
-          <button v-if="!isLoggedIn" class="account-row" @click="goToLogin" type="button">
-            <span class="account-row-label font-bold">Login / Sign Up</span>
-            <ion-icon :icon="chevronForwardOutline" class="account-row-arrow" />
+
+          <!-- LOGIN (GREEN GLASS) -->
+          <button
+            v-if="!isLoggedIn"
+            class="account-row account-row--login"
+            @click="goToLogin"
+            type="button"
+          >
+            <span class="account-row-label account-row-label--login">
+              Login / Sign Up
+            </span>
+            <ion-icon
+              :icon="chevronForwardOutline"
+              class="account-row-arrow account-row-arrow--login"
+            />
           </button>
 
           <button v-if="isLoggedIn" class="account-row" @click="navigate('order-history')" type="button">
@@ -66,27 +81,35 @@
             <span class="account-row-label">Your Profile</span>
             <ion-icon :icon="chevronForwardOutline" class="account-row-arrow" />
           </button>
+
         </div>
       </div>
 
+      <!-- Logout Section -->
       <div v-if="isLoggedIn" class="account-section">
-        <p class="section-title">Support</p>
         <div class="account-list">
-          <button class="account-row" @click="logoutUser" type="button">
-            <span class="account-row-label text-red-600">Logout</span>
-            <ion-icon :icon="chevronForwardOutline" class="account-row-arrow" />
+
+          <!-- LOGOUT (RED GLASS) -->
+          <button
+            class="account-row account-row--logout"
+            @click="logoutUser"
+            type="button"
+          >
+            <span class="account-row-label account-row-label--logout">
+              Logout
+            </span>
           </button>
+
         </div>
       </div>
+
     </ion-content>
   </ion-page>
 </template>
 
 <script setup lang="ts">
 import Topbar from '@/components/Topbar.vue'
-import {
-  IonPage, IonContent, IonIcon
-} from '@ionic/vue'
+import { IonPage, IonContent, IonIcon } from '@ionic/vue'
 import { useRouter } from 'vue-router'
 import { computed, onMounted } from 'vue'
 import { chevronForwardOutline } from 'ionicons/icons'
@@ -106,14 +129,12 @@ const addressStore = useAddressStore()
 const nearbyStore = useNearbyStore()
 const { clearLocation } = useLocationStore()
 
-/* ✅ SINGLE SOURCE OF TRUTH */
 const isLoggedIn = computed(() => !!profileStore.profile)
 
 const client = computed(() =>
   profileStore.profile ?? { name: '', phone: '' }
 )
 
-/* ✅ HYDRATE PINIA ON PAGE LOAD */
 onMounted(async () => {
   await profileStore.loadFromStorage()
 })
@@ -141,9 +162,7 @@ const openWhatsApp = () => {
 }
 
 const logoutUser = async () => {
-  try {
-    await logout()
-  } catch {}
+  try { await logout() } catch {}
 
   await Preferences.remove({ key: 'token' })
   await clearMarkitIndexedDB()
@@ -160,18 +179,22 @@ const logoutUser = async () => {
 </script>
 
 <style scoped>
+
+/* ===== Page ===== */
+
 .account-page {
   --background: var(--markit-bg);
-
 }
+
+/* ===== Hero ===== */
 
 .account-hero {
   padding: 16px;
   border-radius: 20px;
   background: var(--markit-glass-surface);
-  box-shadow: inset 0 1px 0 var(--markit-glass-highlight), 0 8px 14px rgba(20, 34, 28, 0.06);
+  box-shadow: inset 0 1px 0 var(--markit-glass-highlight),
+              var(--markit-glass-shadow);
   backdrop-filter: blur(18px) saturate(145%);
-  -webkit-backdrop-filter: blur(18px) saturate(145%);
 }
 
 .account-hero-row {
@@ -193,21 +216,19 @@ const logoutUser = async () => {
 
 .account-hero-title h2 {
   font-size: 1.28rem;
-  line-height: 1.2;
   font-weight: 700;
-  letter-spacing: 0.1px;
   color: var(--markit-text);
 }
 
 .account-hero-title p {
   color: var(--markit-text-muted);
   font-size: 0.9rem;
-  line-height: 1.4;
-  margin-top: 2px;
 }
 
+/* ===== Sections ===== */
+
 .account-section {
-  margin-bottom: 12px;
+  margin-bottom: 14px;
 }
 
 .section-title {
@@ -220,44 +241,75 @@ const logoutUser = async () => {
 }
 
 .account-list {
-  padding: 0;
-  margin: 0;
   display: flex;
   flex-direction: column;
   gap: 8px;
-  background: transparent !important;
 }
+
+/* ===== Base Row ===== */
 
 .account-row {
   width: 100%;
-  margin-bottom: 5px;
   border-radius: 18px;
   background: var(--markit-glass-surface-strong);
-  box-shadow: inset 0 1px 0 var(--markit-glass-highlight), 0 6px 12px rgba(20, 34, 28, 0.05);
+  border: 1px solid var(--markit-glass-border);
+  box-shadow: inset 0 1px 0 var(--markit-glass-highlight),
+              var(--markit-glass-shadow);
   backdrop-filter: blur(14px) saturate(140%);
-  -webkit-backdrop-filter: blur(14px) saturate(140%);
-  padding: 14px 14px;
+  padding: 14px;
   display: flex;
   align-items: center;
   justify-content: space-between;
-  transition: border-color 0.2s ease, box-shadow 0.2s ease;
+  transition: 0.2s ease;
 }
 
-.account-row:hover,
-.account-row:focus-visible {
-  border-color: color-mix(in srgb, var(--ion-color-primary) 32%, var(--markit-glass-border));
-  box-shadow: inset 0 1px 0 var(--markit-glass-highlight), 0 10px 16px rgba(20, 34, 28, 0.08);
+.account-row:hover {
+  border-color: var(--markit-glass-border-hover);
+  box-shadow: inset 0 1px 0 var(--markit-glass-highlight),
+              var(--markit-glass-shadow-lg);
 }
 
 .account-row-label {
   font-size: 1.05rem;
-  line-height: 1.3;
   color: var(--markit-text);
 }
 
 .account-row-arrow {
   color: rgba(15, 23, 42, 0.28);
   font-size: 1.15rem;
-  flex-shrink: 0;
 }
+
+/* ===== LOGIN (GREEN GLASS) ===== */
+
+.account-row--login {
+  border-color: color-mix(in srgb, var(--ion-color-primary) 40%, transparent);
+  background: linear-gradient(
+    180deg,
+    color-mix(in srgb, var(--ion-color-primary) 20%, #ffffff 80%) 0%,
+    color-mix(in srgb, var(--ion-color-primary) 10%, #ffffff 90%) 100%
+  );
+}
+
+.account-row-label--login,
+.account-row-arrow--login {
+  color: var(--ion-color-primary);
+  font-weight: 700;
+}
+
+/* ===== LOGOUT (RED GLASS) ===== */
+
+.account-row--logout {
+  border-color: color-mix(in srgb, #ef4444 40%, transparent);
+  background: linear-gradient(
+    180deg,
+    color-mix(in srgb, #ef4444 18%, #ffffff 82%) 0%,
+    color-mix(in srgb, #ef4444 10%, #ffffff 90%) 100%
+  );
+}
+
+.account-row-label--logout {
+  color: #ef4444;
+  font-weight: 700;
+}
+
 </style>

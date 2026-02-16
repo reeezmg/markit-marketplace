@@ -5,7 +5,7 @@
     </ion-header>
 
     <ion-content :fullscreen="true" class="ion-padding profile-page">
-      <div class="profile-wrap ion-padding">
+      <div class="profile-wrap">
         <div class="glass-card profile-form">
           <div class="section-block">
             <div class="section-title">Name</div>

@@ -33,13 +33,13 @@
       <div class="search-box">
         <ion-icon :icon="searchOutline" class="search-icon"></ion-icon>
         <input
-          v-model="q"
+          v-model="searchQuery"
           @input="onInput"
           type="text"
           placeholder="Search for shops..."
           class="search-input"
         />
-        <button v-if="q" @click="clear" class="clear-btn" type="button">Clear</button>
+        <button v-if="searchQuery" @click="clear" class="clear-btn" type="button">Clear</button>
       </div>
 
       <div class="top-actions">
@@ -77,16 +77,17 @@ import {
   searchOutline,
 } from 'ionicons/icons'
 import { useRoute, useRouter } from 'vue-router'
+import { storeToRefs } from 'pinia' // ✅ Add this import
 import type { Address } from '@/api/address'
 import { useAddressStore } from '@/store/useAddressStore'
 import { useLocationStore } from '@/composables/useLocationStore'
 import { Preferences } from '@capacitor/preferences'
+import { useSearchStore } from '@/store/useSearchStore' // Import search store
 
 const props = defineProps<{ location: Partial<Address>; collapsed?: boolean }>()
 
 const router = useRouter()
 const route = useRoute()
-const q = ref('')
 const showAddressMenu = ref(false)
 const rootRef = ref<HTMLElement | null>(null)
 let timer: number | null = null
@@ -95,6 +96,11 @@ const emit = defineEmits<{
   (e: 'search', value: string): void
   (e: 'location-change', value: Address): void
 }>()
+
+// Use search store for shared search state
+const searchStore = useSearchStore()
+const { query: searchQuery } = storeToRefs(searchStore)
+
 const addressStore = useAddressStore()
 const { setLocation } = useLocationStore()
 const addresses = computed(() => addressStore.addresses || [])
@@ -183,12 +189,14 @@ async function selectAddress(addr: Address) {
 function onInput() {
   if (timer) window.clearTimeout(timer)
   timer = window.setTimeout(() => {
-    emit('search', q.value.trim())
+    emit('search', searchQuery.value.trim())
+    // Update the store with debounced value if needed
+    searchStore.setDebouncedQuery(searchQuery.value.trim())
   }, 300)
 }
 
 function clear() {
-  q.value = ''
+  searchStore.clearSearch()
   if (timer) window.clearTimeout(timer)
   emit('search', '')
 }
@@ -219,7 +227,7 @@ function clear() {
   border-radius: 14px;
   padding: 0 8px 0 10px;
   transition: border-color 0.2s ease, box-shadow 0.2s ease;
-            background: var(--markit-glass-surface);
+  background: var(--markit-glass-surface);
   backdrop-filter: blur(20px) saturate(145%);
   -webkit-backdrop-filter: blur(20px) saturate(145%);
 }
@@ -275,6 +283,10 @@ function clear() {
   align-items: center;
   justify-content: center;
   transition: border-color 0.2s ease, box-shadow 0.2s ease;
+  /* Added the same glassmorphism background as address bar and search box */
+  background: var(--markit-glass-surface);
+  backdrop-filter: blur(20px) saturate(145%);
+  -webkit-backdrop-filter: blur(20px) saturate(145%);
 }
 
 .icon-btn--active {
@@ -308,7 +320,7 @@ function clear() {
   border-radius: 12px;
   border: 1px solid var(--markit-glass-border);
   box-shadow: inset 0 1px 0 var(--markit-glass-highlight), var(--markit-glass-shadow);
-      background: var(--markit-glass-surface);
+  background: var(--markit-glass-surface);
   backdrop-filter: blur(20px) saturate(145%);
   -webkit-backdrop-filter: blur(20px) saturate(145%);
   padding: 0 14px;
@@ -340,6 +352,9 @@ function clear() {
 .clear-btn {
   color: #5b6676;
   font-size: 0.85rem;
+  background: transparent;
+  border: none;
+  cursor: pointer;
 }
 
 .address-wrap {
@@ -347,8 +362,6 @@ function clear() {
   max-height: 40px;
   position: relative;
   z-index: 60;
-
-
 }
 
 .address-wrap--hidden {
@@ -358,7 +371,6 @@ function clear() {
   overflow: hidden;
   pointer-events: none;
   margin-bottom: 0;
-
 }
 
 .chev-icon {
@@ -378,12 +390,11 @@ function clear() {
   left: 0;
   right: 0;
   top: calc(100% + 8px);
-  z-index: 0000;
+  z-index: 10000;
   border-radius: 16px;
   padding: 8px;
   max-height: min(46vh, 360px);
   overflow-y: auto;
-
   background: var(--markit-glass-surface);
   backdrop-filter: blur(20px) saturate(145%);
   -webkit-backdrop-filter: blur(20px) saturate(145%);
@@ -393,8 +404,6 @@ function clear() {
   cursor: pointer;
   width: 100%;
   border: 1px solid var(--markit-glass-border);
-  
-  
   border-radius: 12px;
   text-align: left;
   padding: 10px 12px;
@@ -402,17 +411,13 @@ function clear() {
   display: flex;
   flex-direction: column;
   gap: 2px;
-     background: var(--markit-glass-surface);
+  background: var(--markit-glass-surface);
   backdrop-filter: blur(20px) saturate(145%);
   -webkit-backdrop-filter: blur(20px) saturate(145%);
-  
 }
 
 .address-menu-item:last-child {
   margin-bottom: 0;
-   background: var(--markit-glass-surface);
-  backdrop-filter: blur(20px) saturate(145%);
-  -webkit-backdrop-filter: blur(20px) saturate(145%);
 }
 
 .address-menu-item--active {
