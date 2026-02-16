@@ -1,5 +1,5 @@
 <template>
-  <div class="order-card p-3 mx-2" @click="goToDetails">
+  <div class="order-card p-3" @click="goToDetails">
     <!-- Companies Section -->
     <div class="order-card-head">
       <div class="order-number">
@@ -126,8 +126,19 @@ function formatStatus(status: string | null): string {
   gap: 10px;
   padding: 10px 0 12px;
   border-bottom: 1px solid var(--markit-border);
+
   overflow-x: auto;
+  overflow-y: hidden;
+
+  /* Hide scrollbar (desktop) */
+  scrollbar-width: none;           /* Firefox */
+  -ms-overflow-style: none;        /* IE/Edge */
 }
+
+.order-items-row::-webkit-scrollbar {
+  display: none;                   /* Chrome, Safari */
+}
+
 
 .order-item-tile {
   flex-shrink: 0;

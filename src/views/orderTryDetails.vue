@@ -184,6 +184,7 @@ function formatStatus(status: string | null) {
 .order-price-wrap {
   min-width: 86px;
   text-align: right;
+  padding-right: 10px;
 }
 
 .order-price-main {
