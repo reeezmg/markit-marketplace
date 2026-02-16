@@ -1,7 +1,7 @@
 <template>
   <div
     class="fixed bottom-4 left-0 right-0 z-50 flex items-center gap-3
-           bg-white px-4 py-3 justify-around shadow-lg rounded-full mx-auto w-[65%]"
+          px-4 py-3 justify-around shadow-lg rounded-full mx-auto w-[65%] iced"
   >
 
 <button
@@ -75,3 +75,11 @@ import {
   pricetagOutline,
 } from "ionicons/icons";
 </script>
+
+<style scoped>
+.iced {
+  background: var(--markit-glass-surface);
+  backdrop-filter: blur(20px) saturate(145%);
+  -webkit-backdrop-filter: blur(20px) saturate(145%);
+}
+</style>

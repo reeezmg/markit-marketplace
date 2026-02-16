@@ -1,6 +1,6 @@
 <template>
   <ion-modal
-    class="address-details-modal markit-filter-sheet"
+    class="address-details-modal"
     :is-open="isOpen"
     @didDismiss="close"
     :breakpoints="[0, 0.75, 0.9]"
@@ -144,7 +144,7 @@ function submitForm() {
   font-size: 13px;
   font-weight: 700;
   color: #ffffff;
-  background: var(--ion-color-primary);
+  border-color: var(--ion-color-primary);
 }
 
 .details-address {

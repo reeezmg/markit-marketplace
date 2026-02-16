@@ -70,10 +70,8 @@ async function openFilterModal(filterType: 'category' | 'size' | 'sort') {
   const items = filterType === 'category' ? categories.value : (filterType === 'size' ? sizeOptions.value : sortOptions.value);
   const initialSelected = filterType === 'category' ? selectedCategory.value : (filterType === 'size' ? selectedSize.value : selectedSort.value);
 
-  const initialBreakpoint =
-    filterType === 'sort' ? 0.42 : filterType === 'size' ? 0.62 : 0.68;
-  const breakpoints =
-    filterType === 'sort' ? [0, 0.42, 0.6] : [0, initialBreakpoint, 0.9];
+  const initialBreakpoint = 1
+  const breakpoints = [0, 1, 1]
 
   const modal = await modalController.create({
     component: FilterModal,

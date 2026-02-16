@@ -1,5 +1,5 @@
 <template>
-  <div class="cart-summary-card space-y-3 p-3 mx-2 my-3">
+  <div class="cart-summary-card space-y-3 p-3">
     <label for="checkoutMethod" class="cart-summary-title block mb-3">
       Order Summary
     </label>

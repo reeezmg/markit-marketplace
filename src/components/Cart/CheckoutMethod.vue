@@ -1,5 +1,5 @@
 <template>
-  <div class="cart-checkout-card p-3 mx-2 my-3">
+  <div class="cart-checkout-card p-3 my-3">
     <label
       for="checkoutMethod"
       class="cart-checkout-label block mb-3"

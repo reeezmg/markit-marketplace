@@ -1,5 +1,5 @@
 <template>
-  <div class="cart-group-switch bg-white mb-4 p-3 mx-2 my-3">
+  <!-- <div class="cart-group-switch bg-white mb-4 p-3">
     <div class="cart-group-strip flex justify-between items-center">
     <button
       v-if="storeCount > 1"
@@ -11,7 +11,7 @@
       <IonIcon :icon="chevronBackOutline" />
     </button>
 
-    <div class="cart-group-companies flex items-center justify-center px-1">
+    <div class="cart-group-companies flex items-center justify-center">
       <div
         v-if="activeHeaderCompany"
         class="cart-company-chip is-active flex flex-row items-center gap-2 transition-all duration-300"
@@ -27,16 +27,6 @@
           <div v-else class="cart-company-logo-fallback">
             {{ companyInitial(activeHeaderCompany.companyName) }}
           </div>
-        </div>
-        <div class="flex flex-col justify-between py-[1px]">
-          <div class="cart-company-name">{{ activeHeaderCompany.companyName }}</div>
-          <button
-            type="button"
-            class="cart-company-link w-fit"
-            @click.stop="goToShop(activeHeaderCompany)"
-          >
-            View Products
-          </button>
         </div>
       </div>
 
@@ -66,20 +56,33 @@
     </button>
     </div>
 
-  </div>
+  </div> -->
 
   <div>
     <template v-if="renderCompanies.length">
       <div
         v-for="company in renderCompanies"
         :key="company.companyId"
-        class="cart-company-card bg-white p-3 mx-2 my-3"
+        class="cart-company-card bg-white p-3 mb-3"
       >
         <div
-          class="cart-company-heading flex items-center justify-center gap-2 mb-3 w-full pb-1"
+          class="cart-company-heading flex items-center gap-2 mb-3 w-full pb-1"
         >
-          <IonIcon :icon="bagHandleOutline" class="cart-company-heading-icon mb-2 w-7 h-7" />
-          <span class="cart-company-heading-text">{{ company.companyName }}'s Items</span>
+           <div class="cart-company-logo flex-shrink-0 w-16 h-10 overflow-hidden">
+          <img
+            v-if="hasCompanyLogo(company.companyLogo) && !failedCompanyLogos[company.companyId]"
+            :src="`https://images.markit.co.in/${company.companyLogo}`"
+            alt=""
+            class="w-full h-full object-fill"
+            @error="onCompanyLogoError(company.companyId)"
+          />
+          <div v-else class="cart-company-logo-fallback">
+            {{ companyInitial(company.companyName) }}
+          </div>
+        </div>
+        <div>
+          {{ company.companyName }}
+        </div>
         </div>
 
         <ul role="list" class="divide-y divide-[var(--markit-border)]">
@@ -352,11 +355,8 @@ onMounted(() => {
 }
 
 .cart-company-chip {
-  width: min(100%, 330px);
-  min-height: 64px;
   border: 1px solid transparent;
   border-radius: 12px;
-  padding: 8px 10px;
   cursor: pointer;
   display: inline-flex;
   align-items: center;

@@ -117,15 +117,16 @@ const editAddress = (id: string) => {
 
 .address-add-row {
   width: 100%;
-  text-align: left;
-  border: 1px solid color-mix(in srgb, var(--ion-color-primary) 28%, var(--markit-border));
-  background: color-mix(in srgb, var(--ion-color-primary) 8%, #ffffff);
-  color: var(--ion-color-primary);
-  border-radius: var(--markit-radius-xl);
+
+  text-align: center;
+  background: var(--ion-color-primary);
+  color: var(--ion-color-primary-contrast);
+  border-radius: 999px;
   padding: 14px 16px;
   font-size: 1.12rem;
   line-height: 1.2;
   font-weight: 700;
+  
 }
 
 .address-cards {

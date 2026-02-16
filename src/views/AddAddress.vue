@@ -8,7 +8,7 @@
         <ion-button expand="block" class="use-location-btn" @click="useCurrentLocation">Use Current Location</ion-button>
       </div>
 
-      <div class="ion-padding bottom-div">
+      <div class="mt-5 bottom-div">
         <button class="address-search-trigger glass-card" type="button" @click="openSearchModal">
           <ion-icon :icon="searchOutline" class="address-search-icon"></ion-icon>
           <span class="address-search-text">Search place...</span>
@@ -16,8 +16,8 @@
         
         <div v-if="name || formattedAddress" class="latlng-display">
           <div class="flex flex-col">
-            <div class="text-2xl font-bold mb-2">{{ name }}</div>
-            <div class="text-lg">{{ formattedAddress }}</div>
+            <div class="text-xl font-bold mb-2">{{ name }}</div>
+            <div class="text-md">{{ formattedAddress }}</div>
           </div>
         </div>
       </div>
@@ -43,7 +43,7 @@
     </ion-content>
     
     <ion-footer class="footer-btn">
-      <ion-button expand="block" class="add-details-btn" @click="confirmProceed">Confirm & Proceed</ion-button>
+      <div expand="block" class="add-details-btn" @click="confirmProceed">Confirm & Proceed</div>
     </ion-footer>
   </ion-page>
 </template>
@@ -296,8 +296,16 @@ const confirmProceed = () => {
 
 .add-details-btn {
   width: 100%;
+  text-align: center;
+    font-size: 1rem;
+  font-weight: 600;
+  letter-spacing: 0.2px;
   margin: 0;
-  --border-radius: 0px;
+  background-color: var(--ion-color-primary);
+  color: white;
+  padding: 12px 0;
+  font-weight: 600;
+  font-size: 1.1rem;
 
 }
 

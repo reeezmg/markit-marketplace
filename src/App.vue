@@ -20,6 +20,7 @@
   position: relative;
   overflow: hidden;
   isolation: isolate;
+  
 }
 
 .app-container ion-router-outlet {

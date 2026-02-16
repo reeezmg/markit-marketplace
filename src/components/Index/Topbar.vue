@@ -9,7 +9,7 @@
         <ion-icon :icon="chevronDownOutline" class="chev-icon" :class="{ 'chev-icon--open': showAddressMenu }"></ion-icon>
       </button>
 
-      <div v-if="showAddressMenu" class="address-menu glass-card" @click.stop>
+      <div v-if="showAddressMenu" class="address-menu" @click.stop>
         <button
           v-for="addr in addresses"
           :key="addr.id || addr.formattedAddress"
@@ -187,11 +187,6 @@ function clear() {
   position: relative;
   z-index: 32;
   padding: 10px 16px 12px;
-  background: var(--markit-glass-surface);
-  border-bottom: 1px solid var(--markit-glass-border);
-  box-shadow: inset 0 1px 0 var(--markit-glass-highlight);
-  backdrop-filter: blur(20px) saturate(145%);
-  -webkit-backdrop-filter: blur(20px) saturate(145%);
 }
 
 .search-row {
@@ -202,19 +197,19 @@ function clear() {
 
 .address-inline {
   width: 100%;
-  min-height: 34px;
+  min-height: 40px;
   display: flex;
   align-items: center;
   gap: 6px;
   text-align: left;
   border: 1px solid var(--markit-glass-border);
-  background: var(--markit-glass-surface-strong);
   box-shadow: inset 0 1px 0 var(--markit-glass-highlight), var(--markit-glass-shadow);
-  backdrop-filter: blur(18px) saturate(140%);
-  -webkit-backdrop-filter: blur(18px) saturate(140%);
   border-radius: 14px;
   padding: 0 8px 0 10px;
   transition: border-color 0.2s ease, box-shadow 0.2s ease;
+            background: var(--markit-glass-surface);
+  backdrop-filter: blur(20px) saturate(145%);
+  -webkit-backdrop-filter: blur(20px) saturate(145%);
 }
 
 .address-inline:hover,
@@ -246,7 +241,7 @@ function clear() {
   color: #4a5b66;
   border-radius: 999px;
   border: 1px solid var(--markit-glass-border);
-  background: var(--markit-glass-surface-strong);
+  background: var(--markit-glass-surface);
   box-shadow: inset 0 1px 0 var(--markit-glass-highlight);
   padding: 2px;
 }
@@ -262,7 +257,6 @@ function clear() {
   width: 34px;
   height: 34px;
   border-radius: 11px;
-  background: var(--markit-glass-surface-strong);
   border: 1px solid var(--markit-glass-border);
   box-shadow: inset 0 1px 0 var(--markit-glass-highlight);
   display: flex;
@@ -301,10 +295,10 @@ function clear() {
   min-height: 44px;
   border-radius: 12px;
   border: 1px solid var(--markit-glass-border);
-  background: var(--markit-glass-surface-strong);
   box-shadow: inset 0 1px 0 var(--markit-glass-highlight), var(--markit-glass-shadow);
-  backdrop-filter: blur(18px) saturate(145%);
-  -webkit-backdrop-filter: blur(18px) saturate(145%);
+      background: var(--markit-glass-surface);
+  backdrop-filter: blur(20px) saturate(145%);
+  -webkit-backdrop-filter: blur(20px) saturate(145%);
   padding: 0 14px;
   transition: border-color 0.2s ease, box-shadow 0.2s ease;
 }
@@ -339,9 +333,10 @@ function clear() {
 .address-wrap {
   margin-bottom: 8px;
   max-height: 40px;
-  opacity: 1;
   position: relative;
   z-index: 60;
+
+
 }
 
 .address-wrap--hidden {
@@ -351,6 +346,7 @@ function clear() {
   overflow: hidden;
   pointer-events: none;
   margin-bottom: 0;
+
 }
 
 .chev-icon {
@@ -370,23 +366,23 @@ function clear() {
   left: 0;
   right: 0;
   top: calc(100% + 8px);
-  z-index: 999;
+  z-index: 0000;
   border-radius: 16px;
   padding: 8px;
   max-height: min(46vh, 360px);
   overflow-y: auto;
-  background: #f6faf7;
-  border: 1px solid color-mix(in srgb, var(--ion-color-primary) 26%, #d8e2db);
-  box-shadow: 0 14px 28px rgba(20, 34, 28, 0.16);
-  backdrop-filter: blur(12px) saturate(120%);
-  -webkit-backdrop-filter: blur(12px) saturate(120%);
+
+  background: var(--markit-glass-surface);
+  backdrop-filter: blur(20px) saturate(145%);
+  -webkit-backdrop-filter: blur(20px) saturate(145%);
 }
 
 .address-menu-item {
   cursor: pointer;
   width: 100%;
   border: 1px solid var(--markit-glass-border);
-  background: var(--markit-glass-surface-strong);
+  
+  
   border-radius: 12px;
   text-align: left;
   padding: 10px 12px;
@@ -394,10 +390,17 @@ function clear() {
   display: flex;
   flex-direction: column;
   gap: 2px;
+     background: var(--markit-glass-surface);
+  backdrop-filter: blur(20px) saturate(145%);
+  -webkit-backdrop-filter: blur(20px) saturate(145%);
+  
 }
 
 .address-menu-item:last-child {
   margin-bottom: 0;
+   background: var(--markit-glass-surface);
+  backdrop-filter: blur(20px) saturate(145%);
+  -webkit-backdrop-filter: blur(20px) saturate(145%);
 }
 
 .address-menu-item--active {

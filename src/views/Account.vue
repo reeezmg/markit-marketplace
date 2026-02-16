@@ -158,7 +158,6 @@ const logoutUser = async () => {
 .account-hero {
   padding: 16px;
   border-radius: 20px;
-  border: 1px solid var(--markit-glass-border);
   background: var(--markit-glass-surface);
   box-shadow: inset 0 1px 0 var(--markit-glass-highlight), 0 8px 14px rgba(20, 34, 28, 0.06);
   backdrop-filter: blur(18px) saturate(145%);
@@ -221,7 +220,7 @@ const logoutUser = async () => {
 
 .account-row {
   width: 100%;
-  border: 1px solid var(--markit-glass-border);
+  margin-bottom: 5px;
   border-radius: 18px;
   background: var(--markit-glass-surface-strong);
   box-shadow: inset 0 1px 0 var(--markit-glass-highlight), 0 6px 12px rgba(20, 34, 28, 0.05);

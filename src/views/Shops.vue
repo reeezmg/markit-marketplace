@@ -51,7 +51,7 @@
           </div>
         </div>
       </div>
-      <div class="ion-padding content-wrap">
+      <div class=" content-wrap">
         <!-- Category Buttons -->
         <div class="transition-all duration-300"
           :class="hideGender ? 'opacity-0 -translate-y-3 pointer-events-none' : 'opacity-100'">
@@ -66,15 +66,12 @@
 
 
         <!-- Category Filter -->
-        <div class="sticky top-0 z-30 py-4 transition-all duration-300 category-sticky"
-          :class="hideCategory ? 'opacity-0 -translate-y-3 pointer-events-none' : 'opacity-100'">
+        <div class=" top-0 z-30 py-4 transition-all duration-300  category-sticky"
+          :class="hideCategory ? '-translate-y-3 pointer-events-none' : ''">
           <Category @select="subCategoryFilter = $event" :selectedCategory="selectedCategory" />
         </div>
 
-        <!-- Shops Section -->
-        <div class="mt-4">
-          <Heading title="Explore Shops" />
-        </div>
+  
 
         <div v-if="loading" class="grid gap-4">
           <ShopCardSkeleton v-for="n in 4" :key="n" />
@@ -502,7 +499,7 @@ const headerStyle = computed(() => ({
 }
 
 .hero-title {
-  font-size: 1.9rem;
+  font-size: 1.7rem;
   line-height: 1.15;
   font-weight: 700;
   letter-spacing: 0.2px;
@@ -525,8 +522,9 @@ const headerStyle = computed(() => ({
   --background: var(--ion-color-primary);
   --box-shadow: none;
   font-size: 0.96rem;
-  font-weight: 700;
+  font-weight: 600;
   letter-spacing: 0.2px;
+  
 }
 
 .content-wrap {
@@ -581,6 +579,10 @@ const headerStyle = computed(() => ({
 
 .shop-item {
   animation: shop-rise 0.5s ease both;
+    background: var(--markit-glass-surface);
+  backdrop-filter: blur(20px) saturate(145%);
+  -webkit-backdrop-filter: blur(20px) saturate(145%);
+  border-radius: 20px;
 }
 
 @keyframes shop-rise {
@@ -597,6 +599,9 @@ const headerStyle = computed(() => ({
 @media (prefers-reduced-motion: reduce) {
   .shop-item {
     animation: none;
+      background: var(--markit-glass-surface);
+  backdrop-filter: blur(20px) saturate(145%);
+  -webkit-backdrop-filter: blur(20px) saturate(145%);
   }
 }
 

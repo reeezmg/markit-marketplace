@@ -1,17 +1,17 @@
 <template>
   <ion-modal
-    class="address-details-modal markit-filter-sheet"
+    class="address-details-modals markit-filter-sheet overflow-y-scroll"
     :is-open="isOpen"
     @didDismiss="close"
-    :breakpoints="[0, 0.75, 0.9]"
-    :initial-breakpoint="0.9"
+    :breakpoints="[0, 1, 1]"
+    :initial-breakpoint="1"
     :handle-behavior="'cycle'"
     :can-dismiss="true"
     :backdrop-dismiss="true"
     show-backdrop
     swipe-to-close
   >
-    <ion-content class="details-content">
+    <div class="details-content">
       <div class="details-note">Note: Orders cannot be delivered to public spaces</div>
 
       <section class="details-address glass-card">
@@ -20,13 +20,13 @@
       </section>
 
       <section class="details-section">
-        <label class="details-label">Address Type</label>
-        <div class="type-chip-row">
+        <label class="details-label text-gray-700">Address Type</label>
+        <div class="type-chip-row ">
           <ion-button
             v-for="t in types"
             :key="t"
             fill="clear"
-            class="type-chip"
+            class="type-chip text-gray-700"
             :class="{ 'type-chip--active': type === t }"
             @click="type = t"
           >
@@ -35,7 +35,7 @@
         </div>
       </section>
 
-      <section class="details-section">
+      <section class="details-section text-gray-700">
         <ion-item class="details-input-item">
           <ion-input
             label="Flat / Floor / House number"
@@ -58,7 +58,7 @@
       <div class="details-save-wrap">
         <ion-button expand="block" class="details-save-btn" @click="submitForm">Save Address</ion-button>
       </div>
-    </ion-content>
+    </div>
   </ion-modal>
 </template>
 
@@ -106,7 +106,10 @@ function submitForm() {
 </script>
 
 <style scoped>
+
 .details-content {
+  margin: 25px 15px 10px 15px;
+  overflow-y: scroll;
   --padding-top: 12px;
   --padding-start: 14px;
   --padding-end: 14px;
@@ -115,12 +118,13 @@ function submitForm() {
 
 .details-note {
   border-radius: 12px;
-  padding: 8px 12px;
+  padding: 5px 12px;
   text-align: center;
   font-size: 13px;
   font-weight: 700;
-  color: #ffffff;
-  background: var(--ion-color-primary);
+  color: var(--ion-color-primary);
+  border: 2px solid var(--ion-color-primary);
+
 }
 
 .details-address {
@@ -149,7 +153,6 @@ function submitForm() {
 .details-label {
   display: block;
   margin-bottom: 8px;
-  color: var(--markit-text);
   font-size: 16px;
   font-weight: 700;
 }

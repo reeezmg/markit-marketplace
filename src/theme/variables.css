@@ -3,7 +3,6 @@
 
 :root {
   --ion-font-family: 'Nunito', sans-serif;
-
   /* Brand */
   --ion-color-primary: #53816c;
   --ion-color-primary-rgb: 83, 129, 108;
@@ -218,19 +217,41 @@ ion-back-button::part(native) {
 /* Shared filter bottom sheet */
 ion-modal.markit-filter-sheet::part(content) {
   border-radius: 24px 24px 0 0;
-  overflow: hidden;
-  background: var(--markit-surface, #ffffff);
-  border: 1px solid var(--markit-border, rgba(15, 23, 42, 0.08));
+
+  /* Glass UI */
+  background: var(--markit-glass-surface);
+  backdrop-filter: blur(20px) saturate(145%);
+  -webkit-backdrop-filter: blur(20px) saturate(145%);
   border-bottom: 0;
-  box-shadow: 0 -8px 28px rgba(20, 34, 28, 0.12);
+  /* Height behavior */
+  height: auto !important;
+  max-height: 90vh !important;
+
+  display: flex;
+  flex-direction: column;
+
+  /* ✅ Allow growth instead of clipping */
+  overflow-y: auto;
 }
 
+/* Remove internal extra gap */
+ion-modal.markit-filter-sheet::part(scroll) {
+  padding-bottom: 20px !important;
+}
+
+/* Wrapper fit */
+ion-modal.markit-filter-sheet .modal-wrapper {
+  height: auto !important;
+}
+
+/* Handle */
 ion-modal.markit-filter-sheet::part(handle) {
   width: 42px;
   height: 5px;
   border-radius: 999px;
   background: rgba(100, 116, 139, 0.35);
 }
+
 
 /* Shared floating toast style */
 ion-toast.markit-toast {

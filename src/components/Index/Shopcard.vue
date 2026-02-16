@@ -5,13 +5,13 @@
         v-if="shop.logo"
         :src="`https://images.markit.co.in/${shop.logo}`"
         :alt="shop.name"
-        class="w-full h-full object-cover"
+        class="w-full h-full object-fill"
       />
       <img
         v-else
         src="/shop.png"
         :alt="shop.name"
-        class="w-full h-full object-cover"
+        class="w-full h-full object-fill"
       />
     </div>
 
@@ -52,10 +52,11 @@ const canBeAddedToExisting = computed(() =>
 <style scoped>
 .shop-card {
   background: var(--markit-glass-surface);
-  border: 1px solid var(--markit-border);
+  border: 1px solid 3var(--markit-border);
   border-radius: var(--markit-radius-xl);
   transition: transform 0.2s ease, border-color 0.2s ease;
   backdrop-filter: none;
+  background-color: #ffffff;
 }
 
 .shop-card:active {

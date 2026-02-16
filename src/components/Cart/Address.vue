@@ -1,5 +1,5 @@
 <template>
-  <div class="p-3 mx-2 my-3 cart-address-card">
+  <div class="p-3 cart-address-card my-3">
     <div class="flex items-center justify-between">
       <label class="cart-address-label">
         Delivering to {{ location?.type }}

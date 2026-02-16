@@ -1,7 +1,7 @@
 <template>
   <ion-page>
     <Topbar title="Cart" />
-    <ion-content :fullscreen="true" class="ion-padding cart-page">
+    <ion-content :fullscreen="true" class=" ion-padding cart-page">
       <!-- Show cart when we have any groups -->
       <div v-if="hasCart">
         <!-- Item component emits nearby company clusters -->
@@ -9,7 +9,7 @@
 
         <!-- Add products from nearby store -->
         <div
-          class="nearby-add-card m-2 p-6 flex flex-col items-center justify-center text-center cursor-pointer"
+          class="nearby-add-card my-3 p-6 flex flex-col items-center justify-center text-center cursor-pointer"
           @click="goToNearbyShops"
         >
           <IonIcon :icon="addOutline" class="nearby-add-icon w-10 h-10 mb-2" />
@@ -18,7 +18,7 @@
 
         <!-- Checkout Section -->
         <div v-if="hasActiveItems">
-          <CheckoutMethod v-model:method="checkoutMethod" />
+          <!-- <CheckoutMethod v-model:method="checkoutMethod" /> -->
           <Address />
           <Pricing
             :subtotal="subtotal"

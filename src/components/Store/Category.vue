@@ -1,5 +1,5 @@
 <template>
-  <div class="w-full overflow-x-auto no-scrollbar">
+  <div class="ion-pad overflow-x-auto no-scrollbar">
     <div class="relative flex space-x-4 px-2 pb-1">
       <div
         v-for="(item, index) in filteredCategories"

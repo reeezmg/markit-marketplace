@@ -1,11 +1,11 @@
 <!-- components/SearchLocationModal.vue -->
 <template>
   <ion-modal
-    class="search-modal markit-filter-sheet"
+    class="search-modal"
     :is-open="isOpen"
     @didDismiss="close"
-    :initial-breakpoint="0.65"
-    :breakpoints="[0, 0.6, 0.75]"
+    :initial-breakpoint="0.8"
+    :breakpoints="[0, 0.8, 1]"
     :handle-behavior="'cycle'"
     :can-dismiss="true"
     :backdrop-dismiss="true"
@@ -19,6 +19,7 @@
         placeholder="Search place..."
         animated
         debounce="300"
+        class="search-bar"
       ></ion-searchbar>
 
       <div v-if="isSearching" class="search-loading">
@@ -26,14 +27,14 @@
       </div>
 
       <ion-list v-else-if="searchResults.length > 0" class="search-results-list">
-      <ion-item
-        v-for="(result, index) in searchResults"
-        :key="index"
-        button
-        lines="none"
-        @click="select(result)"
-        class="search-result-item"
-      >
+        <ion-item
+          v-for="(result, index) in searchResults"
+          :key="index"
+          button
+          lines="none"
+          @click="select(result)"
+          class="search-result-item"
+        >
           <ion-label class="py-2">
             <h3>{{ result.name }}</h3>
             <p>{{ result.formatted_address }}</p>
@@ -57,19 +58,23 @@ import {
   IonLabel,
   IonSpinner,
 } from '@ionic/vue'
-import { ref, watch } from 'vue'
+import { ref } from 'vue'
 
 const props = defineProps({
   isOpen: Boolean,
   map: Object,
   placesService: Object,
 })
+
 const emit = defineEmits(['close', 'select'])
 
 const searchQuery = ref('')
 const searchResults = ref([])
 const isSearching = ref(false)
 
+/* ===============================
+   Handle Search Input
+=============================== */
 const handleSearchInput = () => {
   if (searchQuery.value) {
     isSearching.value = true
@@ -80,6 +85,9 @@ const handleSearchInput = () => {
   }
 }
 
+/* ===============================
+   Search Places (LIMIT 5)
+=============================== */
 const searchPlaces = (query) => {
   if (!props.placesService) return
 
@@ -96,21 +104,32 @@ const searchPlaces = (query) => {
   }
 
   props.placesService.textSearch(request, (results, status) => {
-    if (status === google.maps.places.PlacesServiceStatus.OK) {
-      searchResults.value = results
+    if (
+      status === google.maps.places.PlacesServiceStatus.OK &&
+      results?.length
+    ) {
+      // ✅ LIMIT RESULTS TO 5
+      searchResults.value = results.slice(0, 5)
     } else {
       searchResults.value = []
     }
+
     isSearching.value = false
   })
 }
 
+/* ===============================
+   Close Modal
+=============================== */
 const close = () => {
   emit('close')
   searchQuery.value = ''
   searchResults.value = []
 }
 
+/* ===============================
+   Select Place
+=============================== */
 const select = (place) => {
   if (place?.geometry?.location || !props.placesService || !place?.place_id) {
     emit('select', place)
@@ -138,12 +157,23 @@ const select = (place) => {
 <style scoped>
 .search-modal::part(content) {
   border-radius: 24px 24px 0 0;
-  overflow: hidden;
+  background: var(--markit-glass-surface);
+  backdrop-filter: blur(20px) saturate(145%);
+  -webkit-backdrop-filter: blur(20px) saturate(145%);
+  border-bottom: 0;
+  box-shadow: 0 -8px 28px rgba(20, 34, 28, 0.12);
 }
 
 .search-modal-body {
-  padding: 14px 14px 18px;
-  background: var(--markit-bg);
+  margin: 25px 15px 10px 15px;
+}
+
+.search-bar {
+  background-color: transparent;
+  border-radius: 24px;
+  background: var(--markit-glass-surface);
+  backdrop-filter: blur(20px) saturate(145%);
+  -webkit-backdrop-filter: blur(20px) saturate(145%);
 }
 
 ion-searchbar {
@@ -152,6 +182,7 @@ ion-searchbar {
   --placeholder-color: var(--markit-text-muted);
   --color: var(--markit-text);
   margin-bottom: 8px;
+  border-radius: 24px;
 }
 
 ion-searchbar::part(container) {
@@ -170,7 +201,8 @@ ion-searchbar::part(container) {
   border: 1px solid var(--markit-glass-border);
   border-radius: 16px;
   margin-bottom: 8px;
-  box-shadow: inset 0 1px 0 var(--markit-glass-highlight), var(--markit-glass-shadow);
+  box-shadow: inset 0 1px 0 var(--markit-glass-highlight),
+    var(--markit-glass-shadow);
 }
 
 .search-loading {
@@ -196,4 +228,4 @@ ion-label p {
   font-size: 0.8rem;
   margin-top: 0.25rem;
 }
-</style> 
+</style>

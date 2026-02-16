@@ -2,13 +2,14 @@
 <IonModal
   :is-open="isOpen"
   @didDismiss="close"
-  breakpoints="[0, 0.8]"
-  initial-breakpoint="0.8"
+  breakpoints="[0, 1]"
+  initial-breakpoint="1"
   handle-behavior="cycle"
   :can-dismiss="true"
   :backdrop-dismiss="true"
   show-backdrop
   swipe-to-close
+  class="markit-filter-sheet"
 >
       <div class="knowmore-sheet">
         <div class="km-hero">
@@ -16,21 +17,21 @@
           <p class="km-sub">Try first, pay only for what you keep. We handle the rest.</p>
         </div>
 
-        <div class="km-steps">
-          <div class="km-step">
+        <div class="km-steps ">
+          <div class="km-step iced">
             <div class="km-dot"></div>
             <div class="km-icon">
               <ion-icon :icon="cartOutline" />
             </div>
             <div class="km-text">
               <div class="km-label">Order up to 10 products</div>
-              <div class="km-meta">Mix sizes & styles with zero risk</div>
+              <div class="km-meta">Choose from up to 3 different stores</div>
             </div>
           </div>
 
           <div class="km-connector"></div>
 
-          <div class="km-step">
+          <div class="km-step iced">
             <div class="km-dot"></div>
             <div class="km-icon">
               <ion-icon :icon="homeOutline" />
@@ -43,7 +44,7 @@
 
           <div class="km-connector"></div>
 
-          <div class="km-step">
+          <div class="km-step iced">
             <div class="km-dot"></div>
             <div class="km-icon">
               <ion-icon :icon="cardOutline" />
@@ -56,7 +57,7 @@
 
           <div class="km-connector"></div>
 
-          <div class="km-step">
+          <div class="km-step iced">
             <div class="km-dot"></div>
             <div class="km-icon">
               <ion-icon :icon="repeatOutline" />
@@ -113,13 +114,13 @@ const close = () => {
 .km-sub {
   margin-top: 8px;
   font-size: 14px;
-  color: #6b7280;
+  color: #000000;
 }
 
 .km-steps {
   display: flex;
   flex-direction: column;
-  gap: 14px;
+  gap: 5px;
   position: relative;
   padding-left: 6px;
 }
@@ -131,7 +132,7 @@ const close = () => {
   top: 8px;
   bottom: 8px;
   width: 2px;
-  background: linear-gradient(180deg, rgba(83, 129, 108, 0.2), rgba(83, 129, 108, 0.05));
+  
   border-radius: 2px;
 }
 
@@ -141,10 +142,15 @@ const close = () => {
   gap: 12px;
   padding: 12px 14px;
   border-radius: 14px;
-  background: #ffffff;
   border: 1px solid rgba(15, 23, 42, 0.08);
   box-shadow: 0 8px 18px rgba(18, 26, 18, 0.08);
   position: relative;
+}
+
+.iced{
+      background: var(--markit-glass-surface);
+  backdrop-filter: blur(20px) saturate(105%);
+  -webkit-backdrop-filter: blur(20px) saturate(105%);
 }
 
 .km-dot {
@@ -186,7 +192,7 @@ const close = () => {
 }
 
 .km-connector {
-  height: 10px;
+  height: 20px;
   margin: 0 auto;
   width: 2px;
   background: linear-gradient(#e5e7eb, rgba(229, 231, 235, 0));
