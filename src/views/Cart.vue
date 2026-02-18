@@ -1,5 +1,5 @@
 <template>
-  <ion-page>
+  <ion-page fullscreen>
     <Topbar title="Cart" />
     <ion-content :fullscreen="true" class=" ion-padding cart-page">
       <!-- Show cart when we have any groups -->
@@ -102,7 +102,7 @@ import {
   onIonViewWillEnter,
   toastController,
 } from '@ionic/vue'
-import { ref, computed } from 'vue'
+import { ref, computed, watch } from 'vue'
 import { useCartStore } from '@/store/useCartStore'
 import { useLocationStore } from '@/composables/useLocationStore'
 import { postOrder } from '@/api/api'
@@ -112,11 +112,13 @@ import { getDistanceInKm } from '@/composables/useDistance'
 import { usePackStore } from '@/store/usePackStore'
 import { useTryHistoryStore } from '@/store/useTryHistoryStore'
 import { Preferences } from '@capacitor/preferences';
+import { useNearbyStore } from '@/store/useNearbyStore'
+
 
 // store instance
 const packStore = usePackStore()
 const tryHistoryStore = useTryHistoryStore()
-
+const nearbyStore = useNearbyStore()
 
 const router = useRouter()
 const cart = useCartStore()
@@ -164,6 +166,17 @@ const hasActiveItems = computed(() =>
   activeGroups.value.some(g =>
     g.companies.some(c => c.items && c.items.length > 0)
   )
+)
+
+watch(
+  hasCart,
+  async (newValue) => {
+    if (!newValue) {
+      console.log('🛒 Cart empty → Fetching nearby shops...')
+      await nearbyStore.fetchNearbyShops()
+    }
+  },
+  { immediate: true }
 )
 
 /* Totals */
@@ -387,7 +400,6 @@ const goToNearbyShops = () => {
 <style scoped>
 .cart-page {
   --background: var(--markit-bg);
-  --padding-bottom: calc(112px + env(safe-area-inset-bottom, 0px));
 }
 
 .cart-empty {
@@ -438,13 +450,14 @@ const goToNearbyShops = () => {
 }
 
 .cart-footer {
-  background: var(--markit-surface);
-  border-top: 1px solid var(--markit-border);
-  border-radius: var(--markit-radius-xl) var(--markit-radius-xl) 0 0;
-  box-shadow: var(--markit-shadow-soft);
+  background: var(--markit-glass-surface);
   backdrop-filter: blur(10px);
   -webkit-backdrop-filter: blur(10px);
   padding: 4px 0 calc(env(safe-area-inset-bottom, 0px) + 4px);
+  border-bottom: none;
+  box-shadow: inset 0 1px 0 var(--markit-glass-highlight), 0 8px 18px rgba(20, 34, 28, 0.08);
+  backdrop-filter: blur(18px) saturate(145%);
+  -webkit-backdrop-filter: blur(18px) saturate(145%);
 }
 
 .cart-delivery-time {

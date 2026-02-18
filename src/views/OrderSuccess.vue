@@ -2,65 +2,67 @@
   <ion-page>
     <ion-content class="ion-padding">
       <div class="flex flex-col w-full h-full items-center justify-center p-6">
-        <!-- Success Icon -->
-        <div class="w-20 h-20 flex items-center justify-center rounded-full bg-green-500">
-          <ion-icon :icon="checkmarkOutline" class="text-white font-bold text-4xl"></ion-icon>
-        </div>
-
         <!-- Heading -->
-        <div class="mt-6 mb-10 text-2xl font-semibold text-center">
+        <div class="mt-6 text-2xl font-bold text-center">
           Order Confirmed!
+        </div>
+        <!-- Success GIF -->
+        <div class="mb-8 w-40 h-40 flex items-center justify-center">
+          <img src="@/assets/pay.gif" alt="Order Success" class="w-full h-full object-contain" />
         </div>
 
         <!-- Subheading -->
-        <div class="mt-2 text-xl font-bold text-center">
+        <div class="text-2xl font-bold text-center">
           What’s Next?
         </div>
 
         <!-- Steps -->
-        <div class="mt-6 flex flex-col">
-          <!-- Step 1 -->
-          <div class="flex items-center space-x-3">
-            <div class="flex-shrink-0 w-10 h-10 flex items-center justify-center rounded-full bg-gray-100">
-              <ion-icon :icon="homeOutline" class="text-green-700 text-2xl"></ion-icon>
+        <div class="flex flex-col">
+          <div class="knowmore-sheet">
+            <div class="km-steps ">
+              <div class="km-step iced">
+                <div class="km-dot"></div>
+                <div class="km-icon">
+                  <ion-icon :icon="homeOutline" />
+                </div>
+                <div class="km-text">
+                  <div class="km-label">Try items at home</div>
+                  <div class="km-meta">30‑minute trial window on delivery</div>
+                </div>
+              </div>
+
+              <div class="km-connector"></div>
+
+              <div class="km-step iced">
+                <div class="km-dot"></div>
+                <div class="km-icon">
+                  <ion-icon :icon="cardOutline" />
+                </div>
+                <div class="km-text">
+                  <div class="km-label">Pay only for what you keep</div>
+                  <div class="km-meta">Instantly return the rest</div>
+                </div>
+              </div>
+
+              <div class="km-connector"></div>
+
+              <div class="km-step iced">
+                <div class="km-dot"></div>
+                <div class="km-icon">
+                  <ion-icon :icon="repeatOutline" />
+                </div>
+                <div class="km-text">
+                  <div class="km-label">Return within 30 minutes</div>
+                  <div class="km-meta">Rider collects at your doorstep</div>
+                </div>
+              </div>
             </div>
-            <span class="flex-1 text-gray-900 text-lg font-medium">
-              Try Items at home
-            </span>
-          </div>
-
-          <div class="text-center -mt-3">&middot</div>
-          <div class="text-center -mt-3">&middot</div>
-          <div class="text-center -mt-3 -mb-3">&middot</div>
-
-          <!-- Step 2 -->
-          <div class="flex items-center space-x-3">
-            <div class="flex-shrink-0 w-10 h-10 flex items-center justify-center rounded-full bg-gray-100">
-              <ion-icon :icon="cardOutline" class="text-green-700 text-2xl"></ion-icon>
-            </div>
-            <span class="flex-1 text-gray-900 text-lg font-medium">
-              Pay for what you keep
-            </span>
-          </div>
-
-          <div class="text-center -mt-3">&middot</div>
-          <div class="text-center -mt-3">&middot</div>
-          <div class="text-center -mt-3 -mb-3">&middot</div>
-
-          <!-- Step 3 -->
-          <div class="flex items-center space-x-3">
-            <div class="flex-shrink-0 w-10 h-10 flex items-center justify-center rounded-full bg-gray-100">
-              <ion-icon :icon="repeatOutline" class="text-green-700 text-2xl"></ion-icon>
-            </div>
-            <span class="flex-1 text-gray-900 text-lg font-medium">
-              Return to rider in 30 min
-            </span>
           </div>
         </div>
       </div>
     </ion-content>
 
-    <ion-footer class="bg-white">
+    <ion-footer class="footer">
       <div class="p-4">
         <ion-button expand="block" @click="handleClose">
           Close
@@ -74,7 +76,7 @@
 import { IonPage, IonFooter, IonContent, IonButton, IonIcon, onIonViewWillEnter } from '@ionic/vue'
 import { useRouter } from 'vue-router'
 import { useCartStore } from '@/store/useCartStore'
-import { checkmarkOutline, homeOutline, cardOutline, repeatOutline } from 'ionicons/icons'
+import { homeOutline, cardOutline, repeatOutline } from 'ionicons/icons'
 
 const cart = useCartStore()
 const router = useRouter()
@@ -109,4 +111,116 @@ const handleClose = async () => {
     router.push({ name: 'shops' })
   }
 }
+
+
 </script>
+<style scoped>
+.knowmore-sheet {
+  width: 100%;
+  padding: 24px 20px 28px;
+  padding-bottom: calc(28px + env(safe-area-inset-bottom, 0px));
+}
+
+.km-hero {
+  text-align: center;
+  margin-bottom: 18px;
+}
+
+.km-title {
+  margin-top: 12px;
+  font-size: 22px;
+  font-weight: 700;
+  color: #1f2937;
+}
+
+.km-sub {
+  margin-top: 8px;
+  font-size: 14px;
+  color: #000000;
+}
+
+.km-steps {
+  display: flex;
+  flex-direction: column;
+  gap: 5px;
+  position: relative;
+  padding-left: 6px;
+}
+
+.km-steps::before {
+  content: "";
+  position: absolute;
+  left: 14px;
+  top: 8px;
+  bottom: 8px;
+  width: 2px;
+
+  border-radius: 2px;
+}
+
+.km-step {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  padding: 12px 14px;
+  border-radius: 14px;
+  border: 1px solid rgba(15, 23, 42, 0.08);
+  box-shadow: 0 8px 18px rgba(18, 26, 18, 0.08);
+  position: relative;
+}
+
+.iced {
+  background: #ffffff;
+}
+
+.km-dot {
+  width: 10px;
+  height: 10px;
+  border-radius: 999px;
+  background: #53816c;
+  box-shadow: 0 0 0 4px rgba(83, 129, 108, 0.15);
+  margin-left: -6px;
+}
+
+
+.km-icon {
+  width: 44px;
+  height: 44px;
+  border-radius: 12px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  background: rgba(83, 129, 108, 0.1);
+  color: #2f6b4a;
+  font-size: 22px;
+}
+
+.km-text {
+  flex: 1;
+}
+
+.km-label {
+  font-size: 16px;
+  font-weight: 600;
+  color: #1f2937;
+}
+
+.km-meta {
+  margin-top: 4px;
+  font-size: 13px;
+  color: #6b7280;
+}
+
+.km-connector {
+  height: 20px;
+  margin: 0 auto;
+  width: 2px;
+  background: linear-gradient(#e5e7eb, rgba(229, 231, 235, 0));
+  border-radius: 2px;
+}
+.footer {
+  background: var(--markit-glass-surface);
+  backdrop-filter: blur(20px) saturate(145%);
+  -webkit-backdrop-filter: blur(20px) saturate(145%);
+}
+</style>

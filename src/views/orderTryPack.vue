@@ -1,129 +1,121 @@
-<template> 
+<template>
   <ion-page>
-    <Topbar />
+    <Topbar title="Order Details" />
 
-    <ion-content class="ion-padding">
+    <ion-content class="ion-padding" :fullscreen="true">
+
       <div v-if="order">
-        <!-- Companies -->
-        <div
-          v-for="company in order.companies"
-          :key="company.id"
-          class="mb-8 border-b border-gray-200 pb-4"
-        >
-          <div class="font-semibold text-lg mb-3">
-            {{ company.name }}
-          </div>
 
-          <!-- Company Items -->
-          <div
-            v-for="item in company.cartitems"
-            :key="item.id"
-            class="flex mb-6"
-          >
-            <!-- Product Image -->
-            <div class="w-24 h-28 rounded-md overflow-hidden bg-gray-100">
-              <img
-                :src="`https://images.markit.co.in/${item.images[0]}`"
-                alt="product"
-                class="w-full h-full object-cover"
-              />
+        <!-- ================= PRODUCT DETAILS CARD ================= -->
+        <div class="card mb-6">
+          <div v-for="(company, index) in order.companies" :key="company.id" class="mb-6">
+            <div class="font-bold text-lg mb-3 text-gray-800">
+              {{ formatCompanyName(company.name) }}
             </div>
 
-            <!-- Info -->
-            <div class="ml-4 flex-1">
-              <div class="text-sm text-gray-600 font-medium">{{ item.name }}</div>
-              <div class="text-sm text-gray-500">Size: {{ item.size }}</div>
-              <div class="text-sm text-gray-500">Qty: {{ item.quantity }}</div>
-            </div>
-
-            <!-- Price + Actions -->
-            <div class="text-right flex flex-col justify-between">
-              <div class="text-gray-900 font-semibold">₹ {{ item.d_price }}</div>
-              <div
-                v-if="item.s_price && item.s_price > item.d_price"
-                class="text-gray-400 text-sm line-through"
-              >
-                ₹ {{ item.s_price }}
+            <div v-for="item in company.cartitems" :key="item.id" class="flex mb-5">
+              <!-- Image -->
+              <div class="w-24 h-28 rounded-xl overflow-hidden bg-gray-100">
+                <img :src="`https://images.markit.co.in/${item.images[0]}`" class="w-full h-full object-cover" />
               </div>
 
-              <!-- Actions -->
-              <div class="flex mt-2 gap-2">
-                <ion-button
-                  color="danger"
-                  size="small"
-                  :fill="decisions[item.id] === 'return' ? 'solid' : 'outline'"
-                  @click="toggleDecision(item.id, 'return')"
-                >
-                  Return
-                </ion-button>
+              <!-- Info -->
+              <div class="ml-4 flex-1">
+                <div class="text-sm font-medium text-gray-900">
+                  {{ item.name }}
+                </div>
+                <div class="text-xs text-gray-500">Size: {{ item.size }}</div>
+                <div class="text-xs text-gray-500">Qty: {{ item.quantity }}</div>
 
-                <ion-button
-                  color="primary"
-                  size="small"
-                  :fill="decisions[item.id] === 'keep' ? 'solid' : 'outline'"
-                  @click="toggleDecision(item.id, 'keep')"
-                >
-                  Keep
-                </ion-button>
+                <div class="mt-2 flex gap-2">
+                  <ion-button size="small" color="danger" :fill="decisions[item.id] === 'return' ? 'solid' : 'outline'"
+                    @click="toggleDecision(item.id, 'return')">
+                    Return
+                  </ion-button>
+
+                  <ion-button size="small" color="primary" :fill="decisions[item.id] === 'keep' ? 'solid' : 'outline'"
+                    @click="toggleDecision(item.id, 'keep')">
+                    Keep
+                  </ion-button>
+                </div>
+              </div>
+
+              <!-- Price -->
+              <div class="text-right">
+                <div class="font-semibold text-gray-900">
+                  ₹ {{ item.d_price }}
+                </div>
+                <div v-if="item.s_price && item.s_price > item.d_price" class="text-xs text-gray-400 line-through">
+                  ₹ {{ item.s_price }}
+                </div>
               </div>
             </div>
+            <div v-if="index !== order.companies.length - 1" class="company-divider"></div>
           </div>
         </div>
 
-        <!-- Order Summary -->
-        <div class="mt-6 border-t border-gray-200 pt-4">
-          <div class="font-semibold text-lg text-gray-900 mb-2">
-            Order Summary
-          </div>
+        <!-- ================= ORDER SUMMARY CARD ================= -->
+        <div class="card">
 
-          <div class="flex justify-between text-sm mb-1">
+          <div class="card-title mb-2 font-bold text-lg">Order Summary</div>
+
+          <div class="flex justify-between text-sm mb-2">
             <span>Subtotal</span>
             <span>₹ {{ summary.subtotal }}</span>
           </div>
 
-          <div class="flex justify-between text-sm mb-1">
+          <div class="flex justify-between text-sm mb-2">
             <span>Delivery</span>
             <span>₹ {{ summary.delivery }}</span>
           </div>
 
-          <div class="flex justify-between text-sm mb-1">
+          <div class="flex justify-between text-sm mb-2">
             <span>Discount</span>
-            <span>- ₹{{ summary.discount }}</span>
+            <span>- ₹ {{ summary.discount }}</span>
           </div>
 
-          <div class="flex justify-between text-sm mb-1">
+          <div class="flex justify-between text-sm mb-2">
             <span>Waiting Fees</span>
             <span>₹ {{ order.waiting_fee || 0 }}</span>
           </div>
 
-          <div class="flex justify-between text-sm mb-1">
+          <div class="flex justify-between text-sm mb-2">
             <span>Waiting Time</span>
             <span>{{ order.waiting_time || 0 }} mins</span>
           </div>
+
+          <div class="border-t mt-3 pt-3 flex justify-between font-semibold text-gray-900">
+            <span>Total</span>
+            <span>₹ {{ summary.total }}</span>
+          </div>
+
         </div>
+
       </div>
 
-      <div v-else class="text-center text-gray-500">Loading order...</div>
+      <div v-else class="text-center text-gray-500">
+        Loading order...
+      </div>
+
     </ion-content>
 
-    <!-- Footer -->
-    <ion-footer class="ion-no-border bg-white">
-      <div class="flex justify-between items-center px-4 py-3 border-t">
-        <div class="text-lg font-semibold text-gray-900">
-          Total: ₹ {{ summary.total }}
-        </div>
 
-        <ion-button
-          expand="block"
-          shape="round"
-          :color="allDecided ? 'primary' : 'medium'"
-          :disabled="!allDecided"
-          @click="proceed"
-        >
-          Proceed
-        </ion-button>
+    <!-- Footer -->
+    <ion-footer class="pack-footer">
+      <div class="pack-footer-bg">
+        <div class="flex justify-between items-center px-4 py-3">
+          <div class="text-lg font-semibold text-gray-900">
+            Total: ₹ {{ summary.total }}
+          </div>
+
+          <ion-button expand="block" shape="round" :color="allDecided ? 'primary' : 'medium'" :disabled="!allDecided"
+            @click="proceed">
+            Proceed
+          </ion-button>
+        </div>
       </div>
     </ion-footer>
+
   </ion-page>
 </template>
 
@@ -278,5 +270,45 @@ async function proceed() {
     alert('Something went wrong while processing payment.')
   }
 }
+function formatCompanyName(name: string) {
+  if (!name) return ''
+  return name
+    .toLowerCase()
+    .split(' ')
+    .map(word => word.charAt(0).toUpperCase() + word.slice(1))
+    .join(' ')
+}
+
 </script>
 
+<style scoped>
+.pack-footer {
+  
+  background: rgba(255, 255, 0, 0.002);
+}
+
+.card {
+  background: #ffffff;
+  border-radius: 18px;
+  padding: 18px;
+  box-shadow: 0 8px 24px rgba(0, 0, 0, 0.06);
+}
+
+ion-button {
+  --border-width: 1px !important;
+  box-sizing: border-box;
+  min-width: 80px;
+}
+
+.company-divider {
+  margin-top: 16px;
+  border-top: 1px solid #e5e7eb;
+}
+.pack-footer-bg {
+  background: var(--markit-glass-surface);
+  border-bottom: none;
+  box-shadow: inset 0 1px 0 var(--markit-glass-highlight), 0 8px 18px rgba(20, 34, 28, 0.08);
+  backdrop-filter: blur(18px) saturate(145%);
+  -webkit-backdrop-filter: blur(18px) saturate(145%);
+}
+</style>
