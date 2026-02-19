@@ -54,6 +54,7 @@
 import { IonPage, IonHeader, IonContent, IonFooter } from "@ionic/vue";
 import { ref, onMounted } from "vue";
 import { useRoute, useRouter } from "vue-router";
+const apiUrl = import.meta.env.VITE_API_URL;
 
 import VariantCard from "@/components/Store/VariantCard.vue";
 import BottomFilterBar from "@/components/Store/BottomFilterBar.vue";
@@ -202,7 +203,7 @@ if (selectedSize.value.length)
   loading.value = true;
   variants.value = [];
 
-  const url = `http://localhost:3005/api/products/company/${cid}?${params}`;
+  const url = `${apiUrl}/products/company/${cid}?${params}`;
 
   const res = await fetch(url, { signal: abortController.signal });
   const reader = res.body?.getReader();
