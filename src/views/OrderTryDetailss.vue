@@ -10,7 +10,7 @@
           class="order-line-item"
         >
           <div class="order-item-image">
-            <img
+            <img 
               v-if="item.images?.length"
               :src="`https://images.markit.co.in/${item.images[0]}`"
               alt="product"

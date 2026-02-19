@@ -9,7 +9,7 @@
         <!-- Success GIF -->
         <div class="mb-8 w-40 h-40 flex items-center justify-center">
           <img src="@/assets/pay.gif" alt="Order Success" class="w-full h-full object-contain" />
-        </div>
+        </div> 
 
         <!-- Subheading -->
         <div class="text-2xl font-bold text-center">

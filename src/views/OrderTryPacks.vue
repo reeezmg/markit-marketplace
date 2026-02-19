@@ -170,7 +170,7 @@ onMounted(async () => {
         decisions.value[item.id] = null
       })
     })
-  }
+  } 
 })
 
 // ------------------- Functions -------------------

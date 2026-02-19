@@ -10,7 +10,7 @@
           class="order-history-item"
         >
           <Trynbuy :trynbuy="trynbuy" />
-        </div>
+        </div> 
 
         <div v-if="!trynbuys.tryHistoryList.length" class="order-history-empty">
           <h3>No Orders Yet</h3>
