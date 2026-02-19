@@ -43,7 +43,7 @@ onMounted(async () => {
 <style scoped>
 .order-history-page {
   --background: var(--markit-bg);
-  --padding-bottom: calc(92px + env(safe-area-inset-bottom, 0px));
+  --padding-bottom: calc(92px + var(--markit-bottom-inset));
 }
 
 .order-history-wrap {

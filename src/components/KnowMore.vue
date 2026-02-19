@@ -92,7 +92,7 @@ const close = () => {
 .knowmore-sheet {
   width: 100%;
   padding: 24px 20px 28px;
-  padding-bottom: calc(28px + env(safe-area-inset-bottom, 0px));
+  padding-bottom: calc(28px + var(--markit-bottom-inset));
 }
 
 .km-hero {

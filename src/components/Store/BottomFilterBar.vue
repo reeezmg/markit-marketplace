@@ -1,6 +1,6 @@
 <template>
   <div
-    class="fixed bottom-4 left-0 right-0 z-50 flex items-center gap-3
+    class="bottom-filter-bar fixed bottom-4 left-0 right-0 z-50 flex items-center gap-3
           px-4 py-3 justify-around shadow-lg rounded-full mx-auto w-[65%] iced"
   >
 
@@ -81,5 +81,9 @@ import {
   background: var(--markit-glass-surface);
   backdrop-filter: blur(20px) saturate(145%);
   -webkit-backdrop-filter: blur(20px) saturate(145%);
+}
+
+.bottom-filter-bar {
+  bottom: calc(12px + var(--markit-bottom-inset));
 }
 </style>

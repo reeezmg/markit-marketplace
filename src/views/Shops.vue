@@ -96,7 +96,7 @@
 
         <!-- ✅ Floating Try & Pay Banner (Swipe + Drag) -->
         <div v-if="packStore.packList.length"
-          class="fixed bottom-[70px] left-0 right-0 bg-black text-white z-50 m-2 rounded-2xl select-none">
+          class="shop-pack-banner fixed bottom-[70px] left-0 right-0 bg-black text-white z-50 m-2 rounded-2xl select-none">
           <div class="flex items-center justify-center pt-3 overflow-hidden relative" @touchstart="startTouch"
             @touchend="endTouch" @mousedown="startMouseDrag" @mouseup="endMouseDrag">
             <Transition :name="`slide-${slideDirection}`" mode="out-in">
@@ -441,7 +441,7 @@ const headerStyle = computed(() => ({
 .shop-page {
   --background: var(--markit-bg);
   color: var(--markit-text);
-  --padding-bottom: calc(96px + env(safe-area-inset-bottom, 0px));
+  --padding-bottom: calc(96px + var(--markit-bottom-inset));
 }
 
 .fixed-shell {
@@ -543,9 +543,13 @@ const headerStyle = computed(() => ({
   position: relative;
   z-index: 1;
   padding-top: 14px;
-  padding-bottom: calc(88px + env(safe-area-inset-bottom, 0px));
+  padding-bottom: calc(88px + var(--markit-bottom-inset));
   max-width: 980px;
   margin: 0 auto;
+}
+
+.shop-pack-banner {
+  bottom: calc(70px + var(--markit-bottom-inset));
 }
 
 .gender-btn {

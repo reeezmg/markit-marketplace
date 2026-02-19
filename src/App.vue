@@ -13,12 +13,14 @@
   max-width: 460px;
   width: 100%;
   min-height: 100vh;
-  height: 100dvh;
+  min-height: 100dvh;
+  height: 100%;
   margin: 0 auto;
   background: var(--markit-bg);
   box-shadow: 0 10px 30px rgba(15, 23, 42, 0.08);
   position: relative;
-  overflow: hidden;
+  overflow-x: hidden;
+  overflow-y: visible;
   isolation: isolate;
   
 }

@@ -29,6 +29,6 @@ import Topbar from '@/components/Topbar.vue';
   --padding-start: 12px;
   --padding-end: 12px;
   --padding-top: 10px;
-  --padding-bottom: calc(90px + env(safe-area-inset-bottom, 0px));
+  --padding-bottom: calc(90px + var(--markit-bottom-inset));
 }
 </style>

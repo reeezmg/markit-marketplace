@@ -309,7 +309,7 @@ function formatStatus(status: string | null): string {
 }
 
 .nearby-body {
-  padding: 14px 16px 12px;
+  padding: 14px 16px calc(92px + var(--markit-bottom-inset));
 }
 
 .nearby-gender-wrap {
@@ -356,7 +356,7 @@ function formatStatus(status: string | null): string {
   --padding-start: 0;
   --padding-end: 0;
   --padding-top: 0;
-  --padding-bottom: 18px;
+  --padding-bottom: calc(18px + var(--markit-bottom-inset));
 }
 
 .fixed-shell {
@@ -412,6 +412,7 @@ function formatStatus(status: string | null): string {
 .nearby-pack-slider {
   padding-left: 12px;
   padding-right: 12px;
+  bottom: calc(64px + var(--markit-bottom-inset));
 }
 
 @media (max-width: 390px) {

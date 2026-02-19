@@ -173,7 +173,7 @@ const deleteAccount = async () => {
   display: grid;
   gap: 14px;
   padding-top: 12px;
-  padding-bottom: calc(20px + env(safe-area-inset-bottom, 0px));
+  padding-bottom: calc(20px + var(--markit-bottom-inset));
 }
 
 .profile-form {

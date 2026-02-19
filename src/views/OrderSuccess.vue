@@ -118,7 +118,7 @@ const handleClose = async () => {
 .knowmore-sheet {
   width: 100%;
   padding: 24px 20px 28px;
-  padding-bottom: calc(28px + env(safe-area-inset-bottom, 0px));
+  padding-bottom: calc(28px + var(--markit-bottom-inset));
 }
 
 .km-hero {
@@ -222,5 +222,6 @@ const handleClose = async () => {
   background: var(--markit-glass-surface);
   backdrop-filter: blur(20px) saturate(145%);
   -webkit-backdrop-filter: blur(20px) saturate(145%);
+  padding-bottom: var(--markit-bottom-inset);
 }
 </style>

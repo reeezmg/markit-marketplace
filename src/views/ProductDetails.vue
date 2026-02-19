@@ -141,7 +141,7 @@
 <style scoped>
 .details-page {
   --background: var(--markit-bg);
-  --padding-bottom: calc(112px + env(safe-area-inset-bottom, 0px));
+  --padding-bottom: calc(112px + var(--markit-bottom-inset));
 }
 
 .details-header {
@@ -320,11 +320,11 @@
 /* (keep your existing styles below – they are untouched) */
 .details-page {
   --background: var(--markit-bg);
-  --padding-bottom: calc(112px + env(safe-area-inset-bottom, 0px));
+  --padding-bottom: calc(112px + var(--markit-bottom-inset));
 }
 
 .details-body {
-  padding-bottom: calc(100px + env(safe-area-inset-bottom, 0px));
+  padding-bottom: calc(100px + var(--markit-bottom-inset));
 }
 
 .details-product-title {
@@ -392,7 +392,7 @@
   box-shadow: var(--markit-shadow-soft);
   backdrop-filter: blur(10px);
   -webkit-backdrop-filter: blur(10px);
-  padding: 4px 0 calc(env(safe-area-inset-bottom, 0px) + 4px);
+  padding: 4px 0 calc(var(--markit-bottom-inset) + 4px);
 }
 
 .cart-btn::part(native) {

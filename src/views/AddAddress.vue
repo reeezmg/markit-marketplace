@@ -290,7 +290,7 @@ const confirmProceed = () => {
   position: fixed;
   left: 0;
   right: 0;
-  bottom: 0;
+  bottom: var(--markit-bottom-inset);
   z-index: 100;
 }
 
@@ -313,7 +313,7 @@ const confirmProceed = () => {
   --padding-top: 10px;
   --padding-start: 12px;
   --padding-end: 12px;
-  --padding-bottom: calc(106px + env(safe-area-inset-bottom, 0px));
+  --padding-bottom: calc(106px + var(--markit-bottom-inset));
 }
 
 .map-container-wrapper {
@@ -395,7 +395,7 @@ const confirmProceed = () => {
 @media (max-height: 700px) {
   .address-content {
     --padding-top: 8px;
-    --padding-bottom: calc(98px + env(safe-area-inset-bottom, 0px));
+    --padding-bottom: calc(98px + var(--markit-bottom-inset));
   }
 
   .map-container-wrapper {

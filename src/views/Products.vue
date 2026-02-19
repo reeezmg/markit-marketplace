@@ -259,6 +259,7 @@ function toProductDetailsPage(variant: CompanyVariant) {
 <style scoped>
 .products-page {
   --background: var(--markit-bg);
+  --padding-bottom: calc(104px + var(--markit-bottom-inset));
 }
 
 .products-header {
@@ -267,6 +268,7 @@ function toProductDetailsPage(variant: CompanyVariant) {
 
 .products-shell {
   background: var(--markit-bg);
+  padding-bottom: calc(86px + var(--markit-bottom-inset));
 }
 
 .skeleton-card {

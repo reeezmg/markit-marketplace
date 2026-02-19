@@ -113,7 +113,7 @@ function submitForm() {
   --padding-top: 12px;
   --padding-start: 14px;
   --padding-end: 14px;
-  --padding-bottom: calc(18px + env(safe-area-inset-bottom, 0px));
+  --padding-bottom: calc(18px + var(--markit-bottom-inset));
 }
 
 .details-note {

@@ -309,5 +309,6 @@ ion-button {
   box-shadow: inset 0 1px 0 var(--markit-glass-highlight), 0 8px 18px rgba(20, 34, 28, 0.08);
   backdrop-filter: blur(18px) saturate(145%);
   -webkit-backdrop-filter: blur(18px) saturate(145%);
+  padding-bottom: var(--markit-bottom-inset);
 }
 </style>

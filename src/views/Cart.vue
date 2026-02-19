@@ -381,6 +381,7 @@ const goToNearbyShops = () => {
 <style scoped>
 .cart-page {
   --background: var(--markit-bg);
+  --padding-bottom: calc(132px + var(--markit-bottom-inset));
 }
 
 .cart-empty {
@@ -438,6 +439,7 @@ const goToNearbyShops = () => {
   backdrop-filter: blur(18px) saturate(145%);
   -webkit-backdrop-filter: blur(18px) saturate(145%);
   overflow: hidden;
+  padding-bottom: calc(var(--markit-bottom-inset) + 4px);
 }
 
 /* Override Ionic's default footer background */

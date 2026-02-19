@@ -66,7 +66,7 @@ const isCartActive = computed(() => route.name === 'cart')
   position: fixed;
   left: 0;
   right: 0;
-  bottom: env(safe-area-inset-bottom, 0px);
+  bottom: var(--markit-bottom-inset);
   width: 100%;
   z-index: 1200;
   pointer-events: auto;
@@ -83,7 +83,7 @@ const isCartActive = computed(() => route.name === 'cart')
   border-radius: 0;
   min-height: 64px;
   width: 100%;
-  padding: 8px 10px calc(env(safe-area-inset-bottom, 0px) + 8px);
+  padding: 8px 10px calc(var(--markit-bottom-inset) + 8px);
 }
 
 .tab-btn {
@@ -123,10 +123,4 @@ const isCartActive = computed(() => route.name === 'cart')
   font-weight: 600;
 }
 
-/* Lift only by the browser-controls overlap on mobile dynamic viewport */
-@supports (height: 100dvh) {
-  .tabs-shell {
-    bottom: calc(env(safe-area-inset-bottom, 0px) + (100vh - 100dvh));
-  }
-}
 </style>
