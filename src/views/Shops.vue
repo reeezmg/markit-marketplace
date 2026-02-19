@@ -51,7 +51,7 @@
           </div>
         </div>
       </div>
-      <div class=" content-wrap">
+      <div class="ion-padding content-wrap">
         <!-- Category Buttons -->
         <div class="transition-all duration-300"
           :class="hideGender ? 'opacity-0 -translate-y-3 pointer-events-none' : 'opacity-100'">
