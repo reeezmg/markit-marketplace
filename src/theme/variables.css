@@ -3,9 +3,7 @@
 
 :root {
   --ion-font-family: "Nunito", sans-serif;
-  --markit-safe-bottom: env(safe-area-inset-bottom, 0px);
-  --markit-viewport-overlap: 0px;
-  --markit-bottom-inset: var(--markit-safe-bottom);
+  --markit-bottom-inset: env(safe-area-inset-bottom, 0px);
   /* Brand */
   --ion-color-primary: #53816c;
   --ion-color-primary-rgb: 83, 129, 108;
@@ -46,13 +44,6 @@
   --markit-glass-highlight: rgba(255, 255, 255, 0.84);
   --markit-glass-shadow: 0 10px 18px rgba(20, 34, 28, 0.09);
   --markit-glass-shadow-lg: 0 14px 28px rgba(20, 34, 28, 0.12);
-}
-
-@supports (height: 100dvh) {
-  :root {
-    --markit-viewport-overlap: max(0px, calc(100vh - 100dvh));
-    --markit-bottom-inset: calc(var(--markit-safe-bottom) + var(--markit-viewport-overlap));
-  }
 }
 
 html,

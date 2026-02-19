@@ -290,8 +290,9 @@ const confirmProceed = () => {
   position: fixed;
   left: 0;
   right: 0;
-  bottom: var(--markit-bottom-inset);
+  bottom: 0;
   z-index: 100;
+  padding-bottom: var(--markit-bottom-inset);
 }
 
 .add-details-btn {

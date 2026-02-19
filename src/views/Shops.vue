@@ -549,7 +549,7 @@ const headerStyle = computed(() => ({
 }
 
 .shop-pack-banner {
-  bottom: calc(70px + var(--markit-bottom-inset));
+  bottom: var(--markit-bottom-inset);
 }
 
 .gender-btn {

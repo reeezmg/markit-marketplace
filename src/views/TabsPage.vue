@@ -66,7 +66,7 @@ const isCartActive = computed(() => route.name === 'cart')
   position: fixed;
   left: 0;
   right: 0;
-  bottom: var(--markit-bottom-inset);
+  bottom: 0;
   width: 100%;
   z-index: 1200;
   pointer-events: auto;

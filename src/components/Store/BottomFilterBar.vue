@@ -84,6 +84,6 @@ import {
 }
 
 .bottom-filter-bar {
-  bottom: calc(12px + var(--markit-bottom-inset));
+  bottom: var(--markit-bottom-inset);
 }
 </style>

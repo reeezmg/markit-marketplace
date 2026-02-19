@@ -412,7 +412,7 @@ function formatStatus(status: string | null): string {
 .nearby-pack-slider {
   padding-left: 12px;
   padding-right: 12px;
-  bottom: calc(64px + var(--markit-bottom-inset));
+  bottom: var(--markit-bottom-inset);
 }
 
 @media (max-width: 390px) {
