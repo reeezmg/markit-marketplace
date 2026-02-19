@@ -283,8 +283,7 @@ function formatCompanyName(name: string) {
 
 <style scoped>
 .pack-footer {
-  
-  background: rgba(255, 255, 0, 0.002);
+  background: rgba(255, 255, 0, 0);
 }
 
 .card {

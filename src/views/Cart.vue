@@ -1,17 +1,15 @@
 <template>
-  <ion-page fullscreen>
+  <ion-page>
     <Topbar title="Cart" />
-    <ion-content :fullscreen="true" class=" ion-padding cart-page">
+    <ion-content fullscreen class=" ion-padding cart-page">
       <!-- Show cart when we have any groups -->
       <div v-if="hasCart">
         <!-- Item component emits nearby company clusters -->
         <Item @groupedCart="updateGroupedCart" />
 
         <!-- Add products from nearby store -->
-        <div
-          class="nearby-add-card my-3 p-6 flex flex-col items-center justify-center text-center cursor-pointer"
-          @click="goToNearbyShops"
-        >
+        <div class="nearby-add-card my-3 p-6 flex flex-col items-center justify-center text-center cursor-pointer"
+          @click="goToNearbyShops">
           <IonIcon :icon="addOutline" class="nearby-add-icon w-10 h-10 mb-2" />
           <p class="nearby-add-text">Add products from nearby stores</p>
         </div>
@@ -20,14 +18,8 @@
         <div v-if="hasActiveItems">
           <!-- <CheckoutMethod v-model:method="checkoutMethod" /> -->
           <Address />
-          <Pricing
-            :subtotal="subtotal"
-            :shipping="shipping"
-            :totalDiscount="totalDiscount"
-            :waitingFee="waitingFee"
-            :waitingTime="waitingTime"
-            :totalItem="totalItem"
-          />
+          <Pricing :subtotal="subtotal" :shipping="shipping" :totalDiscount="totalDiscount" :waitingFee="waitingFee"
+            :waitingTime="waitingTime" :totalItem="totalItem" />
         </div>
       </div>
 
@@ -40,46 +32,35 @@
         <p class="text-gray-600 mt-2 max-w-[16rem]">
           Add products you love and they'll show up here.
         </p>
-        <ion-button
-          fill="solid"
-          color="primary"
-          class="markit-cta mt-5"
-          @click="router.push({ name: 'shops' })"
-        >
+        <ion-button fill="solid" color="primary" class="markit-cta mt-5" @click="router.push({ name: 'shops' })">
           Browse Products
         </ion-button>
       </div>
     </ion-content>
 
     <!-- Footer -->
-    <ion-footer v-if="hasActiveItems" class="cart-footer">
-      <div v-if="deliveryType" class="p-3 mx-2 my-2">
-        <p class="cart-delivery-time">
-          Delivery Time: {{ formattedDeliveryTime }}
-        </p>
-      </div>
+    <ion-footer v-if="hasActiveItems" class="cart-footer-glass">
+      <div class="cart-footer-bg">
+        <div v-if="deliveryType" class="p-3 mx-2 my-2">
+          <p class="cart-delivery-time">
+            Delivery Time: {{ formattedDeliveryTime }}
+          </p>
+        </div>
 
-      <div class="m-2">
-        <ion-button
-          class="cart-pick-btn"
-          expand="block"
-          :disabled="loading"
-          @click="deliveryType ? checkout() : openPickTimeModal()"
-        >
-          <template v-if="loading">
-            <ion-spinner name="crescent"></ion-spinner>
-          </template>
-          <template v-else>
-            {{ deliveryType ? 'Place Order' : 'Pick a time' }}
-          </template>
-        </ion-button>
-      </div>
+        <div class="p-2">
+          <ion-button class="cart-pick-btn" expand="block" :disabled="loading"
+            @click="deliveryType ? checkout() : openPickTimeModal()">
+            <template v-if="loading">
+              <ion-spinner name="crescent"></ion-spinner>
+            </template>
+            <template v-else>
+              {{ deliveryType ? 'Place Order' : 'Pick a time' }}
+            </template>
+          </ion-button>
+        </div>
 
-      <PickTimeModal
-        :is-open="isPickTimeModalOpen"
-        @close="closePickTimeModal"
-        @proceed="getDeliveryTime"
-      />
+        <PickTimeModal :is-open="isPickTimeModalOpen" @close="closePickTimeModal" @proceed="getDeliveryTime" />
+      </div>
     </ion-footer>
   </ion-page>
 </template>
@@ -257,8 +238,8 @@ const formattedDeliveryTime = computed(() => {
     deliveryType.value === 'instant'
       ? addHours(now, 1)
       : deliveryType.value === 'later' && deliveryTime.value
-      ? new Date(deliveryTime.value)
-      : now
+        ? new Date(deliveryTime.value)
+        : now
 
   const today = now.toDateString()
   const tomorrow = addHours(now, 24).toDateString()
@@ -266,8 +247,8 @@ const formattedDeliveryTime = computed(() => {
     baseDate.toDateString() === today
       ? 'Today'
       : baseDate.toDateString() === tomorrow
-      ? 'Tomorrow'
-      : format(baseDate, 'EEEE, d MMM')
+        ? 'Tomorrow'
+        : format(baseDate, 'EEEE, d MMM')
 
   return `${format(baseDate, 'h:mm a')}, ${dateLabel}`
 })
@@ -340,14 +321,14 @@ const checkout = async () => {
     console.log('✅ Order placed successfully:', orderRes)
     console.log(deliveryTime.value)
 
-     const existing = packStore.getById(orderRes.trynbuy.trynbuy_id)
-      if (existing) {
-        packStore.update(orderRes.trynbuy.trynbuy_id, orderRes.trynbuy)
-      } else {
-        packStore.add(orderRes.trynbuy)
-      }
-      tryHistoryStore.updateOrderStatus(orderRes.trynbuy.trynbuy_id, orderRes.order_status)
-    
+    const existing = packStore.getById(orderRes.trynbuy.trynbuy_id)
+    if (existing) {
+      packStore.update(orderRes.trynbuy.trynbuy_id, orderRes.trynbuy)
+    } else {
+      packStore.add(orderRes.trynbuy)
+    }
+    tryHistoryStore.updateOrderStatus(orderRes.trynbuy.trynbuy_id, orderRes.order_status)
+
 
     await tryHistory.fetchFromApi()
 
@@ -449,17 +430,24 @@ const goToNearbyShops = () => {
   color: var(--markit-text-muted);
 }
 
-.cart-footer {
-  background: var(--markit-glass-surface);
-  backdrop-filter: blur(10px);
-  -webkit-backdrop-filter: blur(10px);
-  padding: 4px 0 calc(env(safe-area-inset-bottom, 0px) + 4px);
+.cart-footer-glass {
+  --background: transparent !important;
+  background: var(--markit-glass-surface) !important;
   border-bottom: none;
   box-shadow: inset 0 1px 0 var(--markit-glass-highlight), 0 8px 18px rgba(20, 34, 28, 0.08);
   backdrop-filter: blur(18px) saturate(145%);
   -webkit-backdrop-filter: blur(18px) saturate(145%);
+  overflow: hidden;
 }
 
+/* Override Ionic's default footer background */
+ion-footer.cart-footer-glass {
+  background: transparent !important;
+}
+
+ion-footer.cart-footer-glass::part(container) {
+  background: transparent !important;
+}
 .cart-delivery-time {
   color: var(--markit-text);
   font-weight: 600;
@@ -488,4 +476,3 @@ const goToNearbyShops = () => {
   border: 1px solid color-mix(in srgb, var(--ion-color-primary) 70%, #ffffff);
 }
 </style>
-
