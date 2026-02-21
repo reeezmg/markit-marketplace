@@ -15,7 +15,7 @@ export async function getDistanceInKm(
 
     const shopCoords = Array.isArray(shops) ? shops : [shops];
 
-    const { data } = await axios.post(`${API_URL}/api/distance`, {
+    const { data } = await axios.post(`${API_URL}/distance`, {
       shops: shopCoords,
       customer,
     });
