@@ -64,7 +64,7 @@
               signature.
             </p>
             <p class="mt-2 font-semibold">
-              BY USING THE APP, YOU CONFIRM THAT YOU HAVE READ, UNDERSTOOD, AND
+              BY LOGGING INTO THE APP, YOU CONFIRM THAT YOU HAVE READ, UNDERSTOOD, AND
               ACCEPTED THESE TERMS IN FULL.
             </p>
             <p class="mt-2">
@@ -175,21 +175,27 @@
           <ion-item slot="header" class="rounded-xl">
             <ion-label class="font-semibold">Returns & Trial Policy</ion-label>
           </ion-item>
-          <div slot="content" class="px-4 pb-5 text-sm leading-relaxed text-gray-700">
-            <p>
-              Users are provided a <strong>30-minute trial window</strong> from
-              the time of delivery.
-            </p>
-            <p class="mt-2">
-              Products must be returned with tags intact and without misuse.
-            </p>
-            <p class="mt-2">
-              Purchased products are non-returnable and non-exchangeable.
-            </p>
-            <p class="mt-2">
-              Users are responsible for product safety until returned.
-            </p>
-          </div>
+         <div slot="content" class="px-4 pb-5 text-sm leading-relaxed text-gray-700">
+  <p>
+    Users are provided a <strong>30-minute trial window</strong> from the time of delivery.
+  </p>
+
+  <p class="mt-2">
+    Once a product is purchased after the trial period, any return or refund must be handled directly with the respective store, following their return and refund policy mentioned in the invoice receipt.
+  </p>
+
+  <p class="mt-2">
+    If the product is purchased from Markit’s cloud store, returns or exchanges must be initiated within <strong>10 days</strong> from the date of purchase.
+  </p>
+
+  <p class="mt-2">
+    Products must be returned with tags intact and without any misuse.
+  </p>
+
+  <p class="mt-2">
+    Users are responsible for product safety until it is returned.
+  </p>
+</div>
         </ion-accordion>
 
         <!-- PROHIBITED ACTIVITIES -->
