@@ -1,6 +1,6 @@
 // src/services/socket.ts
 import { io, Socket } from 'socket.io-client';
-const apiUrl = import.meta.env.VITE_OSRM_URL;
+const apiUrl = import.meta.env.VITE_SOCKET_URL;
 
   const SOCKET_URL = apiUrl; // change to your server URL
 
