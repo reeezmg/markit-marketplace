@@ -14,9 +14,9 @@
             class="fixed-filters transition-all duration-400 ease-out"
             :class="showFixedFilters ? 'opacity-100 translate-y-0' : 'fixed-filters--hidden opacity-0 -translate-y-2 pointer-events-none'"
           >
-            <div class="px-4 pb-3">
+            <!-- <div class="px-4 pb-3">
               <Category @select="subCategoryFilter = $event" :selectedCategory="selectedCategory" />
-            </div>
+            </div> -->
             <div class="grid grid-cols-4 gap-2 w-full px-4 pb-3">
               <ion-button v-for="(btn, i) in categoryButtons" :key="i" size="small" expand="block"
                 class="gender-btn"
@@ -66,10 +66,10 @@
 
 
         <!-- Category Filter -->
-        <div class=" top-0 z-30 py-4 transition-all duration-300  category-sticky"
+        <!-- <div class=" top-0 z-30 py-4 transition-all duration-300  category-sticky"
           :class="hideCategory ? '-translate-y-3 pointer-events-none' : ''">
           <Category @select="subCategoryFilter = $event" :selectedCategory="selectedCategory" />
-        </div>
+        </div> -->
 
   
 
@@ -183,6 +183,7 @@ let shopsList: any = ref([]);
 const isCollapsed = ref(false)
 const isKnowMoreModalOpen = ref(false)
 
+
 const activeIndex = ref(0)
 const activePack = computed(() => packStore.packList[activeIndex.value] || null)
 watch(
@@ -252,8 +253,11 @@ const { getLocation } = useLocationStore()
 const location = ref({ name: '', formattedAddress: '', lat: 0, lng: 0 })
 
 const categoryButtons = ['Men', 'Women', 'Girls', 'Boys']
-const activeCategory = ref(0)
-const selectedCategory = computed(() => categoryButtons[activeCategory.value].toLowerCase())
+const activeCategory = ref()
+const selectedCategory = computed(() => {
+  if (activeCategory.value == null) return null
+  return categoryButtons[activeCategory.value].toLowerCase()
+})
 
 onIonViewWillEnter(async () => {
   await packStore.loadFromStorage()
@@ -315,6 +319,20 @@ onIonViewWillEnter(async () => {
   await loadShopsByLocation(location.value.lat, location.value.lng)
 })
 
+/* ✅ FINAL LIST WITH NEARBY FIRST */
+shopsList = computed(() => {
+  const list = subCategoryFilter?.value
+    ? filteredBySubcategoryShops.value
+    : filteredShops.value
+
+  return [...list].sort((a, b) => {
+    const aNearby = nearbyStore.isNearbyCompany(a.id) ? 1 : 0
+    const bNearby = nearbyStore.isNearbyCompany(b.id) ? 1 : 0
+    return bNearby - aNearby
+  })
+})
+
+
 const loadShopsByLocation = async (lat: number, lng: number) => {
   try {
     const response = await getAllShop(lat, lng)
@@ -371,7 +389,7 @@ const filteredShops = computed(() => {
     const shopCategories = Array.isArray(shop.category)
       ? shop.category.map((c: string) => c.toLowerCase())
       : []
-
+    console.log(genderCategory)
     const matchesGender =
       !genderCategory || genderCategory === 'all'
         ? true

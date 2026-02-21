@@ -39,6 +39,7 @@
       <img
         v-if="variant.images?.length"
         :src="imageUrl(variant.images[0])"
+         @error="onError"
         :alt="`${variant.productName ?? ''} - ${variant.name}`"
         class="absolute inset-0 w-full h-full object-cover transition-transform duration-300 group-hover:scale-105"
         loading="lazy"
@@ -48,12 +49,15 @@
       <!-- info -->
       <div class="variant-card-body px-3 pt-2 pb-1 flex flex-col gap-1 flex-1">
         <div class="variant-title line-clamp-2">
+          <span class="text-sm text-gray-500 ">
+            {{ formatLabel(variant.brandName) }}
+          </span>
           <span class="variant-title-main">
-            {{ formatLabel(variant.productName || variant.name) }}
+            {{ formatLabel(variant.productName) }}
           </span>
-          <span v-if="variant.productName && variant.name" class="variant-title-sub">
+          <!-- <span v-if="variant.productName && variant.name" class="variant-title-sub">
             ({{ formatLabel(variant.name) }})
-          </span>
+          </span> -->
         </div>
 
 
@@ -84,27 +88,39 @@
     </div>
 
     <!-- actions -->
-    <div class="flex items-center justify-between py-2 border-t border-gray-100 bg-white">
-      <button
-        type="button"
-        class="w-1/2 py-3 flex items-center justify-center gap-2 text-sm text-gray-600 hover:text-red-500 transition-colors"
-        @click.stop="toggleLike"
-        aria-label="like"
-      >
-        <IonIcon :icon="isLiked ? heart : heartOutline" class="w-5 h-5" :class="isLiked ? 'text-red-500' : 'text-gray-400 group-hover:text-red-500'" />
-        <span class="sr-only">like</span>
-      </button>
+   <div class="flex items-center py-2 border-t border-gray-100 bg-white">
+  
+  <!-- LIKE BUTTON -->
+  <button
+    type="button"
+    class="flex-1 py-3 flex items-center justify-center gap-2 text-sm text-gray-600 hover:text-red-500 transition-colors"
+    @click.stop="toggleLike"
+    aria-label="like"
+  >
+    <IonIcon
+      :icon="isLiked ? heart : heartOutline"
+      class="w-5 h-5"
+      :class="isLiked ? 'text-red-500' : 'text-gray-400'"
+    />
+    <span class="sr-only">like</span>
+  </button>
 
-      <button
-        type="button"
-        class="w-1/2 py-3 flex items-center justify-center gap-2 text-sm text-gray-600 hover:text-[#097D4C] transition-colors border-l border-gray-100"
-        @click.stop="addToCart"
-        aria-label="add to cart"
-      >
-        <IonIcon :icon="cartOutline" class="w-5 h-5" />
-        <span class="sr-only">add to cart</span>
-      </button>
-    </div>
+  <!-- ✅ VERTICAL DIVIDER -->
+  <div class="w-px self-stretch bg-gray-200"></div>
+
+  <!-- CART BUTTON -->
+  <button
+    type="button"
+    class="flex-1 py-3 flex items-center justify-center gap-2 text-sm text-gray-600 hover:text-[#097D4C] transition-colors"
+    @click.stop="addToCart"
+    aria-label="add to cart"
+  >
+    <IonIcon :icon="cartOutline" class="w-5 h-5" />
+    <span class="sr-only">add to cart</span>
+  </button>
+
+</div>
+
 
     <!-- Size selector modal -->
     <SizeSelector
@@ -139,6 +155,12 @@ type Variant = {
   items?: { id?: string; size?: string; qty?: number }[];
   variants?: { id: string; label?: string; image?: string | null }[];
 };
+
+const emit = defineEmits(["imageError"]);
+
+function onError() {
+  emit("imageError");
+}
 
 const props = defineProps<{ variant: Variant }>();
 
@@ -263,14 +285,12 @@ const handleSizeSelect = async (
 }
 
 .variant-title {
-  font-size: 0.92rem;
+  display: flex;
+  flex-direction: column;
   line-height: 1.3;
 }
 
-.variant-title-main {
-  color: var(--markit-text);
-  font-weight: 600;
-}
+
 
 .variant-title-sub {
   color: var(--markit-text-muted);

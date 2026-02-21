@@ -37,7 +37,7 @@
         <ion-spinner name="crescent"></ion-spinner>
       </div>
 
-      <div v-else class="p-4 details-body">
+      <div v-else class="details-body">
         <swiper
           :slides-per-view="1"
           :loop="true"
@@ -75,8 +75,7 @@
         <div v-if="selectedVariant?.items?.length" class="mt-6">
           <div class="flex justify-between items-center">
             <div class="details-size-title">Select Sizes</div>
-            <button class="details-size-guide">Size Guide</button>
-          </div>
+                </div>
 
           <div class="p-3 details-sizes-card">
             <div class="flex flex-wrap gap-3">
@@ -386,7 +385,7 @@
 }
 
 .details-footer {
-  background: var(--markit-surface);
+  background: var(--markit-glass-surface);
   border-top: 1px solid var(--markit-border);
   border-radius: var(--markit-radius-xl) var(--markit-radius-xl) 0 0;
   box-shadow: var(--markit-shadow-soft);

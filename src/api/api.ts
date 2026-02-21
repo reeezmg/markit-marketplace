@@ -10,6 +10,8 @@ export const getVariantById = (id) => api.get(`/products/variant/${id}`);
 
 export const getAllCategories = (companyId) => api.get(`/products/categories/${companyId}`);
 
+export const getAllBrands = (companyId) => api.get(`/products/brands/${companyId}`);
+
 export const getAllShop = (lat,lng) => api.get(`/shops?lat=${lat}&lng=${lng}`);
 
 export const getNearbyShop = (home, shops) =>

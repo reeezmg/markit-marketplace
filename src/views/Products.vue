@@ -4,112 +4,55 @@
       <Topbar @search="onSearch" :name="companyName" />
     </ion-header>
 
-    <ion-content :fullscreen="true" color="light" class="products-page">
-      <div class="px-4 py-2 products-shell">
-      
-      <!-- Skeleton Loader -->
-      <ul class="grid grid-cols-2 gap-3 mb-10" v-if="loading && variants.length === 0">
-        <li
-          v-for="n in 6"
-          :key="n"
-          class="col-span-1 flex flex-col space-y-2 border rounded-xl overflow-hidden animate-pulse p-2 skeleton-card"
-        >
-          <div class="w-full aspect-[4/5] bg-gray-300 rounded-md"></div>
-          <div class="h-5 bg-gray-300 rounded w-3/4"></div>
-          <div class="h-5 bg-gray-300 rounded w-1/2"></div>
-          <div class="flex gap-2 mt-2">
-            <div class="flex-1 h-10 bg-gray-300 rounded"></div>
-            <div class="flex-1 h-10 bg-gray-300 rounded"></div>
-          </div>
-        </li>
-      </ul>
+    <ion-content :fullscreen="true" color="light">
+      <div class="px-4 py-2">
 
-      <!-- Real Variants -->
-      <ul class="grid grid-cols-2 gap-3 mb-10">
-        <VariantCard
-          v-for="variant in variants"
-          :key="variant.id"
-          :variant="variant"
-          @click="toProductDetailsPage(variant)"
+        <!-- Skeleton -->
+        <ul v-if="loading && variants.length === 0"
+            class="grid grid-cols-2 gap-3 mb-10">
+          <li v-for="n in 6" :key="n" class="animate-pulse">
+            <div class="aspect-[4/5] bg-gray-300 rounded-md"></div>
+          </li>
+        </ul>
+
+        <!-- Products -->
+        <ul class="grid grid-cols-2 gap-3 mb-10">
+          <VariantCard
+            v-for="variant in validVariants"
+            :key="variant.id"
+            :variant="variant"
+            @click="toProductDetailsPage(variant)"
+            @imageError="handleImageError(variant.id)"
+          />
+        </ul>
+
+        <!-- Bottom Bar -->
+        <BottomFilterBar
+          @open="openFilterModal"
+          :categoryCount="selectedCategory.length + selectedBrand.length"
+          :sizeCount="selectedSize.length"
+          :sortCount="selectedSort ? 1 : 0"
         />
-      </ul>
 
-<BottomFilterBar
-   @open="type => openFilterModal(type)" 
-  :categoryCount="selectedCategory.length"
-  :sizeCount="selectedSize.length"
-  :sortCount="selectedSort ? 1 : 0"
-/>
-
-    </div>
-  </ion-content>
-
-    <!-- <ion-footer class="ion-no-border">
-      <TabsPage />
-    </ion-footer> -->
+      </div>
+    </ion-content>
   </ion-page>
 </template>
 
 <script setup lang="ts">
-import { IonPage, IonHeader, IonContent, IonFooter } from "@ionic/vue";
-import { ref, onMounted } from "vue";
+import { IonPage, IonHeader, IonContent } from "@ionic/vue";
+import { ref, onMounted, computed } from "vue";
 import { useRoute, useRouter } from "vue-router";
-const apiUrl = import.meta.env.VITE_API_URL;
+import { modalController } from "@ionic/vue";
 
 import VariantCard from "@/components/Store/VariantCard.vue";
 import BottomFilterBar from "@/components/Store/BottomFilterBar.vue";
 import FilterModal from "@/components/Store/FilterModal.vue";
 import Topbar from "@/components/Store/Topbar.vue";
-import TabsPage from "./TabsPage.vue";
 
-import { getAllCategories } from "@/api/api";
-// parent component script setup
-import { modalController } from '@ionic/vue';
+import { getAllCategories, getAllBrands } from "@/api/api";
 
-async function openFilterModal(filterType: 'category' | 'size' | 'sort') {
-  // choose items & initial selected based on filterType
-  const items = filterType === 'category' ? categories.value : (filterType === 'size' ? sizeOptions.value : sortOptions.value);
-  const initialSelected = filterType === 'category' ? selectedCategory.value : (filterType === 'size' ? selectedSize.value : selectedSort.value);
-
-  const initialBreakpoint = 1
-  const breakpoints = [0, 1, 1]
-
-  const modal = await modalController.create({
-    component: FilterModal,
-    cssClass: 'markit-filter-sheet',
-    componentProps: {
-      title: filterType === 'category' ? 'Category' : (filterType === 'size' ? 'Size' : 'Sort by'),
-      items,
-      selected: initialSelected,
-      multi: filterType !== 'sort',
-      filterType: filterType
-    },
-    backdropDismiss: true,
-    initialBreakpoint,
-    breakpoints,
-    handleBehavior: 'cycle',
-    presentingElement: document.querySelector('ion-router-outlet') || undefined
-  });
-
-  await modal.present();
-
-  const { data } = await modal.onDidDismiss(); // { data: { selected: [...] } } or undefined
-
-  if (data?.selected) {
-    // apply selection to parent state depending on filterType
-    if (filterType === 'category') {
-      selectedCategory.value = data.selected;
-    } else if (filterType === 'size') {
-      selectedSize.value = data.selected;
-    } else {
-      // sort returns an array for uniformity — choose first or handle as you want
-      selectedSort.value = data.selected?.[0] ?? null;
-    }
-
-    // now trigger streamVariants or update UI as needed
-    streamVariants(companyId);
-  }
-}
+const apiUrl = import.meta.env.VITE_API_URL;
 
 /* ---------------- Types ---------------- */
 type CompanyVariant = {
@@ -120,8 +63,8 @@ type CompanyVariant = {
   sprice: number;
   dprice: number;
   discount: number;
-  isNew: boolean;
-  outOfStock: boolean;
+  brandId?: string;
+  brandName?: string;
   items: { id: string; size: string; qty: number }[];
 };
 
@@ -132,49 +75,137 @@ const router = useRouter();
 const companyId = route.params.companyId as string;
 const companyName = route.params.companyName;
 
-const sizeOptions = ref(["XS", "S", "M", "L", "XL", "XXL", "3XL", "4XL", "5XL", "6XL"]); 
-const sortOptions = ref(["Price: Low to High", "Price: High to Low"]);
-/* ---------------- State ---------------- */
 const loading = ref(true);
 const variants = ref<CompanyVariant[]>([]);
 
 const selectedCategory = ref<any[]>([]);
+const selectedBrand = ref<any[]>([]);
 const selectedSize = ref<any[]>([]);
 const selectedSort = ref<any>(null);
+
 const searchTerm = ref("");
 
-const isCategoryOpen = ref(false);
-const isSortOpen = ref(false);
-const isSizeOpen = ref(false);
+const categories = ref<any[]>([]);
+const brands = ref<any[]>([]);
 
+const sizeOptions = ref([
+  "XS","S","M","L","XL","XXL","3XL","4XL","5XL","6XL"
+]);
 
-const categories = ref<{ id: string; name: string }[]>([]);
+const sortOptions = ref([
+  "Price: Low to High",
+  "Price: High to Low"
+]);
 
+const invalidImages = ref<Set<string>>(new Set());
+
+/* ---------------- Fetch Filters ---------------- */
 onMounted(async () => {
   try {
-    const res = await getAllCategories(companyId);
+    const catRes = await getAllCategories(companyId);
+    const brandRes = await getAllBrands(companyId);
 
-    // --- Normalize response safely ---
-    const data = Array.isArray(res)
-      ? res
-      : Array.isArray(res?.data)
-      ? res.data
-      : [];
+    categories.value = Array.isArray(catRes?.data)
+      ? catRes.data
+      : catRes || [];
 
-    categories.value = data as { id: string; name: string }[];
+    brands.value = Array.isArray(brandRes?.data)
+      ? brandRes.data
+      : brandRes || [];
 
   } catch (err) {
-    console.error("Categories error:", err);
-    categories.value = [];
+    console.error("Filter fetch error:", err);
   }
 });
 
+/* ---------------- Modal ---------------- */
+async function openFilterModal(
+  filterType: "category" | "size" | "sort"
+) {
+  let items: any[] = [];
+  let selected: any[] = [];
 
+  if (filterType === "category") {
+    const categoryItems = categories.value.map(c => ({
+      ...c,
+      type: "category"
+    }));
 
+    const brandItems =
+      brands.value.length > 1
+        ? brands.value.map(b => ({
+            ...b,
+            type: "brand"
+          }))
+        : [];
 
-// console.log('isCategoryOpen:',isCategoryOpen,'isSizeOpen:',isSizeOpen,'isSortOpen:',isSortOpen,'iiii');
+    // ✅ GROUPED STRUCTURE
+    // ✅ FLAT LIST (IMPORTANT)
+    items = [
+      ...categoryItems,
+      ...brandItems
+    ];
 
-/* ---------------- Streaming loader ---------------- */
+    selected = [
+      ...selectedCategory.value,
+      ...selectedBrand.value
+    ];
+  }
+
+  if (filterType === "size") {
+    items = sizeOptions.value;
+    selected = selectedSize.value;
+  }
+
+  if (filterType === "sort") {
+    items = sortOptions.value;
+    selected = selectedSort.value ? [selectedSort.value] : [];
+  }
+
+  console.log("Opening modal with items:", items, "selected:", selected);
+  const modal = await modalController.create({
+    component: FilterModal,
+    cssClass: "markit-filter-sheet",
+    componentProps: {
+      title:
+        filterType === "category"
+          ? "Filter"
+          : filterType === "size"
+          ? "Size"
+          : "Sort by",
+      items,
+      selected,
+      multi: filterType !== "sort",
+      filterType
+    },
+    initialBreakpoint: 1,
+    breakpoints: [0, 1],
+    backdropDismiss: true
+  });
+
+  await modal.present();
+
+  const { data } = await modal.onDidDismiss();
+
+  if (data?.selected) {
+    if (filterType === "category") {
+      selectedCategory.value = data.selected.filter(i => i.type === "category");
+      selectedBrand.value = data.selected.filter(i => i.type === "brand");
+    }
+
+    if (filterType === "size") {
+      selectedSize.value = data.selected;
+    }
+
+    if (filterType === "sort") {
+      selectedSort.value = data.selected?.[0] ?? null;
+    }
+
+    streamVariants(companyId);
+  }
+}
+
+/* ---------------- Streaming ---------------- */
 let abortController: AbortController | null = null;
 
 async function streamVariants(cid: string) {
@@ -185,27 +216,35 @@ async function streamVariants(cid: string) {
 
   const params = new URLSearchParams();
 
-  if (selectedCategory.value.length)
-    selectedCategory.value.forEach(c =>
-      params.append("categoryId", c.id)
-    );
+  selectedCategory.value.forEach(c =>
+    params.append("categoryId", c.id)
+  );
 
-if (selectedSize.value.length)
+  selectedBrand.value.forEach(b =>
+    params.append("brandId", b.id)
+  );
+
   selectedSize.value.forEach(s =>
     params.append("size", String(s))
   );
 
+  if (selectedSort.value === "Price: Low to High")
+    params.append("sort", "price_low");
 
-  if (selectedSort.value === "Price: Low to High") params.append("sort", "price_low");
-  if (selectedSort.value === "Price: High to Low") params.append("sort", "price_high");
-  if (searchTerm.value) params.append("search", searchTerm.value);
+  if (selectedSort.value === "Price: High to Low")
+    params.append("sort", "price_high");
+
+  if (searchTerm.value)
+    params.append("search", searchTerm.value);
 
   loading.value = true;
   variants.value = [];
 
-  const url = `${apiUrl}/products/company/${cid}?${params}`;
+  const res = await fetch(
+    `${apiUrl}/products/company/${cid}?${params}`,
+    { signal: abortController.signal }
+  );
 
-  const res = await fetch(url, { signal: abortController.signal });
   const reader = res.body?.getReader();
   if (!reader) return;
 
@@ -236,12 +275,17 @@ if (selectedSize.value.length)
   loading.value = false;
 }
 
-/* ---------------- Debounce Search ---------------- */
+/* ---------------- Search ---------------- */
 let debounceTimer: any = null;
+
 function onSearch(v: string) {
   searchTerm.value = (v || "").toLowerCase();
+
   clearTimeout(debounceTimer);
-  debounceTimer = setTimeout(() => streamVariants(companyId), 350);
+
+  debounceTimer = setTimeout(() => {
+    streamVariants(companyId);
+  }, 350);
 }
 
 /* ---------------- Initial Load ---------------- */
@@ -249,30 +293,29 @@ onMounted(() => {
   streamVariants(companyId);
 });
 
-
+/* ---------------- Helpers ---------------- */
 function toProductDetailsPage(variant: CompanyVariant) {
   localStorage.setItem("product", JSON.stringify(variant));
-  router.push({ name: 'product', params: { variantId: variant.id } });
+  router.push({
+    name: "product",
+    params: { variantId: variant.id }
+  });
+}
+
+const validVariants = computed(() => {
+  return variants.value.filter(v => {
+    const img = v.images?.[0];
+    return img && img.trim() && !invalidImages.value.has(v.id);
+  });
+});
+
+function handleImageError(id: string) {
+  invalidImages.value.add(id);
 }
 </script>
 
 <style scoped>
-.products-page {
-  --background: var(--markit-bg);
-  --padding-bottom: calc(104px + var(--markit-bottom-inset));
-}
-
 .products-header {
-  background: transparent !important;  
-}
-
-.products-shell {
-  background: var(--markit-bg);
-  padding-bottom: calc(86px + var(--markit-bottom-inset));
-}
-
-.skeleton-card {
-  border-color: var(--markit-border);
-  background: var(--markit-surface);
+  background: transparent !important;
 }
 </style>

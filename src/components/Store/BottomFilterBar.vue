@@ -24,7 +24,7 @@
   @click="$emit('open','category')"
 >
   <IonIcon :icon="gridOutline" class="text-[14px]" />
-  Category
+  Filter
   <span v-if="props.categoryCount > 0"
         class="absolute -top-1.5 -right-4 bg-[#097D4C] text-white text-[10px] px-1 py-0.25 rounded-full">
     {{ props.categoryCount }}

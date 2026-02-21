@@ -49,11 +49,13 @@ import { usePackStore } from '@/store/usePackStore'
 import { useTryHistoryStore } from '@/store/useTryHistoryStore'
 import { useProfileStore } from './store/useProfileStore'
 import { useNearbyStore } from './store/useNearbyStore'
+import { useCartStore } from './store/useCartStore'
 
 // store instance
 const packStore = usePackStore()
 const nearbyStore = useNearbyStore()
 const tryHistoryStore = useTryHistoryStore()
+const cartStore = useCartStore()
 
 // reactive refs
 const token = ref<string | null>(null)
@@ -64,6 +66,7 @@ onMounted(async () => {
   await profileStore.loadFromStorage()
    await profileStore.fetchFromApi()
    await nearbyStore.loadNearby()
+   await cartStore.loadCart()
 })
 
 onMounted(async () => {

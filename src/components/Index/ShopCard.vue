@@ -1,6 +1,6 @@
 <template>
-  <div class="shop-card flex flex-col items-center space-y-4 p-3 mb-4 w-full border border-gray-200 rounded-lg">
-    <div class="shop-media relative w-full h-52 rounded-xl overflow-hidden bg-gray-200">
+  <div class="shop-card flex flex-col items-center  mb-4 w-full border border-gray-200">
+    <div class="shop-media relative w-full h-52 overflow-hidden bg-gray-200">
       <img
         v-if="shop.logo"
         :src="`https://images.markit.co.in/${shop.logo}`"
@@ -15,7 +15,7 @@
       />
     </div>
 
-    <div class="flex-1 w-full shop-copy">
+    <div class="flex-1 w-full shop-copy p-3">
       <div class="shop-title">{{ shop.name }}</div>
       <p class="shop-desc">{{ shop.description }}</p>
       <p class="shop-meta">
@@ -64,7 +64,7 @@ const canBeAddedToExisting = computed(() =>
 }
 
 .shop-media {
-  border-radius: 16px;
+  border-radius: 16px 16px 0 0;
 }
 
 .shop-title {
@@ -107,10 +107,6 @@ const canBeAddedToExisting = computed(() =>
   color: #2e6b4e;
 }
 
-@media (min-width: 720px) {
-  .shop-card {
-    padding: 16px;
-  }
-}
+
 </style>
 
