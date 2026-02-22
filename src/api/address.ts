@@ -11,7 +11,7 @@ export type Address = {
   lat?: number;
   lng?: number;
   active: boolean;
-  clientId: string;
+  clientId?: string;
 };
 
 // ✅ GET all addresses (no clientId needed now)

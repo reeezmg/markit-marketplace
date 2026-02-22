@@ -166,6 +166,7 @@ import { alertCircleOutline } from 'ionicons/icons';
 
 
 
+
 const profileStore = useProfileStore()
 const isLoggedIn = computed(() => !!profileStore.profile)
 
@@ -173,6 +174,7 @@ const router = useRouter()
 const packStore = usePackStore()
 const nearbyStore = useNearbyStore()
 const addressStore = useAddressStore()
+const { setLocation } = useLocationStore()
 
 const shops = ref<any[]>([])
 const loading = ref(true)
@@ -272,19 +274,45 @@ onIonViewWillEnter(async () => {
 
     if (saved) {
       location.value = saved
-    } else {
-      router.push({ name: 'account-address' })
-      const toast = await toastController.create({
-        header: 'Select Address',
-        message: 'Please select an address to see nearby shops',
-        icon: alertCircleOutline,
-        duration: 1700,
-        position: 'bottom',
-        color: 'danger',
-      });
-  await toast.present()
-      return
+    } 
+    else{
+      try {
+      const gps = await getCurrentLocation()
+
+      location.value = {
+        name: 'Current Location',
+        formattedAddress: 'Near you',
+        lat: gps.lat,
+        lng: gps.lng,
+        active: true,
+      } as any
+
+      await setLocation({
+        name: location.value.name,
+        formattedAddress: location.value.formattedAddress,
+        lat: location.value.lat,
+        lng: location.value.lng,
+        active: true
+      })
+      } catch (e) {
+        console.error('Location access denied', e)
+        loading.value = false
+        return
+      }
     }
+    // else {
+    //   router.push({ name: 'account-address' })
+    //   const toast = await toastController.create({
+    //     header: 'Select Address',
+    //     message: 'Please select an address to see nearby shops',
+    //     icon: alertCircleOutline,
+    //     duration: 1700,
+    //     position: 'bottom',
+    //     color: 'danger',
+    //   });
+  // await toast.present()
+  //     return
+  //   }
   }
 
   // 2️⃣ Logged-out user → GPS fallback
@@ -302,10 +330,17 @@ onIonViewWillEnter(async () => {
           formattedAddress: 'Near you',
           lat: gps.lat,
           lng: gps.lng,
+          active: true,
         } as any
 
-
-        // await setLocation(location.value) // ✅ SAME INSTANCE
+        await setLocation({
+          name: location.value.name,
+          formattedAddress: location.value.formattedAddress,
+          lat: location.value.lat,
+          lng: location.value.lng,
+          active: true
+        })
+      
       } catch (e) {
         console.error('Location access denied', e)
         loading.value = false
@@ -349,6 +384,8 @@ const onLocationChange = async (newLocation: any) => {
   loading.value = true
   subCategoryFilter.value = ''
   filteredBySubcategoryShops.value = []
+        await nearbyStore.$reset()
+  await nearbyStore.fetchNearbyShops()
   await loadShopsByLocation(newLocation.lat, newLocation.lng)
 }
 

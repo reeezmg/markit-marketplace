@@ -46,6 +46,8 @@ import { useRouter, useRoute } from 'vue-router';
 import type { Address } from '@/api/address';
 import { useLocationStore } from '@/composables/useLocationStore'
 import { useAddressStore } from '@/store/useAddressStore';
+import { useNearbyStore } from '@/store/useNearbyStore'
+const nearbyStore = useNearbyStore()
 
 const router = useRouter();
 const route = useRoute();
@@ -79,6 +81,8 @@ const confirmLocation = async (address:Address) => {
     }
 
     await setLocation(location)
+          await nearbyStore.$reset()
+  await nearbyStore.fetchNearbyShops()
     goToRedirect()
 }
 

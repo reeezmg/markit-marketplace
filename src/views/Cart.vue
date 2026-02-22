@@ -149,15 +149,22 @@ const hasActiveItems = computed(() =>
   )
 )
 
+
+
 watch(
-  hasCart,
-  async (newValue) => {
-    console.log('Cart groups changed. hasCart:', newValue)
-    if (!newValue) {
-        nearbyStore.$reset()
+  () => cart.groups,
+  async (newGroups) => {
+    if(!newGroups || newGroups.length === 0) {
+      nearbyStore.$reset()
+      return
+    }else {
+        await nearbyStore.$reset()
+    await nearbyStore.fetchNearbyShops()
     }
+   
+    
   },
-  { immediate: true }
+  { deep: true, immediate: true }
 )
 
 /* Totals */

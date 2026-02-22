@@ -179,7 +179,19 @@ function isSameAddress(addr: Address) {
 async function selectAddress(addr: Address) {
   emit('location-change', addr)
   try {
-    await setLocation(addr)
+    const clickedLocation = {
+      name: addr.name || '',
+      formattedAddress: addr.formattedAddress || '',
+      lat: addr.lat || 0,
+      lng: addr.lng || 0,
+      houseDetails: addr.houseDetails || '',
+      landmark: addr.landmark || '',
+      type: addr.type || '',
+      id: addr.id || '',
+      active: true,
+    }
+    console.log('Persisting selected address', clickedLocation)
+    await setLocation(clickedLocation)
   } catch (e) {
     console.error('Failed to persist selected address', e)
   }
