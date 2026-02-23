@@ -15,8 +15,8 @@
       />
     </div>
 
-    <div class="flex-1 w-full shop-copy p-3">
-      <div class="shop-title">{{ shop.name }}</div>
+    <div class="flex-1 w-full shop-copy">
+      <div class="shop-title">{{ formatShopName(shop.name) }}</div>
       <p class="shop-desc">{{ shop.description }}</p>
       <p class="shop-meta">
         {{ shop.street }} • {{ (shop.road_distance / 1000).toFixed(2) }} km
@@ -47,6 +47,21 @@ const nearbyStore = useNearbyStore()
 const canBeAddedToExisting = computed(() =>
   nearbyStore.isNearbyCompany(props.shop.id)
 )
+
+function formatShopName(value?: string | null) {
+  if (!value) return ''
+  return String(value)
+    .trim()
+    .toLowerCase()
+    .split(/\s+/)
+    .map((word) =>
+      word
+        .split('-')
+        .map((part) => (part ? part[0].toUpperCase() + part.slice(1) : ''))
+        .join('-')
+    )
+    .join(' ')
+}
 </script>
 
 <style scoped>

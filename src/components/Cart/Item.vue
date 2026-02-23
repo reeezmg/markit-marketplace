@@ -81,7 +81,7 @@
           </div>
         </div>
         <div>
-          {{ company.companyName }}
+          {{ formatCompanyName(company.companyName) }}
         </div>
         </div>
 
@@ -219,6 +219,21 @@ function formatLabel(value?: string | null) {
       word
         .split('-')
         .map((part) => (part ? part[0].toUpperCase() + part.slice(1) : part))
+        .join('-')
+    )
+    .join(' ')
+}
+
+function formatCompanyName(value?: string | null) {
+  if (!value) return ''
+  return String(value)
+    .trim()
+    .toLowerCase()
+    .split(/\s+/)
+    .map((word) =>
+      word
+        .split('-')
+        .map((part) => (part ? part[0].toUpperCase() + part.slice(1) : ''))
         .join('-')
     )
     .join(' ')
