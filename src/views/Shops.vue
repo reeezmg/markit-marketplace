@@ -6,58 +6,75 @@
         ? 'opacity-100 translate-y-0'
         : 'opacity-0 -translate-y-2 pointer-events-none'">
         <div class="fixed-surface">
-        <div class="fixed-search">
-          <div class="fixed-topbar-host">
-            <Topbar :location="location" :collapsed="true" @search="onSearch" @location-change="onLocationChange" />
-          </div>
-          <div
-            class="fixed-filters transition-all duration-400 ease-out"
-            :class="showFixedFilters ? 'opacity-100 translate-y-0' : 'fixed-filters--hidden opacity-0 -translate-y-2 pointer-events-none'"
-          >
-            <!-- <div class="px-4 pb-3">
+          <div class="fixed-search">
+            <div class="fixed-topbar-host">
+              <Topbar :location="location" :collapsed="true" @search="onSearch" @location-change="onLocationChange" />
+            </div>
+            <div class="fixed-filters transition-all duration-400 ease-out"
+              :class="showFixedFilters ? 'opacity-100 translate-y-0' : 'fixed-filters--hidden opacity-0 -translate-y-2 pointer-events-none'">
+              <!-- <div class="px-4 pb-3">
               <Category @select="subCategoryFilter = $event" :selectedCategory="selectedCategory" />
             </div> -->
-            <div class="grid grid-cols-4 gap-2 w-full px-4 pb-3">
-              <ion-button v-for="(btn, i) in categoryButtons" :key="i" size="small" expand="block"
-                class="gender-btn"
-                :fill="activeCategory === i ? 'solid' : 'outline'" @click="activeCategory = i">
-                {{ btn }}
-              </ion-button>
+              <div class="grid grid-cols-4 gap-2 w-full px-4 pb-3">
+                <ion-button v-for="(btn, i) in categoryButtons" :key="i" size="small" expand="block" class="gender-btn"
+                  :fill="activeCategory === i ? 'solid' : 'outline'" @click="activeCategory = i">
+                  {{ btn }}
+                </ion-button>
+              </div>
             </div>
           </div>
-        </div>
         </div>
       </div>
 
 
       <!-- ✅ HEADER SECTION MOVED INTO CONTENT -->
-      <div class="ion-no-border relative transition-all duration-300 ease-in-out hero-header" :style="headerStyle">
+      <div ref="heroContainer" class="ion-no-border relative transition-all duration-300 ease-in-out hero-header">
+        <!-- Animated video background -->
+        <video class="hero-video" autoplay muted loop playsinline>
+          <source src="/hero-bg.mp4" type="video/mp4" />
+        </video>
+
         <div class="relative z-10 droplet-shell">
-          <Topbar :location="location" :collapsed="isCollapsed" @search="onSearch" @location-change="onLocationChange" />
+          <Topbar :location="location" :collapsed="isCollapsed" @search="onSearch"
+            @location-change="onLocationChange" />
         </div>
 
         <!-- Tagline + Button -->
         <div class="transition-all duration-300 ease-out text-center will-change-transform hero-copy" :class="isCollapsed
           ? 'opacity-0 -translate-y-6 pointer-events-none'
-          : 'opacity-100 translate-y-0'">
+          : 'opacity-100 translate-y-0'
+          ">
+          <div class="text-xl font-bold py-3 px-2 flex flex-col items-center justify-center hero-title">
+            <LiquidText :texts="[
+              'Choose',
+              'Try',
+              'Buy',
+              'Make Your Home',
+              'Trial Room'
+            ]" class="
+    text-[28px] md:text-[48px]
+    font-black
+    tracking-tight
+    text-[#F8FAF6]
+    drop-shadow-[0_4px_14px_rgba(0,0,0,0.4)]
+  " />
 
-          <div class="text-xl text-[#2f5f49] font-bold py-3 px-2 flex flex-col items-center justify-center hero-title">
-            <div class="w-fit px-2 rounded-md text-gray-600">Choose • Try • Buy</div>
-            <div class="w-fit px-2 rounded-md mt-1 hero-subtitle">Make your home trial room</div>
 
-            <ion-button class="mt-3 markit-cta hero-cta" color="primary" fill="solid" size="small" @click="openKnowMoreModal">
-              Know more
-            </ion-button>
+            <div class="mt-6 flex justify-center">
+              <ion-button class="mt-4 hero-cta" color="primary" fill="solid" size="small" @click="openKnowMoreModal">
+                Know more
+              </ion-button>
+            </div>
           </div>
         </div>
       </div>
+
       <div class="ion-padding content-wrap">
         <!-- Category Buttons -->
         <div class="transition-all duration-300"
           :class="hideGender ? 'opacity-0 -translate-y-3 pointer-events-none' : 'opacity-100'">
           <div class="grid grid-cols-4 gap-2 w-full my-4">
-            <ion-button v-for="(btn, i) in categoryButtons" :key="i" size="small" expand="block"
-              class="gender-btn"
+            <ion-button v-for="(btn, i) in categoryButtons" :key="i" size="small" expand="block" class="gender-btn"
               :fill="activeCategory === i ? 'solid' : 'outline'" @click="activeCategory = i">
               {{ btn }}
             </ion-button>
@@ -71,23 +88,17 @@
           <Category @select="subCategoryFilter = $event" :selectedCategory="selectedCategory" />
         </div> -->
 
-  
+
 
         <div v-if="loading" class="grid gap-4">
           <ShopCardSkeleton v-for="n in 4" :key="n" />
         </div>
 
         <div v-else class="mb-24 shop-list">
-          <div
-            v-for="(shop, index) in shopsList"
-            :key="shop.id"
-            class="shop-item"
-            :style="{ animationDelay: `${Math.min(index * 70, 420)}ms` }"
-          >
-            <ShopCard
-              :shop="shop"
-              @click="() => router.push({ name: 'shop', params: { companyId: shop.id, companyName: shop.name } })"
-            />
+          <div v-for="(shop, index) in shopsList" :key="shop.id" class="shop-item"
+            :style="{ animationDelay: `${Math.min(index * 70, 420)}ms` }">
+            <ShopCard :shop="shop"
+              @click="() => router.push({ name: 'shop', params: { companyId: shop.id, companyName: shop.name } })" />
           </div>
           <div v-if="!shopsList.length" class="text-center py-8 text-gray-500">
             No shops found.
@@ -163,6 +174,8 @@ import { useProfileStore } from '@/store/useProfileStore'
 import api from '@/api/client'
 import { toastController } from '@ionic/vue'
 import { alertCircleOutline } from 'ionicons/icons';
+import LiquidText from '@/components/ui/LiquidText.vue'
+
 
 
 
@@ -282,7 +295,7 @@ onIonViewWillEnter(async () => {
         position: 'bottom',
         color: 'danger',
       });
-  await toast.present()
+      await toast.present()
       return
     }
   }
@@ -445,12 +458,7 @@ function onScroll(ev: CustomEvent) {
   scrollY.value = ev.detail.scrollTop
   isCollapsed.value = scrollY.value > 80
 }
-const headerStyle = computed(() => ({
-  backgroundImage: "url('design.png')",
-  backgroundSize: 'cover',
-  backgroundRepeat: 'no-repeat',
-  backgroundPosition: 'center',
-}))
+const headerStyle = computed(() => ({}))
 
 </script>
 
@@ -495,11 +503,11 @@ const headerStyle = computed(() => ({
 }
 
 .fixed-filters {
-  background: var(--markit-glass-surface-strong);
+  background: color-mix(in srgb, var(--markit-glass-surface) 80%, transparent);
   border-top: none;
-  box-shadow: inset 0 1px 0 rgba(255, 255, 255, 0.45);
+  box-shadow: none;
   overflow: hidden;
-  padding-top: 6px;
+  padding-top: 8px;
   transition: max-height 0.3s ease, opacity 0.3s ease, transform 0.3s ease;
   max-height: 220px;
 }
@@ -516,10 +524,19 @@ const headerStyle = computed(() => ({
   z-index: 40;
   min-height: 220px;
   padding-bottom: 12px;
-  background-position: center;
-  background-size: cover;
+  background: radial-gradient(circle at top left, #f0fff6 0%, #f8fffb 32%, #e4f3ea 70%, #e8f3ee 100%);
   overflow: visible;
   border-bottom: 1px solid var(--markit-border);
+}
+
+.hero-video {
+  position: absolute;
+  inset: 0;
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
+  z-index: 0;
+  filter: saturate(1.2) brightness(1.02);
 }
 
 .hero-copy {
@@ -533,7 +550,6 @@ const headerStyle = computed(() => ({
   line-height: 1.15;
   font-weight: 700;
   letter-spacing: 0.2px;
-  color: var(--markit-text);
 }
 
 .hero-subtitle {
@@ -554,7 +570,32 @@ const headerStyle = computed(() => ({
   font-size: 0.96rem;
   font-weight: 600;
   letter-spacing: 0.2px;
-  
+}
+
+.hero-heading-text {
+  background: linear-gradient(90deg, #2d5444, #4aa87b, #2d5444);
+  background-size: 220% 220%;
+  -webkit-background-clip: text;
+  background-clip: text;
+  color: transparent;
+  animation: hero-text-shift 10s ease-in-out infinite;
+}
+
+@keyframes hero-text-shift {
+  0% {
+    background-position: 0% 50%;
+    letter-spacing: 0.02em;
+  }
+
+  50% {
+    background-position: 100% 50%;
+    letter-spacing: 0.08em;
+  }
+
+  100% {
+    background-position: 0% 50%;
+    letter-spacing: 0.02em;
+  }
 }
 
 .content-wrap {
@@ -613,7 +654,7 @@ const headerStyle = computed(() => ({
 
 .shop-item {
   animation: shop-rise 0.5s ease both;
-    background: var(--markit-glass-surface);
+  background: var(--markit-glass-surface);
   backdrop-filter: blur(20px) saturate(145%);
   -webkit-backdrop-filter: blur(20px) saturate(145%);
   border-radius: 20px;
@@ -624,6 +665,7 @@ const headerStyle = computed(() => ({
     opacity: 0;
     transform: scale(0.98);
   }
+
   to {
     opacity: 1;
     transform: scale(1);
@@ -633,9 +675,9 @@ const headerStyle = computed(() => ({
 @media (prefers-reduced-motion: reduce) {
   .shop-item {
     animation: none;
-      background: var(--markit-glass-surface);
-  backdrop-filter: blur(20px) saturate(145%);
-  -webkit-backdrop-filter: blur(20px) saturate(145%);
+    background: var(--markit-glass-surface);
+    backdrop-filter: blur(20px) saturate(145%);
+    -webkit-backdrop-filter: blur(20px) saturate(145%);
   }
 }
 
@@ -685,7 +727,3 @@ const headerStyle = computed(() => ({
   will-change: transform, opacity;
 }
 </style>
- 
-
-
-

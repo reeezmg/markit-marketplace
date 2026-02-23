@@ -1,7 +1,7 @@
 <template>
   <ion-page>
     <Topbar title="Cart" />
-    <ion-content fullscreen class=" ion-padding cart-page">
+    <ion-content :fullscreen="true" class="ion-padding cart-page">
       <!-- Show cart when we have any groups -->
       <div v-if="hasCart">
         <!-- Item component emits nearby company clusters -->
@@ -24,11 +24,11 @@
       </div>
 
       <!-- Empty Cart -->
-      <div v-else class="flex flex-col items-center justify-center h-full text-center cart-empty empty-panel">
+      <div v-else class="flex flex-col items-center justify-center min-h-full text-center empty-panel">
         <div class="empty-icon">
           <IonIcon :icon="bagHandleOutline" class="text-[#53816C] text-3xl" />
         </div>
-        <h2 class="text-lg font-semibold text-gray-900 mt-4">Your cart is empty</h2>
+        <h2 class="empty-title mt-4">Your cart is empty</h2>
         <p class="text-gray-600 mt-2 max-w-[16rem]">
           Add products you love and they'll show up here.
         </p>
@@ -154,7 +154,7 @@ watch(
   async (newValue) => {
     console.log('Cart groups changed. hasCart:', newValue)
     if (!newValue) {
-        nearbyStore.$reset()
+      nearbyStore.$reset()
     }
   },
   { immediate: true }
@@ -381,11 +381,6 @@ const goToNearbyShops = () => {
 <style scoped>
 .cart-page {
   --background: var(--markit-bg);
-  --padding-bottom: calc(132px + var(--markit-bottom-inset));
-}
-
-.cart-empty {
-  margin-top: -10vh;
 }
 
 .empty-icon {
@@ -407,6 +402,15 @@ const goToNearbyShops = () => {
   padding: 48px 16px 56px;
   margin: 0 4px;
 }
+
+.empty-title {
+  font-size: 1.5rem;
+  line-height: 1.25;
+  font-weight: 700;
+  letter-spacing: 0.1px;
+  color: var(--markit-text);
+}
+
 
 .nearby-add-card {
   border: 1px dashed var(--markit-glass-border-hover);
@@ -450,6 +454,7 @@ ion-footer.cart-footer-glass {
 ion-footer.cart-footer-glass::part(container) {
   background: transparent !important;
 }
+
 .cart-delivery-time {
   color: var(--markit-text);
   font-weight: 600;

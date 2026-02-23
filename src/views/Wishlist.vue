@@ -19,7 +19,7 @@
       </TransitionGroup>
 
       <!-- Empty state -->
-      <div v-else class="flex flex-col items-center justify-center h-full text-center empty-state empty-panel">
+      <div v-else class="flex flex-col items-center justify-center min-h-full text-center empty-panel">
         <div class="empty-icon">
           <ion-icon :icon="heartOutline" class="text-[#53816C] text-3xl" />
         </div>
@@ -112,9 +112,7 @@ const toProductDetailsPage = (variant: any) => {
   --background: var(--markit-bg);
 }
 
-.empty-state {
-  margin-top: -10vh;
-}
+
 
 .empty-icon {
   width: 64px;

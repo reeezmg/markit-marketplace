@@ -15,8 +15,8 @@
       />
     </div>
 
-    <div class="flex-1 w-full shop-copy">
-      <div class="shop-title">{{ formatShopName(shop.name) }}</div>
+    <div class="flex-1 w-full shop-copy p-3">
+      <div class="shop-title">{{ shop.name }}</div>
       <p class="shop-desc">{{ shop.description }}</p>
       <p class="shop-meta">
         {{ shop.street }} • {{ (shop.road_distance / 1000).toFixed(2) }} km
