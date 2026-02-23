@@ -67,7 +67,8 @@
 </template>
 
 <script setup lang="ts">
-import { computed, ref, onMounted, onBeforeUnmount, watch } from 'vue'
+import { computed, ref, onBeforeUnmount, watch } from 'vue'
+import { onIonViewWillEnter } from '@ionic/vue'
 import { IonIcon } from '@ionic/vue'
 import {
   chevronDownOutline,
@@ -106,7 +107,7 @@ const addressStore = useAddressStore()
 const { setLocation } = useLocationStore()
 const addresses = computed(() => addressStore.addresses || [])
 
-onMounted(async () => {
+onIonViewWillEnter(async () => {
   if (!addressStore.addresses.length) {
     await addressStore.loadFromStorage()
   }

@@ -41,7 +41,8 @@
 
 <script setup lang="ts">
 import { IonPage, IonHeader, IonContent } from "@ionic/vue";
-import { ref, onMounted, computed } from "vue";
+import { ref, computed } from "vue";
+import { onIonViewWillEnter } from "@ionic/vue";
 import { useIonRouter } from "@ionic/vue";
 import { useRoute } from 'vue-router';
 import { modalController } from "@ionic/vue";
@@ -101,7 +102,7 @@ const sortOptions = ref([
 const invalidImages = ref<Set<string>>(new Set());
 
 /* ---------------- Fetch Filters ---------------- */
-onMounted(async () => {
+onIonViewWillEnter(async () => {
   try {
     const catRes = await getAllCategories(companyId);
     const brandRes = await getAllBrands(companyId);
@@ -290,7 +291,7 @@ function onSearch(v: string) {
 }
 
 /* ---------------- Initial Load ---------------- */
-onMounted(() => {
+onIonViewWillEnter(() => {
   streamVariants(companyId);
 });
 

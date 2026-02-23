@@ -87,8 +87,8 @@
 <script setup lang="ts">
 import { arrowBackOutline } from 'ionicons/icons'
 import { IonPage, IonContent, IonIcon, IonImg, IonButton, useIonRouter } from '@ionic/vue'
-import { ref, computed, onMounted } from 'vue'
-import { useIonRouter } from '@ionic/vue'
+import { ref, computed,  } from 'vue'
+import { onIonViewWillEnter } from '@ionic/vue'
 import { Capacitor } from '@capacitor/core'
 import { FirebaseAuthentication } from '@capacitor-firebase/authentication'
 
@@ -119,7 +119,7 @@ const isNative = Capacitor.getPlatform() !== 'web'
 const addressStore = useAddressStore()
 const profileStore = useProfileStore()
 
-onMounted(() => {
+onIonViewWillEnter(() => {
   setTimeout(() => (showIntro.value = false), 700)
   setTimeout(() => (showContent.value = true), 900)
 })

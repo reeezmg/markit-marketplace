@@ -48,7 +48,8 @@ import {
   IonIcon,
   IonFooter,
 } from '@ionic/vue'
-import { ref, onMounted, computed } from 'vue'
+import { ref, computed } from 'vue'
+import { onIonViewWillEnter } from '@ionic/vue'
 import { create, searchOutline } from 'ionicons/icons'
 import Topbar from '@/components/Topbar.vue'
 import SearchModal from '@/components/Address/SearchModal.vue'
@@ -273,7 +274,7 @@ const closeConfirmProceedModal = () => (isConfirmProceedModalOpen.value = false)
 // -----------------------------------------
 // LOAD GOOGLE MAP SCRIPT
 // -----------------------------------------
-onMounted(() => {
+onIonViewWillEnter(() => {
   const script = document.createElement('script')
   script.src = `https://maps.googleapis.com/maps/api/js?key=${googleApiKey}&libraries=places,marker`
   script.async = true

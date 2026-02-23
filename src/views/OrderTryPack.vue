@@ -206,7 +206,8 @@
 </template>
 
 <script setup lang="ts">
-import { ref, computed, onMounted } from 'vue'
+import { ref, computed } from 'vue'
+import { onIonViewWillEnter } from '@ionic/vue'
 import { useIonRouter } from '@ionic/vue'
 import { useRoute } from 'vue-router'
 import { IonPage, IonContent, IonButton, IonFooter, IonIcon } from '@ionic/vue'
@@ -288,7 +289,7 @@ const summary = computed(() => {
 })
 
 // ------------------- Lifecycle -------------------
-onMounted(async () => {
+onIonViewWillEnter(async () => {
   await packStore.loadFromStorage()
   order.value = packStore.getById(id)
   if (order.value) {

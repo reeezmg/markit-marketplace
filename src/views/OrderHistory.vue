@@ -22,7 +22,7 @@
 </template>
 
 <script setup lang="ts">
-import { onMounted } from 'vue'
+import { onIonViewWillEnter } from '@ionic/vue'
 import { IonPage, IonContent } from '@ionic/vue'
 import { useTryHistoryStore } from '@/store/useTryHistoryStore'
 import Trynbuy from '@/components/History/Trynbuy.vue'
@@ -30,7 +30,7 @@ import Topbar from '@/components/Topbar.vue'
 
 const trynbuys = useTryHistoryStore()
 
-onMounted(async () => {
+onIonViewWillEnter(async () => {
    await trynbuys.fetchFromApi()
   await trynbuys.loadFromStorage()
   console.log(trynbuys.tryHistoryList)

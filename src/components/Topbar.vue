@@ -66,7 +66,8 @@ import {
 } from '@ionic/vue'
 import { heartOutline, cartOutline, arrowBackOutline } from 'ionicons/icons'
 import { useCartStore } from '@/store/useCartStore'
-import { onMounted, computed } from 'vue'
+import {  computed } from 'vue'
+import { onIonViewWillEnter } from '@ionic/vue'
 
 /* PROPS */
 const props = defineProps({
@@ -78,7 +79,7 @@ const route = useRoute()
 const ionRouter = useIonRouter()
 const cartStore = useCartStore()
 
-onMounted(async () => {
+onIonViewWillEnter(async () => {
   await cartStore.loadCart()
 })
 

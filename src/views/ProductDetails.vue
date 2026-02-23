@@ -441,7 +441,8 @@
 </style>
 
 <script setup lang="ts">
-import { ref, computed, watch, onMounted } from "vue";
+import { ref, computed, watch } from "vue";
+import { onIonViewWillEnter } from "@ionic/vue";
 import { useRoute } from 'vue-router';
 import {
   IonPage, IonHeader, IonContent, IonButtons,
@@ -531,7 +532,7 @@ const detailsTitle = computed(() => {
   return color ? `${base} (${color})` : base
 })
 
-onMounted(async () => {
+onIonViewWillEnter(async () => {
   try {
     const variantId = route.params.variantId as string;
     const res = await getVariantById(variantId);

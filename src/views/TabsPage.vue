@@ -32,12 +32,13 @@
 import { IonFooter, IonIcon, IonBadge } from '@ionic/vue'
 import { storefrontOutline, heartOutline, cartOutline } from 'ionicons/icons'
 import { useCartStore } from '@/store/useCartStore'
-import { onMounted, computed } from 'vue'
+import { computed } from 'vue'
+import { onIonViewWillEnter } from '@ionic/vue'
 import { useRoute } from 'vue-router'
 const cartStore = useCartStore()
 const route = useRoute()
 
-onMounted(async () => {
+onIonViewWillEnter(async () => {
   await cartStore.loadCart()
 })
 

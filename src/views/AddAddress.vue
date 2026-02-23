@@ -44,7 +44,8 @@ import {
   IonIcon,
   IonFooter,
 } from '@ionic/vue'
-import { ref, onMounted } from 'vue'
+import { ref } from 'vue'
+import { onIonViewWillEnter } from '@ionic/vue'
 import { create, searchOutline } from 'ionicons/icons'
 import Topbar from '@/components/Topbar.vue'
 import SearchModal from '@/components/Address/SearchModal.vue'
@@ -205,7 +206,7 @@ const openSearchModal = () => {
   }, 300)
 }
 
-onMounted(() => {
+onIonViewWillEnter(() => {
   const script = document.createElement('script')
   script.src = `https://maps.googleapis.com/maps/api/js?key=${googleApiKey}&libraries=places,marker`
   script.async = true
