@@ -42,7 +42,8 @@ ion-modal {
 
 <script setup lang="ts">
 import { IonApp, IonRouterOutlet } from '@ionic/vue'
-import { onMounted, onUnmounted, ref } from 'vue'
+import { onUnmounted, ref } from 'vue'
+import { onIonViewWillEnter } from '@ionic/vue'
 import { Preferences } from '@capacitor/preferences'
 import socket from '@/services/socket'
 import { usePackStore } from '@/store/usePackStore'
@@ -62,14 +63,14 @@ const token = ref<string | null>(null)
 const client = ref<Record<string, any> | null>(null)
 const profileStore = useProfileStore()
 
-onMounted(async () => {
+onIonViewWillEnter(async () => {
   await profileStore.loadFromStorage()
    await profileStore.fetchFromApi()
    await nearbyStore.loadNearby()
    await cartStore.loadCart()
 })
 
-onMounted(async () => {
+onIonViewWillEnter(async () => {
 
   // load from Preferences
   const storedToken = await Preferences.get({ key: 'token' })

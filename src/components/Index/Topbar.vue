@@ -67,7 +67,8 @@
 </template>
 
 <script setup lang="ts">
-import { computed, ref, onMounted, onBeforeUnmount, watch } from 'vue'
+import { computed, ref, onBeforeUnmount, watch } from 'vue'
+import { onIonViewWillEnter } from '@ionic/vue'
 import { IonIcon } from '@ionic/vue'
 import {
   chevronDownOutline,
@@ -76,7 +77,8 @@ import {
   personOutline,
   searchOutline,
 } from 'ionicons/icons'
-import { useRoute, useRouter } from 'vue-router'
+import { useIonRouter } from '@ionic/vue'
+import { useRoute } from 'vue-router'
 import { storeToRefs } from 'pinia' // ✅ Add this import
 import type { Address } from '@/api/address'
 import { useAddressStore } from '@/store/useAddressStore'
@@ -86,7 +88,7 @@ import { useSearchStore } from '@/store/useSearchStore' // Import search store
 
 const props = defineProps<{ location: Partial<Address>; collapsed?: boolean }>()
 
-const router = useRouter()
+const router = useIonRouter()
 const route = useRoute()
 const showAddressMenu = ref(false)
 const rootRef = ref<HTMLElement | null>(null)
@@ -105,7 +107,7 @@ const addressStore = useAddressStore()
 const { setLocation } = useLocationStore()
 const addresses = computed(() => addressStore.addresses || [])
 
-onMounted(async () => {
+onIonViewWillEnter(async () => {
   if (!addressStore.addresses.length) {
     await addressStore.loadFromStorage()
   }
@@ -179,7 +181,19 @@ function isSameAddress(addr: Address) {
 async function selectAddress(addr: Address) {
   emit('location-change', addr)
   try {
-    await setLocation(addr)
+    const clickedLocation = {
+      name: addr.name || '',
+      formattedAddress: addr.formattedAddress || '',
+      lat: addr.lat || 0,
+      lng: addr.lng || 0,
+      houseDetails: addr.houseDetails || '',
+      landmark: addr.landmark || '',
+      type: addr.type || '',
+      id: addr.id || '',
+      active: true,
+    }
+    console.log('Persisting selected address', clickedLocation)
+    await setLocation(clickedLocation)
   } catch (e) {
     console.error('Failed to persist selected address', e)
   }

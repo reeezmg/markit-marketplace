@@ -28,12 +28,12 @@
 
 <script setup lang="ts">
 import { useLocationStore } from '@/composables/useLocationStore'
-import { useRouter } from 'vue-router'
+import { useIonRouter } from '@ionic/vue'
 import { IonIcon, IonButton } from '@ionic/vue'
 import { chevronForwardOutline } from 'ionicons/icons'
 
 const { location } = useLocationStore()   // 👈 directly reactive
-const router = useRouter()
+const router = useIonRouter()
 
 function setLocationPage() {
   router.push({ name: 'account-address', params: { redirect: 'cart' } })

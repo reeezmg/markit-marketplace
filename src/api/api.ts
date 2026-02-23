@@ -10,9 +10,13 @@ export const getVariantById = (id) => api.get(`/products/variant/${id}`);
 
 export const getAllCategories = (companyId) => api.get(`/products/categories/${companyId}`);
 
+export const fetchCoupons = () => {
+  return api.get('/coupons') // Adjust endpoint as needed
+}
+
 export const getAllBrands = (companyId) => api.get(`/products/brands/${companyId}`);
 
-export const getAllShop = (lat,lng) => api.get(`/shops?lat=${lat}&lng=${lng}`);
+export const getAllShop = (lat, lng) => api.get(`/shops?lat=${lat}&lng=${lng}`);
 
 export const getNearbyShop = (home, shops) =>
   api.post('/shops/nearby-route-shops', {

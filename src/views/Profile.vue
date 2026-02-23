@@ -68,7 +68,8 @@ import {
   IonButton, IonIcon, toastController
 } from '@ionic/vue'
 import { male, female, transgender, checkmarkCircleOutline } from 'ionicons/icons'
-import { reactive, onMounted } from 'vue'
+import { reactive } from 'vue'
+import { onIonViewWillEnter } from '@ionic/vue'
 import Topbar from '@/components/Topbar.vue'
 import { useProfileStore } from '@/store/useProfileStore'   // 👈 Pinia store
 
@@ -88,7 +89,7 @@ const genders = [
 ]
 
 // Load profile when page mounts
-onMounted(async () => {
+onIonViewWillEnter(async () => {
   try {
     // Load cached profile first (instant display)
 

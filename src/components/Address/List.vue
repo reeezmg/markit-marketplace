@@ -41,13 +41,16 @@
 </template>
 
 <script setup lang="ts">
-import { onMounted } from 'vue';
-import { useRouter, useRoute } from 'vue-router';
+import { onIonViewWillEnter } from '@ionic/vue';
+import { useIonRouter } from '@ionic/vue';
+import { useRoute } from 'vue-router'
 import type { Address } from '@/api/address';
 import { useLocationStore } from '@/composables/useLocationStore'
 import { useAddressStore } from '@/store/useAddressStore';
+import { useNearbyStore } from '@/store/useNearbyStore'
+const nearbyStore = useNearbyStore()
 
-const router = useRouter();
+const router = useIonRouter();
 const route = useRoute();
 const { setLocation } = useLocationStore()
 const store = useAddressStore()
@@ -79,11 +82,13 @@ const confirmLocation = async (address:Address) => {
     }
 
     await setLocation(location)
+          await nearbyStore.$reset()
+  await nearbyStore.fetchNearbyShops()
     goToRedirect()
 }
 
 // 🔹 Load addresses on mount
-onMounted(async () => {
+onIonViewWillEnter(async () => {
   console.log(store.addresses)
   // Try local cache first, then fallback to API if empty
   await store.loadFromStorage()

@@ -157,8 +157,9 @@ import { trash, bagHandleOutline, chevronBackOutline, chevronForwardOutline } fr
 import { IonIcon, onIonViewWillEnter, createGesture } from '@ionic/vue'
 import Badge from '../Badge.vue'
 import { useCartStore } from '@/store/useCartStore'
-import { computed, onMounted, ref, watch } from 'vue'
-import { useRouter } from 'vue-router'
+import { computed, ref, watch } from 'vue'
+import { onIonViewWillEnter } from '@ionic/vue'
+import { useIonRouter } from '@ionic/vue'
 
 const emit = defineEmits<{
   (e: 'groupedCart', payload: {
@@ -176,7 +177,7 @@ const emit = defineEmits<{
 }>()
 
 const cart = useCartStore()
-const router = useRouter()
+const router = useIonRouter()
 const failedCompanyLogos = ref<Record<string, boolean>>({})
 
 /* --- Original cart logic: group-based navigation --- */
@@ -316,9 +317,7 @@ function removeAll(item: any) {
 
 onIonViewWillEnter(async () => {
   await cart.loadCart()
-})
-
-onMounted(() => {
+}(() => {
   if (groupCount.value > 1) {
     const gesture = createGesture({
       el: document.querySelector('.bg-white') as HTMLElement,

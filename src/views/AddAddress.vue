@@ -5,7 +5,8 @@
     <ion-content class="address-content">
       <div class="map-container-wrapper">
         <div ref="mapContainer" class="map-container"></div>
-        <ion-button expand="block" class="use-location-btn" @click="useCurrentLocation">Use Current Location</ion-button>
+        <ion-button expand="block" class="use-location-btn" @click="useCurrentLocation">Use Current
+          Location</ion-button>
       </div>
 
       <div class="mt-5 bottom-div">
@@ -13,7 +14,7 @@
           <ion-icon :icon="searchOutline" class="address-search-icon"></ion-icon>
           <span class="address-search-text">Search place...</span>
         </button>
-        
+
         <div v-if="name || formattedAddress" class="latlng-display">
           <div class="flex flex-col">
             <div class="text-xl font-bold mb-2">{{ name }}</div>
@@ -22,26 +23,13 @@
         </div>
       </div>
 
-      <SearchModal
-        :is-open="isSearchModalOpen"
-        :map="map"
-        :placesService="placesService"
-        @close="closeSearchModal"
-        @select="selectLocation"
-      />
-      <MoreDetailsModal
-        :is-open="isConfirmProceedModalOpen"
-        :map="map"
-        :placesService="placesService"
-        :name="name"
-        :formattedAddress="formattedAddress"
-        @close="closeConfirmProceedModal"
-        @save="confirmLocation"
-
-      />
+      <SearchModal :is-open="isSearchModalOpen" :map="map" :placesService="placesService" @close="closeSearchModal"
+        @select="selectLocation" />
+      <MoreDetailsModal :is-open="isConfirmProceedModalOpen" :map="map" :placesService="placesService" :name="name"
+        :formattedAddress="formattedAddress" @close="closeConfirmProceedModal" @save="confirmLocation" />
 
     </ion-content>
-    
+
     <ion-footer class="footer-btn">
       <div expand="block" class="add-details-btn" @click="confirmProceed">Confirm & Proceed</div>
     </ion-footer>
@@ -56,20 +44,22 @@ import {
   IonIcon,
   IonFooter,
 } from '@ionic/vue'
-import { ref, onMounted } from 'vue'
+import { ref } from 'vue'
+import { onIonViewWillEnter } from '@ionic/vue'
 import { create, searchOutline } from 'ionicons/icons'
 import Topbar from '@/components/Topbar.vue'
 import SearchModal from '@/components/Address/SearchModal.vue'
 import MoreDetailsModal from '@/components/Address/MoreDetailsModal.vue'
 import { useLocationStore } from '@/composables/useLocationStore'
-import { useRouter, useRoute } from 'vue-router';
+import { useIonRouter } from '@ionic/vue';
+import { useRoute } from 'vue-router'
 import { createAddress } from '@/api/address';
 import { useAddressStore } from '@/store/useAddressStore';
 import { v4 as uuidv4 } from 'uuid'
 
 const googleApiKey = import.meta.env.VITE_GOOGLE_MAPS_API_KEY;
 const addressStore = useAddressStore()
-const router = useRouter();
+const router = useIonRouter();
 const route = useRoute();
 const redirect = route.params.redirect;
 const { setLocation } = useLocationStore()
@@ -216,7 +206,7 @@ const openSearchModal = () => {
   }, 300)
 }
 
-onMounted(() => {
+onIonViewWillEnter(() => {
   const script = document.createElement('script')
   script.src = `https://maps.googleapis.com/maps/api/js?key=${googleApiKey}&libraries=places,marker`
   script.async = true
@@ -241,7 +231,7 @@ const confirmLocation = async (data) => {
     }
 
     await setLocation(location)
-  
+
     await addressStore.add({
       id: uuid,
       name: data.name,
@@ -253,15 +243,15 @@ const confirmLocation = async (data) => {
       lng: lng.value,
     })
 
-     if (redirect === 'cart') {
+    if (redirect === 'cart') {
       router.push({ name: 'cart' })
-     } else if (redirect === 'account') {
+    } else if (redirect === 'account') {
       router.push({ name: 'account' })
-     } else {
+    } else {
       router.push({ name: 'shops' })
-     }
+    }
 
-     await createAddress({
+    await createAddress({
       id: uuid,
       name: data.name,
       formattedAddress: formattedAddress.value,
@@ -298,7 +288,7 @@ const confirmProceed = () => {
 .add-details-btn {
   width: 100%;
   text-align: center;
-    font-size: 1rem;
+  font-size: 1rem;
   font-weight: 600;
   letter-spacing: 0.2px;
   margin: 0;
@@ -442,5 +432,4 @@ const confirmProceed = () => {
   background: color-mix(in srgb, var(--ion-color-primary) 22%, #ffffff) !important;
   color: var(--ion-color-primary-shade) !important;
 }
-
 </style>

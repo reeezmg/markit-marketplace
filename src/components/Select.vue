@@ -44,7 +44,8 @@
 </template>
 
 <script setup lang="ts">
-import { computed, onBeforeUnmount, onMounted, ref } from 'vue'
+import { computed, onBeforeUnmount, ref } from 'vue'
+import { onIonViewWillEnter } from '@ionic/vue'
 
 interface Option {
   [key: string]: any
@@ -161,7 +162,7 @@ function onDocumentClick(event: MouseEvent) {
   if (!rootEl.value.contains(target)) open.value = false
 }
 
-onMounted(() => {
+onIonViewWillEnter(() => {
   document.addEventListener('click', onDocumentClick)
 })
 

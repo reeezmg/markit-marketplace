@@ -110,8 +110,9 @@
 <script setup lang="ts">
 import Topbar from '@/components/Topbar.vue'
 import { IonPage, IonContent, IonIcon } from '@ionic/vue'
-import { useRouter } from 'vue-router'
-import { computed, onMounted } from 'vue'
+import { useIonRouter } from '@ionic/vue'
+import { computed } from 'vue'
+import { onIonViewWillEnter } from '@ionic/vue'
 import { chevronForwardOutline } from 'ionicons/icons'
 import { useProfileStore } from '@/store/useProfileStore'
 import { useAddressStore } from '@/store/useAddressStore'
@@ -123,7 +124,7 @@ import { usePackStore } from '@/store/usePackStore'
 import { useTryHistoryStore } from '@/store/useTryHistoryStore'
 import { useLocationStore } from '@/composables/useLocationStore'
 
-const router = useRouter()
+const router = useIonRouter()
 const profileStore = useProfileStore()
 const addressStore = useAddressStore()
 const nearbyStore = useNearbyStore()
@@ -135,7 +136,7 @@ const client = computed(() =>
   profileStore.profile ?? { name: '', phone: '' }
 )
 
-onMounted(async () => {
+onIonViewWillEnter(async () => {
   await profileStore.loadFromStorage()
 })
 

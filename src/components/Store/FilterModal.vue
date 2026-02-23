@@ -1,10 +1,10 @@
 <template>
   <div class="p-4">
-    <p class="text-[18px] font-semibold mb-3 text-gray-700">
+    <p class="size-title text-gray-700 mb-3">
       {{ title }}
     </p>
 
-    <div class="flex flex-wrap gap-2 mb-2">
+    <div class="size-options flex flex-wrap gap-2 mb-2">
       <template v-for="(item, index) in flatItems" :key="itemKey(item)">
 
         <!-- Category Heading -->
@@ -23,19 +23,17 @@
           Brand
         </div>
 
-        <!-- ITEM -->
-        <div
-          role="button"
+        <!-- ITEM with chip styling -->
+        <ion-button
+          :fill="isTempSelected(item) ? 'solid' : 'outline'"
+          shape="round"
+          size="small"
+          class="size-chip"
+          :color="isTempSelected(item) ? 'primary' : 'medium'"
           @click="toggleItem(item)"
-          class="px-4 min-w-18 text-center py-[8px] text-sm rounded-md border cursor-pointer transition-all duration-150"
-          :class="
-            isTempSelected(item)
-              ? 'filter-chip-selected border-transparent shadow-sm'
-              : 'bg-white text-gray-700 border-gray-300'
-          "
         >
           {{ displayLabel(item) }}
-        </div>
+        </ion-button>
 
       </template>
     </div>
@@ -51,17 +49,17 @@
       />
     </div>
 
-    <!-- Actions -->
+    <!-- Actions with CTA button styling -->
     <div class="flex gap-4 mt-8">
       <button
-        class="flex-1 !py-3 !px-4 !rounded-[8px] !border !border-gray-300 !text-gray-700 !bg-white"
+        class="flex-1 !py-3 !px-4 !rounded-[12px] !border !border-gray-300 !text-gray-700 !bg-white font-semibold"
         @click="onClear"
       >
         Clear
       </button>
 
       <button
-        class="flex-1 !py-3 !px-4 !rounded-[8px] !text-white !border !border-transparent filter-apply-btn"
+        class="size-selector-cta flex-1"
         @click="onApply"
       >
         Apply
@@ -73,6 +71,7 @@
 <script setup lang="ts">
 import { ref, watch, computed } from "vue";
 import { modalController } from "@ionic/vue";
+import { IonButton } from "@ionic/vue";
 
 const props = defineProps({
   title: String,
@@ -198,21 +197,72 @@ async function onApply() {
 </script>
 
 <style scoped>
-.filter-chip-selected {
+/* ===== Header Styling ===== */
+.size-title {
+  font-size: 20px;
+  font-weight: 700;
+  color: #374151;
+}
+
+/* ===== Size Options Container ===== */
+.size-options {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 10px;
+  margin-bottom: 22px;
+}
+
+/* ===== Size Chips Styling - White background when not selected ===== */
+.size-chip::part(native) {
+  min-width: 42px;
+  height: 34px;
+  padding: 0 14px;
+  border-radius: 999px;
+  font-weight: 600;
+  border: 1px solid #e5e7eb; /* Light gray border */
+  background: white !important; /* Force white background */
+  box-shadow: 0 2px 4px rgba(0, 0, 0, 0.02);
+  transition: all 0.2s ease;
+}
+
+/* Selected chip styling - Green background */
+.size-chip[fill="solid"]::part(native) {
+  background: var(--ion-color-primary) !important;
+  border-color: var(--ion-color-primary) !important;
+  color: white !important;
+  box-shadow: 0 6px 14px rgba(34, 139, 34, 0.15);
+}
+
+/* Override Ionic default styles */
+.size-chip[fill="outline"]::part(native) {
+  background: white !important;
+}
+
+/* ===== CTA Button ===== */
+.size-selector-cta {
+  width: 100%;
+  padding: 14px;
+  border-radius: 12px;
+  font-weight: 600;
   background: var(--ion-color-primary);
   color: var(--ion-color-primary-contrast);
+  border: 1px solid transparent;
+  box-shadow: 0 10px 22px rgba(18, 26, 18, 0.15);
+  transition: transform 0.15s ease, box-shadow 0.15s ease;
 }
 
-.filter-apply-btn {
-  background: var(--ion-color-primary) !important;
-  color: var(--ion-color-primary-contrast) !important;
+.size-selector-cta:active {
+  transform: translateY(1px);
+  box-shadow: 0 6px 14px rgba(18, 26, 18, 0.12);
 }
 
+/* Keep existing numeric input styling */
 input[type="number"]::-webkit-inner-spin-button {
   margin-right: 4px;
 }
 
 input[type="number"] {
   padding-right: 16px;
+  background: white !important;
 }
 </style>

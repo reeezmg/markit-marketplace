@@ -107,7 +107,7 @@
 
         <!-- ✅ Floating Try & Pay Banner (Swipe + Drag) -->
         <div v-if="packStore.packList.length"
-          class="shop-pack-banner fixed bottom-[70px] left-0 right-0 bg-black text-white z-50 m-2 rounded-2xl select-none">
+          class=" fixed bottom-[65px] left-0 right-0 bg-black text-white z-50 m-2 rounded-2xl select-none">
           <div class="flex items-center justify-center pt-3 overflow-hidden relative" @touchstart="startTouch"
             @touchend="endTouch" @mousedown="startMouseDrag" @mouseup="endMouseDrag">
             <Transition :name="`slide-${slideDirection}`" mode="out-in">
@@ -118,11 +118,11 @@
                   <div class="text-green-400 font-semibold text-sm">
                     Order #{{ activePack.order_number }} {{ formatStatus(activePack.order_status) }}
                   </div>
-                  <div class="text-gray-400 text-xs">Pay after your trial</div>
+                  <div class="text-white text-xs">Pay after your trial</div>
                 </div>
 
                 <!-- Right Column -->
-                <ion-button color="success" size="small" fill="solid" shape="round"
+                <ion-button color="primary" fill="solid" size="small"
                   @click="() => router.push({ name: 'pack', params: { id: activePack.trynbuy_id } })">
                   Try & Pay
                 </ion-button>
@@ -156,7 +156,7 @@ import {
   onIonViewWillEnter,
 } from '@ionic/vue'
 import { ref, computed, watch } from 'vue'
-import { useRouter } from 'vue-router'
+import { useIonRouter } from '@ionic/vue'
 import Topbar from '@/components/Index/Topbar.vue'
 import ShopCard from '@/components/Index/ShopCard.vue'
 import Heading from '@/components/Heading.vue'
@@ -182,10 +182,11 @@ import LiquidText from '@/components/ui/LiquidText.vue'
 const profileStore = useProfileStore()
 const isLoggedIn = computed(() => !!profileStore.profile)
 
-const router = useRouter()
+const router = useIonRouter()
 const packStore = usePackStore()
 const nearbyStore = useNearbyStore()
 const addressStore = useAddressStore()
+const { setLocation } = useLocationStore()
 
 const shops = ref<any[]>([])
 const loading = ref(true)
@@ -315,10 +316,17 @@ onIonViewWillEnter(async () => {
           formattedAddress: 'Near you',
           lat: gps.lat,
           lng: gps.lng,
+          active: true,
         } as any
 
-
-        // await setLocation(location.value) // ✅ SAME INSTANCE
+        await setLocation({
+          name: location.value.name,
+          formattedAddress: location.value.formattedAddress,
+          lat: location.value.lat,
+          lng: location.value.lng,
+          active: true
+        })
+      
       } catch (e) {
         console.error('Location access denied', e)
         loading.value = false
@@ -362,6 +370,8 @@ const onLocationChange = async (newLocation: any) => {
   loading.value = true
   subCategoryFilter.value = ''
   filteredBySubcategoryShops.value = []
+        await nearbyStore.$reset()
+  await nearbyStore.fetchNearbyShops()
   await loadShopsByLocation(newLocation.lat, newLocation.lng)
 }
 

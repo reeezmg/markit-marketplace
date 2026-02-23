@@ -68,9 +68,9 @@
 <script setup lang="ts">
 import { checkmarkCircleOutline } from 'ionicons/icons'
 import { IonButton, IonIcon } from '@ionic/vue'
-import { useRouter } from 'vue-router'
+import { useIonRouter } from '@ionic/vue'
 
-const router = useRouter()
+const router = useIonRouter()
 
 defineEmits(['loginClicked'])
 </script>
