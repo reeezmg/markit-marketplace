@@ -2,20 +2,21 @@
   <ion-modal
     :is-open="isOpen"
     @didDismiss="close"
-    :initial-breakpoint="0.4"
-    :breakpoints="[0, 0.4, 0.5]"
-    :handle-behavior="'cycle'"
+    :initial-breakpoint="1"
+    :breakpoints="[0, 1, 1]"
+    handle-behavior="cycle"
     :can-dismiss="true"
     :backdrop-dismiss="true"
     show-backdrop
     swipe-to-close
+    class="markit-filter-sheet"
   >
-    <div class="p-4">
-      <div class="flex items-center justify-between mb-6">
-        <p class="text-[18px] font-semibold  text-gray-700">Select Sizes</p>
+    <div class="size-sheet">
+      <div class="size-header">
+        <p class="size-title text-gray-700">Select Sizes</p>
       </div>
 
-      <div class="flex flex-wrap gap-2 mb-4">
+      <div class="size-options">
         <ion-button
           v-for="size in sizes"
           :key="size"
@@ -29,15 +30,13 @@
           {{ formatSizeLabel(size) }}
         </ion-button>
       </div>
-<!-- 
-      <ion-button expand="block" @click="confirmSizes">
-        Add to Cart
-      </ion-button> -->
 
-      <button class="size-selector-cta w-[100%] !py-3 !px-4 !rounded-[8px] !text-white !border !border-transparent" @click="confirmSizes">
+      <button
+        class="size-selector-cta"
+        @click="confirmSizes"
+      >
         Add to Cart
       </button>
-
     </div>
   </ion-modal>
 </template>
@@ -90,17 +89,77 @@ const confirmSizes = async() => {
 </script>
 
 <style scoped>
-.size-chip::part(native) {
-  min-width: 38px;
-  height: 30px;
-  padding: 0 10px;
-  border-width: 1px;
-  font-weight: 600;
-  transition: none;
+
+/* ===== Mirror Sheet Container ===== */
+.size-sheet {
+  width: 100%;
+  padding: 24px 20px 28px;
+  padding-bottom: calc(28px + var(--markit-bottom-inset));
+  color: #374151;
 }
 
-.size-selector-cta {
-  background: var(--ion-color-primary) !important;
-  color: var(--ion-color-primary-contrast) !important;
+/* ===== Header ===== */
+.size-header {
+  text-align: center;
+  margin-bottom: 20px;
 }
+
+.size-title {
+  font-size: 20px;
+  font-weight: 700;
+  color: #374151;
+}
+
+/* ===== Size Options ===== */
+.size-options {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 10px;
+  margin-bottom: 22px;
+}
+
+/* ===== Size Chips Styling - White background when not selected ===== */
+.size-chip::part(native) {
+  min-width: 42px;
+  height: 34px;
+  padding: 0 14px;
+  border-radius: 999px;
+  font-weight: 600;
+  border: 1px solid #e5e7eb; /* Light gray border */
+  background: white !important; /* Force white background */
+  box-shadow: 0 2px 4px rgba(0, 0, 0, 0.02);
+  transition: all 0.2s ease;
+}
+
+/* Selected chip styling - Green background */
+.size-chip[fill="solid"]::part(native) {
+  background: var(--ion-color-primary) !important;
+  border-color: var(--ion-color-primary) !important;
+  color: white !important;
+  box-shadow: 0 6px 14px rgba(34, 139, 34, 0.15);
+}
+
+/* Override for outline chips to ensure white background */
+.size-chip[fill="outline"]::part(native) {
+  background: white !important;
+}
+
+/* ===== CTA Button ===== */
+.size-selector-cta {
+  width: 100%;
+  padding: 14px;
+  border-radius: 12px;
+  font-weight: 600;
+  background: var(--ion-color-primary);
+  color: var(--ion-color-primary-contrast);
+  border: 1px solid transparent;
+  box-shadow: 0 10px 22px rgba(18, 26, 18, 0.15);
+  transition: transform 0.15s ease, box-shadow 0.15s ease;
+}
+
+.size-selector-cta:active {
+  transform: translateY(1px);
+  box-shadow: 0 6px 14px rgba(18, 26, 18, 0.12);
+}
+
 </style>
