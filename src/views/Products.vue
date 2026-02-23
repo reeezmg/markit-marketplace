@@ -42,7 +42,8 @@
 <script setup lang="ts">
 import { IonPage, IonHeader, IonContent } from "@ionic/vue";
 import { ref, onMounted, computed } from "vue";
-import { useRoute, useRouter } from "vue-router";
+import { useIonRouter } from "@ionic/vue";
+import { useRoute } from 'vue-router';
 import { modalController } from "@ionic/vue";
 
 import VariantCard from "@/components/Store/VariantCard.vue";
@@ -70,7 +71,7 @@ type CompanyVariant = {
 
 /* ---------------- State ---------------- */
 const route = useRoute();
-const router = useRouter();
+const router = useIonRouter();
 
 const companyId = route.params.companyId as string;
 const companyName = route.params.companyName;

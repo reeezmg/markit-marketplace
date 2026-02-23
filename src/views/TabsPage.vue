@@ -34,7 +34,6 @@ import { storefrontOutline, heartOutline, cartOutline } from 'ionicons/icons'
 import { useCartStore } from '@/store/useCartStore'
 import { onMounted, computed } from 'vue'
 import { useRoute } from 'vue-router'
-
 const cartStore = useCartStore()
 const route = useRoute()
 

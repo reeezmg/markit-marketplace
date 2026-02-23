@@ -74,12 +74,12 @@
 
 <script setup lang="ts">
 import { IonPage, IonFooter, IonContent, IonButton, IonIcon, onIonViewWillEnter } from '@ionic/vue'
-import { useRouter } from 'vue-router'
+import { useIonRouter } from '@ionic/vue'
 import { useCartStore } from '@/store/useCartStore'
 import { homeOutline, cardOutline, repeatOutline } from 'ionicons/icons'
 
 const cart = useCartStore()
-const router = useRouter()
+const router = useIonRouter()
 
 // --- Load cart ---
 onIonViewWillEnter(async () => {

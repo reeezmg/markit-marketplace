@@ -158,7 +158,7 @@ import { IonIcon, onIonViewWillEnter, createGesture } from '@ionic/vue'
 import Badge from '../Badge.vue'
 import { useCartStore } from '@/store/useCartStore'
 import { computed, onMounted, ref, watch } from 'vue'
-import { useRouter } from 'vue-router'
+import { useIonRouter } from '@ionic/vue'
 
 const emit = defineEmits<{
   (e: 'groupedCart', payload: {
@@ -176,7 +176,7 @@ const emit = defineEmits<{
 }>()
 
 const cart = useCartStore()
-const router = useRouter()
+const router = useIonRouter()
 const failedCompanyLogos = ref<Record<string, boolean>>({})
 
 /* --- Original cart logic: group-based navigation --- */

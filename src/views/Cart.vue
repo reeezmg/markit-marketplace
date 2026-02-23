@@ -88,7 +88,7 @@ import { useCartStore } from '@/store/useCartStore'
 import { useLocationStore } from '@/composables/useLocationStore'
 import { postOrder } from '@/api/api'
 import { format, addHours } from 'date-fns'
-import { useRouter } from 'vue-router'
+import { useIonRouter } from '@ionic/vue'
 import { getDistanceInKm } from '@/composables/useDistance'
 import { usePackStore } from '@/store/usePackStore'
 import { useTryHistoryStore } from '@/store/useTryHistoryStore'
@@ -101,7 +101,7 @@ const packStore = usePackStore()
 const tryHistoryStore = useTryHistoryStore()
 const nearbyStore = useNearbyStore()
 
-const router = useRouter()
+const router = useIonRouter()
 const cart = useCartStore()
 const tryHistory = useTryHistoryStore()
 const { getLocation } = useLocationStore()

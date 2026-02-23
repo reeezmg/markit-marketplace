@@ -442,7 +442,7 @@
 
 <script setup lang="ts">
 import { ref, computed, watch, onMounted } from "vue";
-import { useRoute, useRouter } from "vue-router";
+import { useRoute } from 'vue-router';
 import {
   IonPage, IonHeader, IonContent, IonButtons,
   IonButton, IonIcon, IonFooter, IonSpinner, useIonRouter
@@ -473,7 +473,7 @@ type Variant = {
 };
 
 const route = useRoute();
-const router = useRouter();
+const router = useIonRouter();
 const ionRouter = useIonRouter();
 const selectedVariant = ref<Variant | null>(null);
 const product = ref<any>(null);

@@ -110,7 +110,7 @@
 <script setup lang="ts">
 import Topbar from '@/components/Topbar.vue'
 import { IonPage, IonContent, IonIcon } from '@ionic/vue'
-import { useRouter } from 'vue-router'
+import { useIonRouter } from '@ionic/vue'
 import { computed, onMounted } from 'vue'
 import { chevronForwardOutline } from 'ionicons/icons'
 import { useProfileStore } from '@/store/useProfileStore'
@@ -123,7 +123,7 @@ import { usePackStore } from '@/store/usePackStore'
 import { useTryHistoryStore } from '@/store/useTryHistoryStore'
 import { useLocationStore } from '@/composables/useLocationStore'
 
-const router = useRouter()
+const router = useIonRouter()
 const profileStore = useProfileStore()
 const addressStore = useAddressStore()
 const nearbyStore = useNearbyStore()

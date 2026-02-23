@@ -134,7 +134,7 @@
 
 <script setup lang="ts">
 import { ref, computed } from 'vue';
-import { useRouter } from 'vue-router';
+import { useIonRouter } from '@ionic/vue';
 import SizeSelector from '@/components/SizeSelector.vue';
 import Badge from '@/components/Badge.vue';
 import { useCartStore } from '@/store/useCartStore';
@@ -164,7 +164,7 @@ function onError() {
 
 const props = defineProps<{ variant: Variant }>();
 
-const router = useRouter();
+const router = useIonRouter();
 const cartStore = useCartStore();
 const likeStore = useLikeStore();
 likeStore.loadLikes();

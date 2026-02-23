@@ -88,7 +88,7 @@
 import { arrowBackOutline } from 'ionicons/icons'
 import { IonPage, IonContent, IonIcon, IonImg, IonButton, useIonRouter } from '@ionic/vue'
 import { ref, computed, onMounted } from 'vue'
-import { useRouter } from 'vue-router'
+import { useIonRouter } from '@ionic/vue'
 import { Capacitor } from '@capacitor/core'
 import { FirebaseAuthentication } from '@capacitor-firebase/authentication'
 
@@ -105,7 +105,7 @@ import { useProfileStore } from '@/store/useProfileStore'
 
 type Step = 'login' | 'phone' | 'otp'
 
-const router = useRouter()
+const router = useIonRouter()
 const ionRouter = useIonRouter()
 
 const step = ref<Step>('login')

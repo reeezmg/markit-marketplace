@@ -44,10 +44,10 @@
 import { IonPage, IonHeader, IonContent, IonFooter, IonIcon } from '@ionic/vue'
 import VariantCard from '@/components/Store/VariantCard.vue';
 import Topbar from '@/components/Topbar.vue'
-import { useRoute } from 'vue-router';
+import { useRoute } from 'vue-router'
 import { ref, computed } from 'vue';
 import { onIonViewWillEnter } from '@ionic/vue';
-import { useRouter } from 'vue-router';
+import { useIonRouter } from '@ionic/vue';
 import { heartOutline } from 'ionicons/icons'
 import { useLikeStore } from '@/store/useLikeStore'
 import TabsPage from './TabsPage.vue';
@@ -77,7 +77,7 @@ type CompanyVariant = {
 
 
 const route = useRoute();
-const router = useRouter();
+const router = useIonRouter();
 const loading = ref(true);
 const variants = computed<CompanyVariant[]>(() => likeStore.liked as CompanyVariant[]);
 

@@ -49,13 +49,13 @@
 </template>
 
 <script setup lang="ts">
-import { useRouter } from 'vue-router'
+import { useIonRouter } from '@ionic/vue'
 
 const props = defineProps<{
   trynbuy: any
 }>()
 
-const router = useRouter()
+const router = useIonRouter()
 console.log(props.trynbuy)
 
 const goToDetails = () => {

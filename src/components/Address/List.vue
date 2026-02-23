@@ -42,14 +42,15 @@
 
 <script setup lang="ts">
 import { onMounted } from 'vue';
-import { useRouter, useRoute } from 'vue-router';
+import { useIonRouter } from '@ionic/vue';
+import { useRoute } from 'vue-router'
 import type { Address } from '@/api/address';
 import { useLocationStore } from '@/composables/useLocationStore'
 import { useAddressStore } from '@/store/useAddressStore';
 import { useNearbyStore } from '@/store/useNearbyStore'
 const nearbyStore = useNearbyStore()
 
-const router = useRouter();
+const router = useIonRouter();
 const route = useRoute();
 const { setLocation } = useLocationStore()
 const store = useAddressStore()

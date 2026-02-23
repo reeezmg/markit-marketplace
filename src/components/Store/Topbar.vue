@@ -3,52 +3,38 @@
     <div class="topbar-shell">
       <div class="topbar-inner glass-card">
         <div class="topbar-row">
-      <div class="topbar-left-group">
-        <ion-buttons slot="start" class="topbar-left">
-          <ion-button fill="clear" class="topbar-back" @click="goBack" aria-label="Go back">
-            <ion-icon :icon="arrowBackOutline" />
-          </ion-button>
-        </ion-buttons>
+          <div class="topbar-left-group">
+            <ion-buttons slot="start" class="topbar-left">
+              <ion-button fill="clear" class="topbar-back" @click="goBack" aria-label="Go back">
+                <ion-icon :icon="arrowBackOutline" />
+              </ion-button>
+            </ion-buttons>
 
-        <div v-if="formattedShopName" class="topbar-title">
-          {{ formattedShopName }}
-        </div>
-      </div>
+            <div v-if="formattedShopName" class="topbar-title">
+              {{ formattedShopName }}
+            </div>
+          </div>
 
-      <div class="topbar-right">
-        <!-- Wishlist Button -->
-        <button
-          @click="router.push({ name: 'wishlist' })"
-          class="topbar-icon-btn"
-        >
-          <ion-icon
-            :icon="heartOutline"
-            class="topbar-icon"
-            :class="{ 'topbar-icon--active': activeIcon === 'wishlist' }"
-          ></ion-icon>
-        </button>
+          <div class="topbar-right">
+            <!-- Wishlist Button -->
+            <button @click="router.push({ name: 'wishlist' })" class="topbar-icon-btn">
+              <ion-icon :icon="heartOutline" class="topbar-icon"
+                :class="{ 'topbar-icon--active': activeIcon === 'wishlist' }"></ion-icon>
+            </button>
 
-        <!-- Cart Button -->
-        <button
-          @click="router.push({ name: 'cart' })"
-          class="relative topbar-icon-btn"
-        >
-          <ion-icon
-            :icon="cartOutline"
-            class="topbar-icon"
-            :class="{ 'topbar-icon--active': activeIcon === 'cart' }"
-          ></ion-icon>
+            <!-- Cart Button -->
+            <button @click="router.push({ name: 'cart' })" class="relative topbar-icon-btn">
+              <ion-icon :icon="cartOutline" class="topbar-icon"
+                :class="{ 'topbar-icon--active': activeIcon === 'cart' }"></ion-icon>
 
-          <!-- Cart Badge -->
-          <ion-badge
-            v-if="totalCartCount > 0"
-            class="absolute -top-1 -right-2 rounded-full p-[1px] bg-danger w-[18px] h-[18px] text-xs"
-          >
-            {{ totalCartCount }}
-          </ion-badge>
-        </button>
+              <!-- Cart Badge -->
+              <ion-badge v-if="totalCartCount > 0"
+                class="absolute -top-1 -right-2 rounded-full p-[1px] bg-danger w-[18px] h-[18px] text-xs">
+                {{ totalCartCount }}
+              </ion-badge>
+            </button>
 
-      </div>
+          </div>
         </div>
       </div>
     </div>
@@ -57,13 +43,7 @@
     <div class="store-search-shell">
       <div class="store-search-box">
         <ion-icon :icon="searchOutline" class="store-search-icon"></ion-icon>
-        <input
-          v-model="q"
-          @input="onInput"
-          type="text"
-          placeholder="Search..."
-          class="store-search-input"
-        />
+        <input v-model="q" @input="onInput" type="text" placeholder="Search..." class="store-search-input" />
         <button v-if="q" @click="clear" class="store-clear-btn" type="button">Clear</button>
       </div>
     </div>
@@ -74,10 +54,10 @@
 import { computed, ref } from "vue";
 import { IonIcon, IonButton, IonButtons, useIonRouter } from "@ionic/vue";
 import { searchOutline, heartOutline, cartOutline, arrowBackOutline } from "ionicons/icons";
-import { useRoute, useRouter } from "vue-router";
+import { useRoute } from 'vue-router'
 import { useCartStore } from "@/store/useCartStore";
 
-const router = useRouter();
+const router = useIonRouter();
 const route = useRoute();
 const ionRouter = useIonRouter();
 const cartStore = useCartStore()
@@ -91,7 +71,7 @@ const emit = defineEmits<{
 }>();
 
 const props = defineProps({
-  name:String
+  name: String
 })
 
 function formatShopName(value?: string | null) {
@@ -173,14 +153,16 @@ function goBack() {
   position: sticky;
   top: 0;
   z-index: 80;
-  background: transparent !important;   /* was var(--markit-bg) – now transparent */
+  background: transparent !important;
+  /* was var(--markit-bg) – now transparent */
 }
 
 /* ----- Shell: only vertical spacing, no side padding ----- */
 .topbar-shell {
   position: relative;
   z-index: 32;
-  padding: 10px 0 0;          /* side margins moved to .topbar-inner */
+  padding: 10px 0 0;
+  /* side margins moved to .topbar-inner */
   background: transparent;
   border-bottom: none;
   box-shadow: none;
@@ -190,14 +172,16 @@ function goBack() {
 /* ----- Inner glass card – exact match of wishlist/cart ----- */
 .topbar-inner {
   padding: 10px 14px;
-  margin: 0 12px;            /* consistent with all other pages */
-  border-radius: 14px;       /* was var(--markit-radius-xl) – now fixed 14px */
+  margin: 0 12px;
+  /* consistent with all other pages */
+  border-radius: 14px;
+  /* was var(--markit-radius-xl) – now fixed 14px */
   border: 1px solid var(--markit-glass-border);
   background: var(--markit-glass-surface);
   backdrop-filter: blur(20px) saturate(145%);
   -webkit-backdrop-filter: blur(20px) saturate(145%);
   box-shadow: inset 0 1px 0 var(--markit-glass-highlight),
-              var(--markit-glass-shadow);
+    var(--markit-glass-shadow);
   transition: border-color 0.2s ease, box-shadow 0.2s ease;
 }
 
@@ -205,7 +189,7 @@ function goBack() {
 .topbar-inner:focus-within {
   border-color: var(--markit-glass-border-hover);
   box-shadow: inset 0 1px 0 var(--markit-glass-highlight),
-              var(--markit-glass-shadow-lg);
+    var(--markit-glass-shadow-lg);
 }
 
 /* ----- Row layout – unchanged structure ----- */
@@ -235,15 +219,18 @@ function goBack() {
 .topbar-right {
   display: flex;
   align-items: center;
-  gap: 6px;                 /* was 12px – now exactly 6px */
+  gap: 6px;
+  /* was 12px – now exactly 6px */
   justify-content: flex-end;
   flex-shrink: 0;
 }
 
 .topbar-icon-btn {
-  width: 34px;              /* was 32px – now 34px */
+  width: 34px;
+  /* was 32px – now 34px */
   height: 34px;
-  border-radius: 11px;      /* was 12px – now 11px */
+  border-radius: 11px;
+  /* was 12px – now 11px */
   border: 1px solid var(--markit-glass-border);
   background: var(--markit-glass-surface-strong);
   backdrop-filter: blur(16px) saturate(140%);
@@ -253,7 +240,8 @@ function goBack() {
   align-items: center;
   justify-content: center;
   transition: border-color 0.2s ease, box-shadow 0.2s ease;
-  color: #1f2937;           /* was #2d5444 – now neutral dark */
+  color: #1f2937;
+  /* was #2d5444 – now neutral dark */
   padding: 0;
   margin: 0;
   cursor: pointer;
@@ -263,7 +251,7 @@ function goBack() {
 .topbar-icon-btn:focus-visible {
   border-color: var(--markit-glass-border-hover);
   box-shadow: inset 0 1px 0 var(--markit-glass-highlight),
-              var(--markit-glass-shadow-lg);
+    var(--markit-glass-shadow-lg);
   outline: none;
 }
 
@@ -272,18 +260,18 @@ function goBack() {
 }
 
 .topbar-icon {
-  width: 21px;              /* was 22px – now 21px */
+  width: 21px;
+  /* was 22px – now 21px */
   height: 21px;
-  color: #1f2937;           /* was #2d5444 – now neutral dark */
+  color: #1f2937;
+  /* was #2d5444 – now neutral dark */
   transition: color 0.2s ease;
 }
 
 .topbar-icon--active {
   color: var(--ion-color-primary);
-  filter: drop-shadow(
-    0 0 0.35rem
-      color-mix(in srgb, var(--ion-color-primary) 38%, transparent)
-  );                        /* was 35% – now exact 38% */
+  filter: drop-shadow(0 0 0.35rem color-mix(in srgb, var(--ion-color-primary) 38%, transparent));
+  /* was 35% – now exact 38% */
 }
 
 /* ----- BACK BUTTON – 100% ORIGINAL (no glass, no border) ----- */
@@ -353,7 +341,8 @@ function goBack() {
 .store-search-wrap {
   margin-top: 8px;
   width: 100%;
-  padding: 0 16px;           /* was 12px – now 16px (ref) */
+  padding: 0 16px;
+  /* was 12px – now 16px (ref) */
   box-sizing: border-box;
 }
 
@@ -361,15 +350,17 @@ function goBack() {
   display: flex;
   align-items: center;
   width: 100%;
-  min-height: 44px;          /* was 46px – now 44px */
+  min-height: 44px;
+  /* was 46px – now 44px */
   padding: 0 14px;
-  border-radius: 12px;       /* was 14px – now 12px */
+  border-radius: 12px;
+  /* was 14px – now 12px */
   border: 1px solid var(--markit-glass-border);
   background: var(--markit-glass-surface-strong);
   backdrop-filter: blur(18px) saturate(145%);
   -webkit-backdrop-filter: blur(18px) saturate(145%);
   box-shadow: inset 0 1px 0 var(--markit-glass-highlight),
-              var(--markit-glass-shadow);
+    var(--markit-glass-shadow);
   transition: border-color 0.2s ease, box-shadow 0.2s ease;
 }
 
@@ -377,13 +368,14 @@ function goBack() {
 .store-search-box:focus-within {
   border-color: var(--markit-glass-border-hover);
   box-shadow: inset 0 1px 0 var(--markit-glass-highlight),
-              var(--markit-glass-shadow-lg);
+    var(--markit-glass-shadow-lg);
 }
 
 .store-search-icon {
   width: 20px;
   height: 20px;
-  color: #5b6676;           /* was #4f7d68 – now neutral */
+  color: #5b6676;
+  /* was #4f7d68 – now neutral */
   margin-right: 10px;
   flex-shrink: 0;
 }
@@ -394,7 +386,8 @@ function goBack() {
   border: 0;
   outline: 0;
   color: var(--markit-text);
-  font-size: 0.98rem;       /* was 1rem – now reference size */
+  font-size: 0.98rem;
+  /* was 1rem – now reference size */
   line-height: 1.2;
 }
 
@@ -406,7 +399,8 @@ function goBack() {
   margin-left: 8px;
   border: 0;
   background: transparent;
-  color: #5b6676;           /* was #4f7d68 – now neutral */
+  color: #5b6676;
+  /* was #4f7d68 – now neutral */
   font-size: 0.84rem;
   font-weight: 600;
   cursor: pointer;
@@ -480,4 +474,3 @@ function goBack() {
   }
 }
 </style>
-

@@ -76,7 +76,8 @@ import {
   personOutline,
   searchOutline,
 } from 'ionicons/icons'
-import { useRoute, useRouter } from 'vue-router'
+import { useIonRouter } from '@ionic/vue'
+import { useRoute } from 'vue-router'
 import { storeToRefs } from 'pinia' // ✅ Add this import
 import type { Address } from '@/api/address'
 import { useAddressStore } from '@/store/useAddressStore'
@@ -86,7 +87,7 @@ import { useSearchStore } from '@/store/useSearchStore' // Import search store
 
 const props = defineProps<{ location: Partial<Address>; collapsed?: boolean }>()
 
-const router = useRouter()
+const router = useIonRouter()
 const route = useRoute()
 const showAddressMenu = ref(false)
 const rootRef = ref<HTMLElement | null>(null)

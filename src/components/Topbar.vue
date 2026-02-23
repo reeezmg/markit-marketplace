@@ -55,7 +55,8 @@
 </template>
 
 <script setup lang="ts">
-import { useRoute, useRouter } from 'vue-router'
+import { useIonRouter } from '@ionic/vue'
+import { useRoute } from 'vue-router'
 import {
   IonButtons,
   IonHeader,
@@ -63,7 +64,6 @@ import {
   IonIcon,
   IonButton,
 } from '@ionic/vue'
-import { useIonRouter } from '@ionic/vue'
 import { heartOutline, cartOutline, arrowBackOutline } from 'ionicons/icons'
 import { useCartStore } from '@/store/useCartStore'
 import { onMounted, computed } from 'vue'
@@ -73,7 +73,7 @@ const props = defineProps({
   title: String,
 });
 
-const router = useRouter()
+const router = useIonRouter()
 const route = useRoute()
 const ionRouter = useIonRouter()
 const cartStore = useCartStore()

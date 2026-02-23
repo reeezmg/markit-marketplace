@@ -24,30 +24,16 @@
       </div>
 
       <!-- SEARCH MODAL -->
-      <SearchModal
-        :is-open="isSearchModalOpen"
-        :placesService="placesService"
-        @close="closeSearchModal"
-        @select="selectLocation"
-      />
+      <SearchModal :is-open="isSearchModalOpen" :placesService="placesService" @close="closeSearchModal"
+        @select="selectLocation" />
 
       <!-- EDIT DETAILS MODAL -->
-      <EditMoreDetailsModal
-        :is-open="isConfirmProceedModalOpen"
-        :name="name"
-        :addressId="addressId"
-        :formattedAddress="formattedAddress"
-        @close="closeConfirmProceedModal"
-        @save="confirmLocation"
-      />
+      <EditMoreDetailsModal :is-open="isConfirmProceedModalOpen" :name="name" :addressId="addressId"
+        :formattedAddress="formattedAddress" @close="closeConfirmProceedModal" @save="confirmLocation" />
     </ion-content>
 
     <ion-footer class="footer-btn">
-      <ion-button
-        expand="block"
-        class="add-details-btn"
-        @click="openConfirmProceedModal"
-      >
+      <ion-button expand="block" class="add-details-btn" @click="openConfirmProceedModal">
         Confirm & Proceed
       </ion-button>
     </ion-footer>
@@ -68,13 +54,14 @@ import Topbar from '@/components/Topbar.vue'
 import SearchModal from '@/components/Address/SearchModal.vue'
 import EditMoreDetailsModal from '@/components/Address/EditMoreDetailsModal.vue'
 import { useLocationStore } from '@/composables/useLocationStore'
-import { useRouter, useRoute } from 'vue-router'
+import { useIonRouter } from '@ionic/vue'
+import { useRoute } from 'vue-router'
 import { updateAddress } from '@/api/address'
 import { useAddressStore } from '@/store/useAddressStore'
 
 const googleApiKey = import.meta.env.VITE_GOOGLE_MAPS_API_KEY
 const addressStore = useAddressStore()
-const router = useRouter()
+const router = useIonRouter()
 const route = useRoute()
 
 const { setLocation } = useLocationStore()
@@ -423,5 +410,4 @@ onMounted(() => {
   background: color-mix(in srgb, var(--ion-color-primary) 22%, #ffffff) !important;
   color: var(--ion-color-primary-shade) !important;
 }
-
 </style>

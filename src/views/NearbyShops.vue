@@ -149,12 +149,11 @@ import Heading from '@/components/Heading.vue'
 import { getNearbyShop } from '@/api/api'
 import { ref, computed } from 'vue'
 import { useLocationStore } from '@/composables/useLocationStore'
-import { useRouter } from 'vue-router'
+import { useIonRouter } from '@ionic/vue'
 import TabsPage from './TabsPage.vue'
 import Category from '@/components/Store/Category.vue'
 import { usePackStore } from '@/store/usePackStore'
 import { useRoute } from 'vue-router'
-
 const route = useRoute()
 
 const shopCoords = (() => {
@@ -175,7 +174,7 @@ const shopCoords = (() => {
 
 let customerCoord = {}
 const packStore = usePackStore()
-const router = useRouter()
+const router = useIonRouter()
 const shops = ref<any[]>([])
 const loading = ref(true)
 const searchTerm = ref('')

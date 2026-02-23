@@ -145,7 +145,7 @@ import {
   onIonViewWillEnter,
 } from '@ionic/vue'
 import { ref, computed, watch } from 'vue'
-import { useRouter } from 'vue-router'
+import { useIonRouter } from '@ionic/vue'
 import Topbar from '@/components/Index/Topbar.vue'
 import ShopCard from '@/components/Index/ShopCard.vue'
 import Heading from '@/components/Heading.vue'
@@ -170,7 +170,7 @@ import { alertCircleOutline } from 'ionicons/icons';
 const profileStore = useProfileStore()
 const isLoggedIn = computed(() => !!profileStore.profile)
 
-const router = useRouter()
+const router = useIonRouter()
 const packStore = usePackStore()
 const nearbyStore = useNearbyStore()
 const addressStore = useAddressStore()
