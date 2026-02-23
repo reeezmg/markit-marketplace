@@ -58,7 +58,7 @@
           <div class="grid grid-cols-4 gap-2 w-full my-4">
             <ion-button v-for="(btn, i) in categoryButtons" :key="i" size="small" expand="block"
               class="gender-btn"
-              :fill="activeCategory === i ? 'solid' : 'outline'" @click="activeCategory = i">
+              :fill="activeCategory === i ? 'solid' : 'outline'" @click="activeCategory = activeCategory === i ? null : i">
               {{ btn }}
             </ion-button>
           </div>
@@ -96,7 +96,7 @@
 
         <!-- ✅ Floating Try & Pay Banner (Swipe + Drag) -->
         <div v-if="packStore.packList.length"
-          class="shop-pack-banner fixed bottom-[70px] left-0 right-0 bg-black text-white z-50 m-2 rounded-2xl select-none">
+          class=" fixed bottom-[65px] left-0 right-0 bg-black text-white z-50 m-2 rounded-2xl select-none">
           <div class="flex items-center justify-center pt-3 overflow-hidden relative" @touchstart="startTouch"
             @touchend="endTouch" @mousedown="startMouseDrag" @mouseup="endMouseDrag">
             <Transition :name="`slide-${slideDirection}`" mode="out-in">
@@ -107,11 +107,11 @@
                   <div class="text-green-400 font-semibold text-sm">
                     Order #{{ activePack.order_number }} {{ formatStatus(activePack.order_status) }}
                   </div>
-                  <div class="text-gray-400 text-xs">Pay after your trial</div>
+                  <div class="text-white text-xs">Pay after your trial</div>
                 </div>
 
                 <!-- Right Column -->
-                <ion-button color="success" size="small" fill="solid" shape="round"
+                <ion-button color="primary" fill="solid" size="small"
                   @click="() => router.push({ name: 'pack', params: { id: activePack.trynbuy_id } })">
                   Try & Pay
                 </ion-button>

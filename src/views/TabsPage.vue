@@ -1,7 +1,7 @@
 <template>
   <ion-footer class="tabs-shell ">
     <div class="tabs-capsule">
-      <button @click="$router.push({ name: 'shops' })" class="tab-btn" :class="{ 'is-active': isStoreActive }">
+      <button @click="$router.push({ name: 'shops' })" class="tab-btn text-gray-700" :class="{ 'is-active': isStoreActive }">
         <ion-icon :icon="storefrontOutline" class="tab-icon"></ion-icon>
         <span class="tab-label">Store</span>
       </button>
@@ -90,15 +90,11 @@ const isCartActive = computed(() => route.name === 'cart')
   display: flex;
   flex-direction: column;
   align-items: center;
-  color: var(--markit-text-muted);
   gap: 3px;
   min-width: 72px;
   transition: color 0.2s ease, transform 0.2s ease;
 }
 
-.tab-btn.is-active {
-  color: var(--ion-color-primary);
-}
 
 .tab-icon {
   width: 26px;
