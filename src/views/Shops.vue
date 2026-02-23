@@ -58,7 +58,7 @@
           <div class="grid grid-cols-4 gap-2 w-full my-4">
             <ion-button v-for="(btn, i) in categoryButtons" :key="i" size="small" expand="block"
               class="gender-btn"
-              :fill="activeCategory === i ? 'solid' : 'outline'" @click="activeCategory = i">
+              :fill="activeCategory === i ? 'solid' : 'outline'" @click="activeCategory = activeCategory === i ? null : i">
               {{ btn }}
             </ion-button>
           </div>
@@ -96,7 +96,7 @@
 
         <!-- ✅ Floating Try & Pay Banner (Swipe + Drag) -->
         <div v-if="packStore.packList.length"
-          class="shop-pack-banner fixed bottom-[70px] left-0 right-0 bg-black text-white z-50 m-2 rounded-2xl select-none">
+          class=" fixed bottom-[65px] left-0 right-0 bg-black text-white z-50 m-2 rounded-2xl select-none">
           <div class="flex items-center justify-center pt-3 overflow-hidden relative" @touchstart="startTouch"
             @touchend="endTouch" @mousedown="startMouseDrag" @mouseup="endMouseDrag">
             <Transition :name="`slide-${slideDirection}`" mode="out-in">
@@ -107,11 +107,11 @@
                   <div class="text-green-400 font-semibold text-sm">
                     Order #{{ activePack.order_number }} {{ formatStatus(activePack.order_status) }}
                   </div>
-                  <div class="text-gray-400 text-xs">Pay after your trial</div>
+                  <div class="text-white text-xs">Pay after your trial</div>
                 </div>
 
                 <!-- Right Column -->
-                <ion-button color="success" size="small" fill="solid" shape="round"
+                <ion-button color="primary" fill="solid" size="small"
                   @click="() => router.push({ name: 'pack', params: { id: activePack.trynbuy_id } })">
                   Try & Pay
                 </ion-button>
@@ -166,6 +166,7 @@ import { alertCircleOutline } from 'ionicons/icons';
 
 
 
+
 const profileStore = useProfileStore()
 const isLoggedIn = computed(() => !!profileStore.profile)
 
@@ -173,6 +174,7 @@ const router = useRouter()
 const packStore = usePackStore()
 const nearbyStore = useNearbyStore()
 const addressStore = useAddressStore()
+const { setLocation } = useLocationStore()
 
 const shops = ref<any[]>([])
 const loading = ref(true)
@@ -272,19 +274,45 @@ onIonViewWillEnter(async () => {
 
     if (saved) {
       location.value = saved
-    } else {
-      router.push({ name: 'account-address' })
-      const toast = await toastController.create({
-        header: 'Select Address',
-        message: 'Please select an address to see nearby shops',
-        icon: alertCircleOutline,
-        duration: 1700,
-        position: 'bottom',
-        color: 'danger',
-      });
-  await toast.present()
-      return
+    } 
+    else{
+      try {
+      const gps = await getCurrentLocation()
+
+      location.value = {
+        name: 'Current Location',
+        formattedAddress: 'Near you',
+        lat: gps.lat,
+        lng: gps.lng,
+        active: true,
+      } as any
+
+      await setLocation({
+        name: location.value.name,
+        formattedAddress: location.value.formattedAddress,
+        lat: location.value.lat,
+        lng: location.value.lng,
+        active: true
+      })
+      } catch (e) {
+        console.error('Location access denied', e)
+        loading.value = false
+        return
+      }
     }
+    // else {
+    //   router.push({ name: 'account-address' })
+    //   const toast = await toastController.create({
+    //     header: 'Select Address',
+    //     message: 'Please select an address to see nearby shops',
+    //     icon: alertCircleOutline,
+    //     duration: 1700,
+    //     position: 'bottom',
+    //     color: 'danger',
+    //   });
+  // await toast.present()
+  //     return
+  //   }
   }
 
   // 2️⃣ Logged-out user → GPS fallback
@@ -302,10 +330,17 @@ onIonViewWillEnter(async () => {
           formattedAddress: 'Near you',
           lat: gps.lat,
           lng: gps.lng,
+          active: true,
         } as any
 
-
-        // await setLocation(location.value) // ✅ SAME INSTANCE
+        await setLocation({
+          name: location.value.name,
+          formattedAddress: location.value.formattedAddress,
+          lat: location.value.lat,
+          lng: location.value.lng,
+          active: true
+        })
+      
       } catch (e) {
         console.error('Location access denied', e)
         loading.value = false
@@ -349,6 +384,8 @@ const onLocationChange = async (newLocation: any) => {
   loading.value = true
   subCategoryFilter.value = ''
   filteredBySubcategoryShops.value = []
+        await nearbyStore.$reset()
+  await nearbyStore.fetchNearbyShops()
   await loadShopsByLocation(newLocation.lat, newLocation.lng)
 }
 

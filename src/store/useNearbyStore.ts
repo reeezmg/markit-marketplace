@@ -96,7 +96,7 @@ export const useNearbyStore = defineStore('nearby', {
       const cartStore = useCartStore()
       const locationStore = useLocationStore()
       const home = locationStore.location // ref({ lat, lng })
-
+      
       if (!home.value?.lat || !home.value?.lng) {
         console.warn('⚠️ No home location found.')
         return

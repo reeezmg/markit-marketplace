@@ -10,8 +10,8 @@
           </ion-button>
         </ion-buttons>
 
-        <div v-if="name" class="topbar-title">
-          {{ name }}
+        <div v-if="formattedShopName" class="topbar-title">
+          {{ formattedShopName }}
         </div>
       </div>
 
@@ -93,6 +93,29 @@ const emit = defineEmits<{
 const props = defineProps({
   name:String
 })
+
+function formatShopName(value?: string | null) {
+  if (!value) return ''
+  let normalized = String(value).trim()
+  try {
+    normalized = decodeURIComponent(normalized)
+  } catch {
+    // Keep original value if not URI-encoded.
+  }
+
+  return normalized
+    .toLowerCase()
+    .split(/\s+/)
+    .map((word) =>
+      word
+        .split('-')
+        .map((part) => (part ? part[0].toUpperCase() + part.slice(1) : ''))
+        .join('-')
+    )
+    .join(' ')
+}
+
+const formattedShopName = computed(() => formatShopName(props.name as string))
 
 // ✅ Correct total item count for nested cartGroups -> companies -> items
 const totalCartCount = computed(() => {
