@@ -85,7 +85,8 @@
 <script setup lang="ts">
 import { IonPage, IonContent } from '@ionic/vue'
 import { useRoute } from 'vue-router'
-import { ref, onMounted } from 'vue'
+import { ref } from 'vue'
+import { onIonViewWillEnter } from '@ionic/vue'
 import { useTryHistoryStore } from '@/store/useTryHistoryStore'
 import Topbar from '@/components/Topbar.vue'
 
@@ -94,7 +95,7 @@ const id = route.params.id as string
 const store = useTryHistoryStore()
 const order = ref<any | null>(null)
 
-onMounted(async () => {
+onIonViewWillEnter(async () => {
   await store.loadFromStorage()
   if (!store.tryHistoryList.length) {
     await store.fetchFromApi()

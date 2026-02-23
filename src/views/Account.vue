@@ -111,7 +111,8 @@
 import Topbar from '@/components/Topbar.vue'
 import { IonPage, IonContent, IonIcon } from '@ionic/vue'
 import { useIonRouter } from '@ionic/vue'
-import { computed, onMounted } from 'vue'
+import { computed } from 'vue'
+import { onIonViewWillEnter } from '@ionic/vue'
 import { chevronForwardOutline } from 'ionicons/icons'
 import { useProfileStore } from '@/store/useProfileStore'
 import { useAddressStore } from '@/store/useAddressStore'
@@ -135,7 +136,7 @@ const client = computed(() =>
   profileStore.profile ?? { name: '', phone: '' }
 )
 
-onMounted(async () => {
+onIonViewWillEnter(async () => {
   await profileStore.loadFromStorage()
 })
 
