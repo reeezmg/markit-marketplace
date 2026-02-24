@@ -101,8 +101,7 @@
               @click="() => router.push({ name: 'shop', params: { companyId: shop.id, companyName: shop.name } })" />
           </div>
           <div v-if="!shopsList.length" class="text-center py-8 text-gray-500">
-            No shops found.
-          </div>
+            “We’re not offering this service in your location at the moment.” </div>
         </div>
 
         <!-- ✅ Floating Try & Pay Banner (Swipe + Drag) -->
@@ -326,7 +325,7 @@ onIonViewWillEnter(async () => {
           lng: location.value.lng,
           active: true
         })
-      
+
       } catch (e) {
         console.error('Location access denied', e)
         loading.value = false
@@ -370,7 +369,7 @@ const onLocationChange = async (newLocation: any) => {
   loading.value = true
   subCategoryFilter.value = ''
   filteredBySubcategoryShops.value = []
-        await nearbyStore.$reset()
+  await nearbyStore.$reset()
   await nearbyStore.fetchNearbyShops()
   await loadShopsByLocation(newLocation.lat, newLocation.lng)
 }
