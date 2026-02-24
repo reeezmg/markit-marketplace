@@ -316,16 +316,20 @@ function removeAll(item: any) {
 
 onIonViewWillEnter(async () => {
   await cart.loadCart()
-}(() => {
+
   if (groupCount.value > 1) {
+    const el = document.querySelector('.bg-white') as HTMLElement
+    if (!el) return
+
     const gesture = createGesture({
-      el: document.querySelector('.bg-white') as HTMLElement,
+      el,
       gestureName: 'swipe',
       onMove: ev => {
         if (ev.deltaX > 100) prevGroup()
         if (ev.deltaX < -100) nextGroup()
       },
     })
+
     gesture.enable()
   }
 })
