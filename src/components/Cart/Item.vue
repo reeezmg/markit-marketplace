@@ -158,7 +158,6 @@ import { IonIcon, onIonViewWillEnter, createGesture } from '@ionic/vue'
 import Badge from '../Badge.vue'
 import { useCartStore } from '@/store/useCartStore'
 import { computed, ref, watch } from 'vue'
-import { onIonViewWillEnter } from '@ionic/vue'
 import { useIonRouter } from '@ionic/vue'
 
 const emit = defineEmits<{
