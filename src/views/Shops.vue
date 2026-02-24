@@ -29,10 +29,8 @@
 
       <!-- ✅ HEADER SECTION MOVED INTO CONTENT -->
       <div ref="heroContainer" class="ion-no-border relative transition-all duration-300 ease-in-out hero-header">
-        <!-- Animated video background -->
-        <video class="hero-video" autoplay muted loop playsinline>
-          <source src="/hero-bg.mp4" type="video/mp4" />
-        </video>
+
+        <div class="hero-overlay"></div>
 
         <div class="relative z-10 droplet-shell">
           <Topbar :location="location" :collapsed="isCollapsed" @search="onSearch"
@@ -45,20 +43,15 @@
           : 'opacity-100 translate-y-0'
           ">
           <div class="text-xl font-bold py-3 px-2 flex flex-col items-center justify-center hero-title">
-            <LiquidText :texts="[
-              'Choose',
-              'Try',
-              'Buy',
-              'Make Your Home',
-              'Trial Room'
-            ]" class="
-    text-[28px] md:text-[48px]
-    font-black
-    tracking-tight
-    text-[#F8FAF6]
-    drop-shadow-[0_4px_14px_rgba(0,0,0,0.4)]
-  " />
 
+            <h1 class="hero-main">
+              <span class="hero-small">Try Before</span>
+              <span class="hero-big">You Buy</span>
+            </h1>
+
+            <p class="hero-tagline">
+              Try outfits at home. Pay only for what you keep.
+            </p>
 
             <div class="mt-6 flex justify-center">
               <ion-button class="mt-4 hero-cta" color="primary" fill="solid" size="small" @click="openKnowMoreModal">
@@ -174,7 +167,6 @@ import { useProfileStore } from '@/store/useProfileStore'
 import api from '@/api/client'
 import { toastController } from '@ionic/vue'
 import { alertCircleOutline } from 'ionicons/icons';
-import LiquidText from '@/components/ui/LiquidText.vue'
 
 
 
@@ -326,7 +318,7 @@ onIonViewWillEnter(async () => {
           lng: location.value.lng,
           active: true
         })
-      
+
       } catch (e) {
         console.error('Location access denied', e)
         loading.value = false
@@ -370,7 +362,7 @@ const onLocationChange = async (newLocation: any) => {
   loading.value = true
   subCategoryFilter.value = ''
   filteredBySubcategoryShops.value = []
-        await nearbyStore.$reset()
+  await nearbyStore.$reset()
   await nearbyStore.fetchNearbyShops()
   await loadShopsByLocation(newLocation.lat, newLocation.lng)
 }
@@ -532,26 +524,34 @@ const headerStyle = computed(() => ({}))
 .hero-header {
   position: relative;
   z-index: 40;
-  min-height: 220px;
-  padding-bottom: 12px;
-  background: radial-gradient(circle at top left, #f0fff6 0%, #f8fffb 32%, #e4f3ea 70%, #e8f3ee 100%);
-  overflow: visible;
-  border-bottom: 1px solid var(--markit-border);
+  min-height: 260px;
+  padding-bottom: 20px;
+  overflow: hidden;
+
+  background-image: url('/hero-bg.png');
+  background-size: cover;
+  background-position: center;
+  background-repeat: no-repeat;
 }
 
-.hero-video {
+
+.hero-overlay {
   position: absolute;
   inset: 0;
-  width: 100%;
-  height: 100%;
-  object-fit: cover;
-  z-index: 0;
-  filter: saturate(1.2) brightness(1.02);
+  z-index: 1;
+
+  background: linear-gradient(
+    to bottom,
+    rgba(0, 30, 20, 0.75),
+    rgba(0, 45, 30, 0.6),
+    rgba(0, 30, 20, 0.75)
+  );
 }
+
 
 .hero-copy {
   position: relative;
-  z-index: 1;
+  z-index: 2;
   margin-top: 4px;
 }
 
@@ -668,6 +668,46 @@ const headerStyle = computed(() => ({}))
   backdrop-filter: blur(20px) saturate(145%);
   -webkit-backdrop-filter: blur(20px) saturate(145%);
   border-radius: 20px;
+}
+
+
+.hero-main {
+  text-align: center;
+  line-height: 1.1;
+  letter-spacing: -0.5px;
+  text-shadow: 0 8px 30px rgba(0, 0, 0, 0.4);
+}
+
+.hero-small {
+  display: block;
+  font-size: 28px;
+  font-weight: 600;
+  color: rgba(255, 255, 255, 0.9);
+}
+
+.hero-big {
+  display: block;
+  font-size: 40px;
+  font-weight: 800;
+  margin-top: 4px;
+  color: #ffffff;
+}
+
+.hero-tagline {
+  margin-top: 14px;
+  font-size: 14px;
+  color: rgba(255, 255, 255, 0.75);
+  text-align: center;
+}
+
+@media (min-width: 768px) {
+  .hero-small {
+    font-size: 34px;
+  }
+
+  .hero-big {
+    font-size: 52px;
+  }
 }
 
 @keyframes shop-rise {
