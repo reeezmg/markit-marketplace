@@ -322,23 +322,32 @@ async function loadCoupons() {
     const companyId = order.value?.companies[0]?.companyId
     if (!companyId) return
 
+    console.log('Fetching coupons for company:', companyId, 'client:', clientId.value)
+    
     // Fetch both company and Markit coupons
     const response = await fetchCoupons(companyId, clientId.value)
+    console.log('Raw coupon response:', response.data)
     
-    // Process coupons to add display properties
-    availableCoupons.value = (response.data ?? []).map((coupon: any) => ({
-      id: coupon.id,
-      code: coupon.code,
-      type: coupon.isMarkit ? 'app' : 'company',
-      description: coupon.type === 'PERCENTAGE' 
-        ? `${coupon.discountValue}% off up to ₹${coupon.maxDiscountAmount || '∞'}`
-        : `₹${coupon.discountValue} off`,
-      discount: coupon.type === 'PERCENTAGE'
-        ? `${coupon.discountValue}%`
-        : `₹${coupon.discountValue}`,
-      minOrderValue: coupon.minOrderValue,
-      isMarkit: coupon.isMarkit
-    }))
+    // Process coupons to add display properties - using snake_case from server
+    availableCoupons.value = (response.data ?? []).map((coupon: any) => {
+      console.log('Processing coupon:', coupon)
+      
+      return {
+        id: coupon.id,
+        code: coupon.code,
+        type: coupon.is_markit ? 'app' : 'company', // Note: is_markit (snake_case)
+        description: coupon.type === 'PERCENTAGE' 
+          ? `${coupon.discount_value}% off up to ₹${coupon.max_discount_amount || '∞'}` // snake_case
+          : `₹${coupon.discount_value} off`, // snake_case
+        discount: coupon.type === 'PERCENTAGE'
+          ? `${coupon.discount_value}%` // snake_case
+          : `₹${coupon.discount_value}`, // snake_case
+        minOrderValue: coupon.min_order_value, // snake_case
+        isMarkit: coupon.is_markit // snake_case
+      }
+    })
+    
+    console.log('Processed coupons:', availableCoupons.value)
   } catch (error) {
     console.error('Error loading coupons:', error)
   }

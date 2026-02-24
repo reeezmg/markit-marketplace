@@ -34,14 +34,21 @@ export const getProfile = () => api.get('/client')
 export const updateProfile = (data) => api.put('/client', data)
 export const deleteProfile = () => api.delete('/client')
 
-export const fetchCoupons = (companyId: string, clientId?: string, type?: string) => {
-  return api.get('/coupon/findManyCoupon', {
-    params: { 
-      companyId,
-      clientId,
-      type 
-    }
-  });
+export const fetchCoupons = async (companyId: string, clientId?: string, type?: string) => {
+  try {
+    const response = await api.get('/coupon/findManyCoupon', {
+      params: { 
+        companyId,
+        clientId,
+        type 
+      }
+    });
+    return response;
+  } catch (error: any) {
+    console.error('Error fetching coupons:', error);
+    // Return empty array on error to prevent UI breakage
+    return { data: [] };
+  }
 }
 
 export const validateCoupon = async (data: {
