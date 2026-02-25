@@ -2,7 +2,7 @@
   <ion-page class="no-topbar-bg">
     <Topbar title="Edit Address" />
 
-    <ion-content class="address-content">
+    <ion-content class="address-content" fullscreen="true">
       <div class="map-container-wrapper">
         <!-- FIXED: shows map without affecting saved address -->
         <div ref="mapContainer" class="map-container"></div>
@@ -33,10 +33,29 @@
     </ion-content>
 
     <ion-footer class="footer-btn">
-      <ion-button expand="block" class="add-details-btn" @click="openConfirmProceedModal">
-        Confirm & Proceed
-      </ion-button>
-    </ion-footer>
+  <div class="modal-actions">
+
+    <ion-button
+      shape="round"
+      color="danger"
+      @click="handleDeleteAddress"
+      class="modal-btn"
+    >
+      Delete
+    </ion-button>
+
+    <ion-button
+      shape="round"
+      color="primary"
+      @click="openConfirmProceedModal"
+      class="modal-btn"
+    >
+      Confirm & Proceed
+    </ion-button>
+
+  </div>
+</ion-footer>
+
   </ion-page>
 </template>
 
@@ -57,7 +76,7 @@ import EditMoreDetailsModal from '@/components/Address/EditMoreDetailsModal.vue'
 import { useLocationStore } from '@/composables/useLocationStore'
 import { useIonRouter } from '@ionic/vue'
 import { useRoute } from 'vue-router'
-import { updateAddress } from '@/api/address'
+import { updateAddress, deleteAddress } from '@/api/address'
 import { useAddressStore } from '@/store/useAddressStore'
 
 const googleApiKey = import.meta.env.VITE_GOOGLE_MAPS_API_KEY
@@ -272,6 +291,34 @@ const openConfirmProceedModal = () => (isConfirmProceedModalOpen.value = true)
 const closeConfirmProceedModal = () => (isConfirmProceedModalOpen.value = false)
 
 // -----------------------------------------
+// DELETE ADDRESS
+// -----------------------------------------
+
+const handleDeleteAddress = async () => {
+  const confirmed = confirm('Are you sure you want to delete this address?')
+  if (!confirmed) return
+
+  try {
+    await deleteAddress(addressId)
+
+    // remove from store
+    await addressStore.fetchFromApi()
+
+    // redirect after delete
+    if (redirect === 'cart') {
+      router.push({ name: 'cart' })
+    } else if (redirect === 'account') {
+      router.push({ name: 'account' })
+    } else {
+      router.push({ name: 'shops' })
+    }
+  } catch (err) {
+    console.error('Delete failed:', err)
+    alert('Failed to delete address. Please try again.')
+  }
+}
+
+// -----------------------------------------
 // LOAD GOOGLE MAP SCRIPT
 // -----------------------------------------
 onIonViewWillEnter(() => {
@@ -411,4 +458,33 @@ onIonViewWillEnter(() => {
   background: color-mix(in srgb, var(--ion-color-primary) 22%, #ffffff) !important;
   color: var(--ion-color-primary-shade) !important;
 }
+
+.modal-actions {
+  display: flex;
+  gap: 12px;
+  margin-top: 20px;
+}
+
+.modal-btn {
+  flex: 1;
+  height: 52px;
+  font-size: 16px;
+  font-weight: 600;
+}
+
+.modal-btn::part(native) {
+  margin: 0;
+}
+
+.footer-btn {
+  position: fixed;
+  left: 0;
+  right: 0;
+  bottom: 0;
+  padding-right: 10px;
+  padding-left: 10px;
+  padding-bottom: calc(16px + var(--markit-bottom-inset));
+  background: transparent;
+}
+
 </style>

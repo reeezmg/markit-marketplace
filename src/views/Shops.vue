@@ -94,8 +94,7 @@
               @click="() => router.push({ name: 'shop', params: { companyId: shop.id, companyName: shop.name } })" />
           </div>
           <div v-if="!shopsList.length" class="text-center py-8 text-gray-500">
-            No shops found.
-          </div>
+            “We’re not offering this service in your location at the moment.” </div>
         </div>
 
         <!-- ✅ Floating Try & Pay Banner (Swipe + Drag) -->

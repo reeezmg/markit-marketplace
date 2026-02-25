@@ -98,10 +98,10 @@ import {
 } from 'ionicons/icons'
 
 const props = defineProps<{
-    isOpen: boolean
-    companyId?: string | null
-    type: 'company' | 'app'
-    availableCoupons: any[]
+  isOpen: boolean
+  companyId?: string | null
+  type: 'company' | 'app'  
+  availableCoupons: any[]
 }>()
 
 const emit = defineEmits(['update:isOpen', 'apply'])
@@ -109,14 +109,14 @@ const emit = defineEmits(['update:isOpen', 'apply'])
 const manualCode = ref('')
 
 const title = computed(() => {
-    return props.type === 'company' ? 'Store Coupons' : 'Markit Coupons'
+  return props.type === 'company' ? 'Store Coupons' : 'Markit Coupons'
 })
 
 const filteredCoupons = computed(() => {
-    if (props.type === 'app') {
-        return props.availableCoupons.filter(c => c.type === 'app')
-    }
-    return props.availableCoupons.filter(c => c.type === 'company' || !c.type)
+  if (props.type === 'app') {
+    return props.availableCoupons.filter(c => c.isMarkit === true)
+  }
+  return props.availableCoupons.filter(c => c.isMarkit === false || !c.isMarkit)
 })
 
 function closeModal() {
@@ -125,23 +125,27 @@ function closeModal() {
 }
 
 function selectCoupon(coupon: any) {
-    emit('apply', {
-        code: coupon.code,
-        discount: coupon.discount,
-        companyId: props.companyId
-    })
-    closeModal()
+  console.log('Selecting coupon:', coupon) // Add this log
+  
+  emit('apply', {
+    code: coupon.code,
+    discount: coupon.discount,
+    companyId: props.companyId
+  })
+  closeModal()
 }
 
 function applyManualCoupon() {
-    if (!manualCode.value) return
+  if (!manualCode.value) return
 
-    emit('apply', {
-        code: manualCode.value.toUpperCase(),
-        discount: 50, // This should come from validation
-        companyId: props.companyId
-    })
-    closeModal()
+  console.log('Applying manual coupon:', manualCode.value) // Add this log
+
+  emit('apply', {
+    code: manualCode.value.toUpperCase(),
+    discount: 50, // This should come from validation
+    companyId: props.companyId
+  })
+  closeModal()
 }
 </script>
 

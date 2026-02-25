@@ -60,56 +60,48 @@
 
   <div>
     <template v-if="renderCompanies.length">
-      <div
-        v-for="company in renderCompanies"
-        :key="company.companyId"
-        class="cart-company-card bg-white p-3 mb-3"
-      >
-        <div
-          class="cart-company-heading flex items-center gap-2 mb-3 w-full pb-1"
-        >
-           <div class="cart-company-logo flex-shrink-0 w-16 h-10 overflow-hidden">
-          <img
-            v-if="hasCompanyLogo(company.companyLogo) && !failedCompanyLogos[company.companyId]"
-            :src="`https://images.markit.co.in/${company.companyLogo}`"
-            alt=""
-            class="w-full h-full object-fill"
-            @error="onCompanyLogoError(company.companyId)"
-          />
-          <div v-else class="cart-company-logo-fallback">
-            {{ companyInitial(company.companyName) }}
+      <div v-for="company in renderCompanies" :key="company.companyId" :class="[
+        'cart-company-card bg-white p-3 mb-3',
+        !isCompanyDeliverable(company.companyId)
+          ? 'opacity-50 pointer-events-none'
+          : ''
+      ]">
+        <div class="cart-company-heading flex items-center gap-2 mb-3 w-full pb-1">
+          <div class="cart-company-logo flex-shrink-0 w-16 h-10 overflow-hidden">
+            <img v-if="hasCompanyLogo(company.companyLogo) && !failedCompanyLogos[company.companyId]"
+              :src="`https://images.markit.co.in/${company.companyLogo}`" alt="" class="w-full h-full object-fill"
+              @error="onCompanyLogoError(company.companyId)" />
+            <div v-else class="cart-company-logo-fallback">
+              {{ companyInitial(company.companyName) }}
+            </div>
           </div>
-        </div>
-        <div>
-          {{ formatCompanyName(company.companyName) }}
-        </div>
+          <div>
+            {{ formatCompanyName(company.companyName) }}
+
+            <p v-if="!isCompanyDeliverable(company.companyId)" class="text-red-500 text-xs font-semibold mt-1">
+              Not deliverable to your location
+            </p>
+
+            <p v-else class="text-green-600 text-xs font-semibold mt-1">
+              Deliverable
+            </p>
+          </div>
         </div>
 
         <ul role="list" class="divide-y divide-[var(--markit-border)]">
-          <li
-            v-for="cartItem in company.items"
-            :key="`${cartItem.id}-${cartItem.selectedSize || 'nosize'}`"
-            class="flex py-6"
-          >
+          <li v-for="cartItem in company.items" :key="`${cartItem.id}-${cartItem.selectedSize || 'nosize'}`"
+            class="flex py-6">
             <div class="cart-item-row flex justify-between w-full gap-x-5">
-              <RouterLink
-                :to="{ name: 'product', params: { variantId: cartItem.id } }"
-                class="cart-item-media w-32 h-32 rounded-md"
-              >
-                <img
-                  v-if="cartItem.images?.length"
-                  :src="`https://images.markit.co.in/${cartItem.images[0]}`"
-                  class="w-full h-full object-cover rounded-md"
-                />
+              <RouterLink :to="{ name: 'product', params: { variantId: cartItem.id } }"
+                class="cart-item-media w-32 h-32 rounded-md">
+                <img v-if="cartItem.images?.length" :src="`https://images.markit.co.in/${cartItem.images[0]}`"
+                  class="w-full h-full object-cover rounded-md" />
               </RouterLink>
 
               <div class="cart-item-content flex flex-col w-full justify-between p-1">
                 <div class="min-w-0">
                   <div class="cart-item-title-wrap">
-                    <RouterLink
-                      :to="{ name: 'product', params: { variantId: cartItem.id } }"
-                      class="cart-item-title"
-                    >
+                    <RouterLink :to="{ name: 'product', params: { variantId: cartItem.id } }" class="cart-item-title">
                       {{ formatProductTitle(cartItem.productName, cartItem.name) }}
                     </RouterLink>
                   </div>
@@ -123,10 +115,12 @@
                       <span v-if="cartItem.discount > 0">
                         <del class="cart-item-price-strike">&#8377;{{ Number(cartItem.sprice || 0).toFixed(2) }}</del>
                         <span class="cart-item-price-sale ml-1">
-                          &#8377;{{ (Number(cartItem.sprice || 0) * (1 - Number(cartItem.discount || 0) / 100)).toFixed(2) }}
+                          &#8377;{{ (Number(cartItem.sprice || 0) * (1 - Number(cartItem.discount || 0) /
+                            100)).toFixed(2) }}
                         </span>
                       </span>
-                      <span v-else class="cart-item-price-main">&#8377;{{ Number(cartItem.sprice || 0).toFixed(2) }}</span>
+                      <span v-else class="cart-item-price-main">&#8377;{{ Number(cartItem.sprice || 0).toFixed(2)
+                      }}</span>
                     </p>
                   </div>
                 </div>
@@ -157,8 +151,10 @@ import { trash, bagHandleOutline, chevronBackOutline, chevronForwardOutline } fr
 import { IonIcon, onIonViewWillEnter, createGesture } from '@ionic/vue'
 import Badge from '../Badge.vue'
 import { useCartStore } from '@/store/useCartStore'
+import { useNearbyStore } from '@/store/useNearbyStore'
 import { computed, ref, watch } from 'vue'
 import { useIonRouter } from '@ionic/vue'
+
 
 const emit = defineEmits<{
   (e: 'groupedCart', payload: {
@@ -176,6 +172,7 @@ const emit = defineEmits<{
 }>()
 
 const cart = useCartStore()
+const nearbyStore = useNearbyStore()
 const router = useIonRouter()
 const failedCompanyLogos = ref<Record<string, boolean>>({})
 
@@ -187,6 +184,17 @@ const activeGroup = computed(() => cart.groups[activeGroupIndex.value] || { comp
 /* --- UI adapter bindings (display only) --- */
 const storeCount = computed(() => groupCount.value)
 const renderCompanies = computed(() => activeGroup.value?.companies || [])
+const deliverableCompanyIds = computed(() => {
+  if (!nearbyStore.nearbyShops) return []
+
+  return nearbyStore.nearbyShops
+    .filter((shop: any) => shop.road_distance <= 10000)
+    .map((shop: any) => shop.id)
+})
+
+const isCompanyDeliverable = (companyId: string) => {
+  return deliverableCompanyIds.value.includes(companyId)
+}
 const activeHeaderCompany = computed(() => {
   const companies = activeGroup.value?.companies || []
   return companies.length === 1 ? companies[0] : null
@@ -316,16 +324,20 @@ function removeAll(item: any) {
 
 onIonViewWillEnter(async () => {
   await cart.loadCart()
-}(() => {
+
   if (groupCount.value > 1) {
+    const el = document.querySelector('.bg-white') as HTMLElement
+    if (!el) return
+
     const gesture = createGesture({
-      el: document.querySelector('.bg-white') as HTMLElement,
+      el,
       gestureName: 'swipe',
       onMove: ev => {
         if (ev.deltaX > 100) prevGroup()
         if (ev.deltaX < -100) nextGroup()
       },
     })
+
     gesture.enable()
   }
 })
@@ -543,4 +555,3 @@ onIonViewWillEnter(async () => {
   }
 }
 </style>
-

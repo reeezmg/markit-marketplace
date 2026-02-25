@@ -215,7 +215,8 @@ import { pricetagOutline, checkmarkCircleOutline, closeOutline } from 'ionicons/
 import Topbar from '@/components/Topbar.vue'
 import CouponModal from '@/components/CouponModal.vue'
 import { usePackStore } from '@/store/usePackStore'
-import { createTrynBuyBill, initiatePayment, verifyPayment, fetchCoupons } from '@/api/api'
+import { createTrynBuyBill, initiatePayment, verifyPayment, fetchCoupons, validateCoupon } from '@/api/api'
+import { Preferences } from '@capacitor/preferences'
 
 const route = useRoute()
 const router = useIonRouter()
@@ -228,10 +229,11 @@ const RAZORPAY_KEY_ID = 'rzp_test_RYuGLP5Z8RaUqo'
 // Coupon related state
 const showCouponModal = ref(false)
 const selectedCompanyId = ref<string | null>(null)
-const couponModalType = ref<'company' | 'Markit'>('company')
+const couponModalType = ref<'company' | 'app'>('company')
 const availableCoupons = ref<any[]>([])
 const companyCoupons = ref<Record<string, { code: string; discount: number }>>({})
 const MarkitCoupon = ref<{ code: string; discount: number } | null>(null)
+const clientId = ref<string>('')
 
 // ------------------- Computed -------------------
 const allItems = computed(() => {
@@ -257,7 +259,7 @@ const companySummary = (companyId: string) => {
   return {
     subtotal,
     discount: itemDiscounts + companyDiscount,
-    total: subtotal - companyDiscount
+    total: Math.max(0, subtotal - companyDiscount) // Ensure non-negative
   }
 }
 
@@ -268,6 +270,7 @@ const summary = computed(() => {
   let companyDiscounts = 0
   
   order.value.companies.forEach((company: any) => {
+    // Only sum kept items for actual total, but we might want to show potential savings
     const keptItems = company.cartitems.filter((i: any) => decisions.value[i.id] === 'keep')
     subtotal += keptItems.reduce((sum: number, i: any) => sum + i.d_price, 0)
     companyDiscounts += companyCoupons.value[company.id]?.discount || 0
@@ -277,7 +280,8 @@ const summary = computed(() => {
   const waitingFees = Number(order.value.waiting_fee) || 0
   const MarkitDiscount = MarkitCoupon.value?.discount || 0
   
-  const total = subtotal + delivery + waitingFees - MarkitDiscount - companyDiscounts
+  // Ensure total doesn't go negative
+  const total = Math.max(0, subtotal + delivery + waitingFees - MarkitDiscount - companyDiscounts)
 
   return { 
     subtotal, 
@@ -292,6 +296,14 @@ const summary = computed(() => {
 onIonViewWillEnter(async () => {
   await packStore.loadFromStorage()
   order.value = packStore.getById(id)
+  
+  // Get client ID from storage
+  const clientData = await Preferences.get({ key: 'client' })
+  if (clientData.value) {
+    const client = JSON.parse(clientData.value)
+    clientId.value = client.id
+  }
+  
   if (order.value) {
     order.value.companies.forEach((company: any) => {
       company.cartitems.forEach((item: any) => {
@@ -307,8 +319,35 @@ onIonViewWillEnter(async () => {
 // ------------------- Coupon Functions -------------------
 async function loadCoupons() {
   try {
-    const response = await fetchCoupons()
-    availableCoupons.value = response.data
+    const companyId = order.value?.companies[0]?.companyId
+    if (!companyId) return
+
+    console.log('Fetching coupons for company:', companyId, 'client:', clientId.value)
+    
+    // Fetch both company and Markit coupons
+    const response = await fetchCoupons(companyId, clientId.value)
+    console.log('Raw coupon response:', response.data)
+    
+    // Process coupons to add display properties - using snake_case from server
+    availableCoupons.value = (response.data ?? []).map((coupon: any) => {
+      console.log('Processing coupon:', coupon)
+      
+      return {
+        id: coupon.id,
+        code: coupon.code,
+        type: coupon.is_markit ? 'app' : 'company', // Note: is_markit (snake_case)
+        description: coupon.type === 'PERCENTAGE' 
+          ? `${coupon.discount_value}% off up to ₹${coupon.max_discount_amount || '∞'}` // snake_case
+          : `₹${coupon.discount_value} off`, // snake_case
+        discount: coupon.type === 'PERCENTAGE'
+          ? `${coupon.discount_value}%` // snake_case
+          : `₹${coupon.discount_value}`, // snake_case
+        minOrderValue: coupon.min_order_value, // snake_case
+        isMarkit: coupon.is_markit // snake_case
+      }
+    })
+    
+    console.log('Processed coupons:', availableCoupons.value)
   } catch (error) {
     console.error('Error loading coupons:', error)
   }
@@ -321,26 +360,83 @@ function openCompanyCouponModal(company: any) {
 }
 
 function openMarkitCouponModal() {
-  selectedCompanyId.value = null
-  couponModalType.value = 'Markit'
+  selectedCompanyId.value = null 
+  couponModalType.value = 'app' 
   showCouponModal.value = true
 }
 
-function handleApplyCoupon(data: { code: string; discount: number; companyId?: string }) {
-  if (data.companyId) {
-    // Company coupon
-    companyCoupons.value[data.companyId] = {
-      code: data.code,
-      discount: data.discount
+async function handleApplyCoupon(data: { code: string; discount?: number; companyId?: string }) {
+  try {
+    if (!clientId.value) {
+      alert('Please login to apply coupons')
+      return
     }
-  } else {
-    // Markit coupon
-    MarkitCoupon.value = {
-      code: data.code,
-      discount: data.discount
+
+    // For Markit coupons, we need a companyId from the order
+    const companyId = data.companyId || order.value?.companies[0]?.companyId
+    
+    if (!companyId) {
+      alert('Coupon Invalid')
+      return
     }
+
+    // Calculate potential order value (all items, regardless of keep/return)
+    let orderValue = 0
+    
+    if (data.companyId) {
+      // For company coupon - sum all items in that company
+      const company = order.value?.companies.find((c: any) => c.id === data.companyId)
+      orderValue = company?.cartitems.reduce((sum: number, i: any) => sum + i.d_price, 0) || 0
+    } else {
+      // For Markit coupon - sum all items across all companies
+      orderValue = order.value?.companies.reduce((total: number, company: any) => {
+        return total + company.cartitems.reduce((sum: number, i: any) => sum + i.d_price, 0)
+      }, 0) || 0
+    }
+
+    if (orderValue <= 0) {
+      alert('No items in order to apply coupon')
+      return
+    }
+
+    // Prepare request data
+    const requestData = {
+      code: data.code,
+      companyId: companyId,
+      clientId: clientId.value,
+      orderValue,
+      isMarkit: !data.companyId,
+    }
+
+    console.log('Sending request with data:', requestData)
+
+    const response = await validateCoupon(requestData)
+
+    if (response.data.valid) {
+      if (data.companyId) {
+        companyCoupons.value[data.companyId] = {
+          code: response.data.coupon.code,
+          discount: response.data.coupon.discount
+        }
+      } else {
+        MarkitCoupon.value = {
+          code: response.data.coupon.code,
+          discount: response.data.coupon.discount
+        }
+      }
+      
+      alert(response.data.message || 'Coupon applied successfully!')
+      showCouponModal.value = false
+    } else {
+      alert(response.data.error || 'Coupon cannot be applied')
+    }
+  } catch (error: any) {
+    console.error('Error applying coupon:', error)
+    const errorMessage = error.response?.data?.error 
+      || error.response?.data?.message 
+      || 'Failed to apply coupon'
+    alert(errorMessage)
   }
-  showCouponModal.value = false
 }
 
 function removeCompanyCoupon(companyId: string) {
@@ -350,7 +446,6 @@ function removeCompanyCoupon(companyId: string) {
 function removeMarkitCoupon() {
   MarkitCoupon.value = null
 }
-
 // ------------------- Existing Functions -------------------
 function toggleDecision(itemId: string, decision: 'keep' | 'return') {
   decisions.value[itemId] = decision
