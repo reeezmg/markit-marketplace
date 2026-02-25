@@ -10,24 +10,16 @@
       </div>
 
       <!-- LOGO INTRO OVERLAY -->
-      <div
-        v-if="showIntro"
-        class="fixed inset-0 z-50 flex items-center justify-center bg-white"
-      >
+      <div v-if="showIntro" class="fixed inset-0 z-50 flex items-center justify-center bg-white">
         <ion-img src="/Logo.png" class="w-28 h-28 animate-logo-intro" />
       </div>
 
       <!-- MAIN CONTENT -->
       <div class="login-container">
-        
+
         <!-- HEADER with back button -->
         <div class="header-section">
-          <ion-button
-            fill="clear"
-            class="back-btn"
-            @click="handleBack"
-            aria-label="Go back"
-          >
+          <ion-button fill="clear" class="back-btn" @click="handleBack" aria-label="Go back">
             <ion-icon :icon="arrowBackOutline" class="back-icon" />
           </ion-button>
         </div>
@@ -35,7 +27,7 @@
         <!-- LOGO & TEXT -->
         <div class="logo-section">
           <ion-img src="/Logo.png" class="logo-img" />
-          
+
           <h1 class="title-text">
             One app for your local fashion store
           </h1>
@@ -48,37 +40,25 @@
         <!-- PROGRESS BAR -->
         <div class="progress-section">
           <div class="progress-track">
-            <div
-              class="progress-bar"
-              :style="{ width: progressWidth }"
-            />
+            <div class="progress-bar" :style="{ width: progressWidth }" />
           </div>
         </div>
 
         <!-- LOGIN COMPONENT - NO OUTER BOX -->
         <div v-show="showContent" class="content-section">
-          <Login
-            v-if="step === 'login'"
-            @loginClicked="step = 'phone'"
-          />
+          <Login v-if="step === 'login'" @loginClicked="step = 'phone'" />
 
           <Transition name="slide">
-            <Phone
-              v-show="step === 'phone'"
-              @submitClicked="handlePhoneSubmitClicked"
-            />
+            <Phone v-show="step === 'phone'" @submitClicked="handlePhoneSubmitClicked" />
           </Transition>
 
           <Transition name="slide">
-            <Otp
-              v-if="step === 'otp'"
-              @submitClicked="handleOtpSubmitClicked"
-            />
+            <Otp v-if="step === 'otp'" @submitClicked="handleOtpSubmitClicked" />
           </Transition>
         </div>
 
         <div id="recaptcha-container"></div>
-        
+
       </div>
     </ion-content>
   </ion-page>
@@ -87,7 +67,7 @@
 <script setup lang="ts">
 import { arrowBackOutline } from 'ionicons/icons'
 import { IonPage, IonContent, IonIcon, IonImg, IonButton, useIonRouter } from '@ionic/vue'
-import { ref, computed,  } from 'vue'
+import { ref, computed, } from 'vue'
 import { onIonViewWillEnter } from '@ionic/vue'
 import { Capacitor } from '@capacitor/core'
 import { FirebaseAuthentication } from '@capacitor-firebase/authentication'
@@ -98,6 +78,7 @@ import { getAuth, RecaptchaVerifier, signInWithPhoneNumber } from 'firebase/auth
 import Login from '@/components/Login/Login.vue'
 import Phone from '@/components/Login/Phone.vue'
 import Otp from '@/components/Login/Otp.vue'
+import { toastController } from '@ionic/vue'
 
 import { login } from '@/api/auth'
 import { useAddressStore } from '@/store/useAddressStore'
@@ -126,7 +107,7 @@ onIonViewWillEnter(() => {
 
 const progressWidth = computed(() =>
   step.value === 'login' ? '33%' :
-  step.value === 'phone' ? '66%' : '100%'
+    step.value === 'phone' ? '66%' : '100%'
 )
 
 function handleBack() {
@@ -144,15 +125,33 @@ const handlePhoneSubmitClicked = async ({ phone }: { phone: string }) => {
     } else {
       const auth = getAuth(app)
       if (!(window as any).recaptchaVerifier) {
-        ;(window as any).recaptchaVerifier =
+        ; (window as any).recaptchaVerifier =
           new RecaptchaVerifier(auth, 'recaptcha-container', { size: 'invisible' })
       }
       const res = await signInWithPhoneNumber(auth, phone, (window as any).recaptchaVerifier)
-      ;(window as any).confirmationResult = res
+        ; (window as any).confirmationResult = res
     }
     step.value = 'otp'
-  } catch (e) {
-    console.error(e)
+  } catch (error: any) {
+    console.error(error)
+
+    let message = 'Something went wrong. Please try again.'
+
+    if (error?.code === 'auth/too-many-requests') {
+      message = 'Too many attempts. Please try again after some time.'
+    } else if (error?.code === 'auth/invalid-phone-number') {
+      message = 'Invalid phone number.'
+    }
+
+    const toast = await toastController.create({
+      message,
+      duration: 2500,
+      color: 'danger',
+      position: 'bottom',
+      cssClass: 'markit-toast markit-toast-warning'
+    })
+
+    await toast.present()
   }
 }
 
@@ -205,12 +204,10 @@ const handleOtpSubmitClicked = async ({ otp }: { otp: string }) => {
 .orb-a {
   top: -100px;
   right: -100px;
-  background: radial-gradient(
-    circle at 30% 30%,
-    rgba(83,129,108,0.25) 0%,
-    rgba(83,129,108,0.12) 45%,
-    transparent 70%
-  );
+  background: radial-gradient(circle at 30% 30%,
+      rgba(83, 129, 108, 0.25) 0%,
+      rgba(83, 129, 108, 0.12) 45%,
+      transparent 70%);
 }
 
 .orb-b {
@@ -219,23 +216,19 @@ const handleOtpSubmitClicked = async ({ otp }: { otp: string }) => {
   width: 320px;
   height: 320px;
   animation-delay: 1.5s;
-  background: radial-gradient(
-    circle at 30% 30%,
-    rgba(83,129,108,0.18) 0%,
-    rgba(83,129,108,0.08) 45%,
-    transparent 70%
-  );
+  background: radial-gradient(circle at 30% 30%,
+      rgba(83, 129, 108, 0.18) 0%,
+      rgba(83, 129, 108, 0.08) 45%,
+      transparent 70%);
 }
 
 .grid-glow {
   position: absolute;
   inset: 0;
-  background: linear-gradient(
-    145deg,
-    rgba(255,255,255,0.5) 0%,
-    rgba(255,255,255,0.12) 40%,
-    rgba(255,255,255,0.02) 100%
-  );
+  background: linear-gradient(145deg,
+      rgba(255, 255, 255, 0.5) 0%,
+      rgba(255, 255, 255, 0.12) 40%,
+      rgba(255, 255, 255, 0.02) 100%);
   opacity: 0.25;
 }
 
@@ -366,11 +359,9 @@ const handleOtpSubmitClicked = async ({ otp }: { otp: string }) => {
 
 .progress-bar {
   height: 100%;
-  background: linear-gradient(
-    90deg,
-    var(--ion-color-primary) 0%,
-    color-mix(in srgb, var(--ion-color-primary) 70%, #ffffff) 100%
-  );
+  background: linear-gradient(90deg,
+      var(--ion-color-primary) 0%,
+      color-mix(in srgb, var(--ion-color-primary) 70%, #ffffff) 100%);
   transition: width 0.3s ease;
   border-radius: 999px;
 }
@@ -406,13 +397,27 @@ const handleOtpSubmitClicked = async ({ otp }: { otp: string }) => {
 }
 
 @keyframes fadeIn {
-  from { opacity: 0; transform: translateY(8px); }
-  to { opacity: 1; transform: translateY(0); }
+  from {
+    opacity: 0;
+    transform: translateY(8px);
+  }
+
+  to {
+    opacity: 1;
+    transform: translateY(0);
+  }
 }
 
 @keyframes float {
-  0%,100% { transform: translateY(0px); }
-  50% { transform: translateY(14px); }
+
+  0%,
+  100% {
+    transform: translateY(0px);
+  }
+
+  50% {
+    transform: translateY(14px);
+  }
 }
 
 /* Small device adjustments */
@@ -421,23 +426,23 @@ const handleOtpSubmitClicked = async ({ otp }: { otp: string }) => {
     width: 80px;
     height: 80px;
   }
-  
+
   .title-text {
     font-size: 0.9rem;
     max-width: 260px;
   }
-  
+
   .description-text {
     font-size: 0.8rem;
     max-width: 260px;
   }
-  
+
   .back-btn {
     width: 40px;
     height: 40px;
     left: -2px;
   }
-  
+
   .back-icon {
     font-size: 22px;
   }
@@ -449,16 +454,16 @@ const handleOtpSubmitClicked = async ({ otp }: { otp: string }) => {
     width: 75px;
     height: 75px;
   }
-  
+
   .title-text {
     margin-top: 4px;
     font-size: 0.9rem;
   }
-  
+
   .description-text {
     font-size: 0.8rem;
   }
-  
+
   .progress-section {
     margin-bottom: 12px;
   }
