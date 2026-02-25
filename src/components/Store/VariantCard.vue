@@ -1,14 +1,9 @@
 <template>
   <li
     class="variant-card col-span-1 bg-white flex flex-col rounded-lg overflow-hidden border border-gray-200 hover:shadow-[0_6px_20px_rgba(10,10,10,0.08)] transition-transform duration-200 transform hover:-translate-y-1 relative cursor-pointer group"
-    @click="navigateToProduct"
-    :class="{ 'opacity-60 pointer-events-none': variant.outOfStock }"
-  >
+    @click="navigateToProduct" :class="{ 'opacity-60 pointer-events-none': variant.outOfStock }">
     <!-- Out of Stock overlay -->
-    <div
-      v-if="variant.outOfStock"
-      class="absolute inset-0 z-30 flex items-center justify-center bg-white/85"
-    >
+    <div v-if="variant.outOfStock" class="absolute inset-0 z-30 flex items-center justify-center bg-white/85">
       <span class="bg-red-600 text-white text-xs font-semibold px-3 py-1 rounded-full">
         Out of Stock
       </span>
@@ -18,13 +13,8 @@
     <div class="relative w-full aspect-[4/5] bg-gray-50 overflow-hidden">
       <!-- badges -->
       <div class="absolute top-3 left-3 z-20 flex flex-col gap-2">
-        <Badge
-          v-if="variant.isNew"
-          color="primary"
-          variant="subtle"
-          size="sm"
-          class="rounded-full text-xs font-semibold px-2 py-1"
-        >
+        <Badge v-if="variant.isNew" color="primary" variant="subtle" size="sm"
+          class="rounded-full text-xs font-semibold px-2 py-1">
           New
         </Badge>
       </div>
@@ -36,29 +26,25 @@
       </div>
 
       <!-- image (cover, zoom on hover) -->
-      <img
-        v-if="variant.images?.length"
-        :src="imageUrl(variant.images[0])"
-         @error="onError"
+      <img v-if="variant.images?.length" :src="imageUrl(variant.images[0])" @error="onError"
         :alt="`${variant.productName ?? ''} - ${variant.name}`"
         class="absolute inset-0 w-full h-full object-cover transition-transform duration-300 group-hover:scale-105"
-        loading="lazy"
-      />
+        loading="lazy" />
     </div>
 
-      <!-- info -->
-      <div class="variant-card-body px-3 pt-2 pb-1 flex flex-col gap-1 flex-1">
-        <div class="variant-title line-clamp-2">
-          <span class="text-sm text-gray-500 ">
-            {{ formatLabel(variant.brandName) }}
-          </span>
-          <span class="variant-title-main">
-            {{ formatLabel(variant.productName) }}
-          </span>
-          <!-- <span v-if="variant.productName && variant.name" class="variant-title-sub">
+    <!-- info -->
+    <div class="variant-card-body px-3 pt-2 pb-1 flex flex-col gap-1 flex-1">
+      <div class="variant-title line-clamp-2">
+        <span class="text-sm text-gray-500 ">
+          {{ formatLabel(variant.brandName) }}
+        </span>
+        <span class="variant-title-main">
+          {{ formatLabel(variant.productName) }}
+        </span>
+        <!-- <span v-if="variant.productName && variant.name" class="variant-title-sub">
             ({{ formatLabel(variant.name) }})
           </span> -->
-        </div>
+      </div>
 
 
       <div class="variant-price-row flex items-center justify-between mt-auto">
@@ -88,53 +74,40 @@
     </div>
 
     <!-- actions -->
-   <div class="flex items-center py-2 border-t border-gray-100 bg-white">
-  
-  <!-- LIKE BUTTON -->
-  <button
-    type="button"
-    class="flex-1 py-3 flex items-center justify-center gap-2 text-sm text-gray-600 hover:text-red-500 transition-colors"
-    @click.stop="toggleLike"
-    aria-label="like"
-  >
-    <IonIcon
-      :icon="isLiked ? heart : heartOutline"
-      class="w-5 h-5"
-      :class="isLiked ? 'text-red-500' : 'text-gray-400'"
-    />
-    <span class="sr-only">like</span>
-  </button>
+    <div class="flex items-center py-2 border-t border-gray-100 bg-white">
 
-  <!-- ✅ VERTICAL DIVIDER -->
-  <div class="w-px self-stretch bg-gray-200"></div>
+      <!-- LIKE BUTTON -->
+      <button type="button"
+        class="flex-1 py-3 flex items-center justify-center gap-2 text-sm text-gray-600 hover:text-red-500 transition-colors"
+        @click.stop="toggleLike" aria-label="like">
+        <IonIcon :icon="isLiked ? heart : heartOutline" class="w-5 h-5"
+          :class="isLiked ? 'text-red-500' : 'text-gray-400'" />
+        <span class="sr-only">like</span>
+      </button>
 
-  <!-- CART BUTTON -->
-  <button
-    type="button"
-    class="flex-1 py-3 flex items-center justify-center gap-2 text-sm text-gray-600 hover:text-[#097D4C] transition-colors"
-    @click.stop="addToCart"
-    aria-label="add to cart"
-  >
-    <IonIcon :icon="cartOutline" class="w-5 h-5" />
-    <span class="sr-only">add to cart</span>
-  </button>
+      <!-- ✅ VERTICAL DIVIDER -->
+      <div class="w-px self-stretch bg-gray-200"></div>
 
-</div>
+      <!-- CART BUTTON -->
+      <button type="button"
+        class="flex-1 py-3 flex items-center justify-center gap-2 text-sm text-gray-600 hover:text-[#097D4C] transition-colors"
+        @click.stop="addToCart" aria-label="add to cart">
+        <IonIcon :icon="cartOutline" class="w-5 h-5" />
+        <span class="sr-only">add to cart</span>
+      </button>
+
+    </div>
 
 
     <!-- Size selector modal -->
-    <SizeSelector
-      :isOpen="isSizeSelectorOpen"
-      :sizes="sizes"
-      @close="isSizeSelectorOpen = false"
-      @select-sizes="handleSizeSelect"
-    />
+    <SizeSelector :isOpen="isSizeSelectorOpen" :sizes="sizes" @close="isSizeSelectorOpen = false"
+      @select-sizes="handleSizeSelect" />
   </li>
 </template>
 
 <script setup lang="ts">
 import { ref, computed } from 'vue';
-import { useIonRouter } from '@ionic/vue';
+import { useIonRouter, toastController } from '@ionic/vue';
 import SizeSelector from '@/components/SizeSelector.vue';
 import Badge from '@/components/Badge.vue';
 import { useCartStore } from '@/store/useCartStore';
@@ -207,7 +180,6 @@ const navigateToProduct = () => {
 const toggleLike = () => {
   likeStore.toggleLike(props.variant);
 };
-import { toastController } from '@ionic/vue'
 
 const addToCart = async () => {
   // preserve original logic: open size selector only when necessary
@@ -229,11 +201,11 @@ const addToCart = async () => {
     )
 
     const toast = await toastController.create({
-      message:
-        res?.message || 'Product added to cart',
+      message: res?.message || 'Product added to cart',
       duration: 2000,
       color: res?.success ? 'success' : 'danger',
       position: 'bottom',
+      cssClass: `markit-toast ${res?.success ? 'markit-toast-success' : 'markit-toast-warning'}`
     })
 
     await toast.present()
@@ -252,11 +224,11 @@ const handleSizeSelect = async (
   )
 
   const toast = await toastController.create({
-    message:
-      res?.message || 'Product added to cart',
+    message: res?.message || 'Product added to cart',
     duration: 2000,
     color: res?.success ? 'success' : 'danger',
     position: 'bottom',
+    cssClass: `markit-toast ${res?.success ? 'markit-toast-success' : 'markit-toast-warning'}`
   })
 
   await toast.present()
