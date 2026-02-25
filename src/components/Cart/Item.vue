@@ -154,10 +154,10 @@
 
 <script setup lang="ts">
 import { trash, bagHandleOutline, chevronBackOutline, chevronForwardOutline } from 'ionicons/icons'
-import { IonIcon, onIonViewWillEnter, createGesture } from '@ionic/vue'
+import { IonIcon, createGesture } from '@ionic/vue'
 import Badge from '../Badge.vue'
 import { useCartStore } from '@/store/useCartStore'
-import { computed, ref, watch } from 'vue'
+import { computed, onMounted, ref, watch } from 'vue'
 import { useIonRouter } from '@ionic/vue'
 
 const emit = defineEmits<{
@@ -314,7 +314,7 @@ function removeAll(item: any) {
   cart.saveCart()
 }
 
-onIonViewWillEnter(async () => {
+onMounted(async () => {
   await cart.loadCart()
 
   if (groupCount.value > 1) {

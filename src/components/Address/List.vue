@@ -41,7 +41,7 @@
 </template>
 
 <script setup lang="ts">
-import { onIonViewWillEnter } from '@ionic/vue';
+import { onMounted } from 'vue';
 import { useIonRouter } from '@ionic/vue';
 import { useRoute } from 'vue-router'
 import type { Address } from '@/api/address';
@@ -87,13 +87,13 @@ const confirmLocation = async (address:Address) => {
     goToRedirect()
 }
 
-// 🔹 Load addresses on mount
-onIonViewWillEnter(async () => {
-  console.log(store.addresses)
-  // Try local cache first, then fallback to API if empty
+onMounted(async () => {
   await store.loadFromStorage()
+  console.log('After storage:', store.addresses)
+
   if (!store.addresses.length) {
     await store.fetchFromApi()
+    console.log('After API:', store.addresses)
   }
 })
 
