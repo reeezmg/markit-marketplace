@@ -2,7 +2,7 @@
   <ion-page class="no-topbar-bg">
     <Topbar title="Edit Address" />
 
-    <ion-content class="address-content">
+    <ion-content class="address-content" fullscreen="true">
       <div class="map-container-wrapper">
         <!-- FIXED: shows map without affecting saved address -->
         <div ref="mapContainer" class="map-container"></div>
@@ -32,11 +32,24 @@
         :formattedAddress="formattedAddress" @close="closeConfirmProceedModal" @save="confirmLocation" />
     </ion-content>
 
+    <ion-toast :is-open="toast.isOpen" :message="toast.message" :duration="toast.duration" :position="toast.position"
+      :color="toast.color" :icon="toast.icon" :css-class="toast.cssClass"
+      @didDismiss="toast.isOpen = false"></ion-toast>
+
     <ion-footer class="footer-btn">
-      <ion-button expand="block" class="add-details-btn" @click="openConfirmProceedModal">
-        Confirm & Proceed
-      </ion-button>
+      <div class="modal-actions">
+
+        <ion-button shape="round" color="danger" @click="handleDeleteAddress" class="modal-btn">
+          Delete
+        </ion-button>
+
+        <ion-button shape="round" color="primary" @click="openConfirmProceedModal" class="modal-btn">
+          Confirm & Proceed
+        </ion-button>
+
+      </div>
     </ion-footer>
+
   </ion-page>
 </template>
 
@@ -47,6 +60,7 @@ import {
   IonButton,
   IonIcon,
   IonFooter,
+  IonToast,
 } from '@ionic/vue'
 import { ref, computed } from 'vue'
 import { onIonViewWillEnter } from '@ionic/vue'
@@ -57,8 +71,35 @@ import EditMoreDetailsModal from '@/components/Address/EditMoreDetailsModal.vue'
 import { useLocationStore } from '@/composables/useLocationStore'
 import { useIonRouter } from '@ionic/vue'
 import { useRoute } from 'vue-router'
-import { updateAddress } from '@/api/address'
+import { updateAddress, deleteAddress } from '@/api/address'
 import { useAddressStore } from '@/store/useAddressStore'
+
+const toast = ref({
+  isOpen: false,
+  message: '',
+  duration: 3000,
+  position: 'bottom',
+  color: '',
+  icon: '',
+  cssClass: 'markit-toast'
+})
+
+// Helper function to show toast
+const showToast = (options) => {
+  toast.value = {
+    isOpen: true,
+    message: options.message,
+    duration: options.duration || 3000,
+    position: options.position || 'bottom',
+    color: options.color || '',
+    icon: options.icon || '',
+    cssClass: `markit-toast ${options.color === 'success' ? 'markit-toast-success' :
+      options.color === 'warning' ? 'markit-toast-warning' :
+        options.color === 'danger' ? 'markit-toast-warning' : ''
+      }`
+  }
+}
+
 
 const googleApiKey = import.meta.env.VITE_GOOGLE_MAPS_API_KEY
 const addressStore = useAddressStore()
@@ -221,7 +262,11 @@ const selectLocation = (place) => {
 // -----------------------------------------
 const confirmLocation = async (data) => {
   if (!lat.value || !lng.value || !formattedAddress.value) {
-    alert('Please select a valid location.')
+    showToast({
+      message: 'Please select a valid location.',
+      color: 'warning',
+      icon: 'warning-outline'
+    })
     return
   }
 
@@ -259,6 +304,13 @@ const confirmLocation = async (data) => {
 
   await addressStore.fetchFromApi()
 
+  showToast({
+    message: 'Address updated successfully!',
+    color: 'success',
+    icon: 'checkmark-circle-outline',
+    duration: 2000
+  })
+
   if (redirect === 'cart') {
     router.push({ name: 'cart' })
   } else if (redirect === 'account') {
@@ -272,16 +324,56 @@ const openConfirmProceedModal = () => (isConfirmProceedModalOpen.value = true)
 const closeConfirmProceedModal = () => (isConfirmProceedModalOpen.value = false)
 
 // -----------------------------------------
-// LOAD GOOGLE MAP SCRIPT
+// DELETE ADDRESS
 // -----------------------------------------
-onIonViewWillEnter(() => {
-  const script = document.createElement('script')
-  script.src = `https://maps.googleapis.com/maps/api/js?key=${googleApiKey}&libraries=places,marker`
-  script.async = true
-  script.defer = true
-  script.onload = initMap
-  document.head.appendChild(script)
-})
+
+const handleDeleteAddress = async () => {
+  const confirmed = confirm('Are you sure you want to delete this address?')
+  if (!confirmed) return
+
+  try {
+    await deleteAddress(addressId)
+
+    // remove from store
+    await addressStore.fetchFromApi()
+
+    showToast({
+      message: 'Address deleted successfully!',
+      color: 'success',
+      icon: 'checkmark-circle-outline',
+      duration: 2000
+    })
+
+    setTimeout(() => {
+      if (redirect === 'cart') {
+        router.push({ name: 'cart' })
+      } else if (redirect === 'account') {
+        router.push({ name: 'account' })
+      } else {
+        router.push({ name: 'shops' })
+      }
+    }, 1500)
+  } catch (err) {
+    console.error('Delete failed:', err)
+    showToast({
+      message: 'Failed to delete address. Please try again.',
+      color: 'danger',
+      icon: 'close-circle-outline'
+    })
+  }
+}
+
+  // -----------------------------------------
+  // LOAD GOOGLE MAP SCRIPT
+  // -----------------------------------------
+  onIonViewWillEnter(() => {
+    const script = document.createElement('script')
+    script.src = `https://maps.googleapis.com/maps/api/js?key=${googleApiKey}&libraries=places,marker`
+    script.async = true
+    script.defer = true
+    script.onload = initMap
+    document.head.appendChild(script)
+  })
 </script>
 
 
@@ -410,5 +502,33 @@ onIonViewWillEnter(() => {
 :deep(.gm-style .gm-style-mtc button[aria-pressed="true"]) {
   background: color-mix(in srgb, var(--ion-color-primary) 22%, #ffffff) !important;
   color: var(--ion-color-primary-shade) !important;
+}
+
+.modal-actions {
+  display: flex;
+  gap: 12px;
+  margin-top: 20px;
+}
+
+.modal-btn {
+  flex: 1;
+  height: 52px;
+  font-size: 16px;
+  font-weight: 600;
+}
+
+.modal-btn::part(native) {
+  margin: 0;
+}
+
+.footer-btn {
+  position: fixed;
+  left: 0;
+  right: 0;
+  bottom: 0;
+  padding-right: 10px;
+  padding-left: 10px;
+  padding-bottom: calc(16px + var(--markit-bottom-inset));
+  background: transparent;
 }
 </style>

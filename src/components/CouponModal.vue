@@ -24,15 +24,27 @@
                             <ion-icon :icon="pricetagOutline" />
                         </div>
 
-                        <div class="flex-1">
+                        <div class="flex-1 text-left">
                             <div class="font-semibold text-gray-900">{{ coupon.code }}</div>
                             <div class="text-xs text-gray-500">{{ coupon.description }}</div>
-                            <div class="text-sm font-semibold text-green-600 mt-1">Save ₹ {{ coupon.discount }}</div>
+                            <div class="text-xs text-gray-400 mt-1">
+                                Min order: ₹{{ coupon.min_order_value || 0 }}
+                            </div>
+                            <!-- Show eligibility status -->
+                            <div v-if="!isCouponEligible(coupon)" class="text-xs text-red-500 mt-1">
+                                ⚠️ Not eligible - Min order ₹{{ coupon.min_order_value }} required
+                            </div>
                         </div>
 
-                        <ion-button shape="round" size="small" fill="outline" class="size-chip"
+                        <ion-button 
+                            shape="round" 
+                            size="small" 
+                            :fill="isCouponEligible(coupon) ? 'outline' : 'solid'"
+                            :color="isCouponEligible(coupon) ? 'primary' : 'medium'"
+                            :disabled="!isCouponEligible(coupon)"
+                            class="size-chip"
                             @click="selectCoupon(coupon)">
-                            Apply
+                            {{ isCouponEligible(coupon) ? 'Apply' : 'Not eligible' }}
                         </ion-button>
                     </div>
                 </div>
@@ -44,9 +56,11 @@
                     <div class="km-icon">
                         <ion-icon :icon="alertCircleOutline" />
                     </div>
-                    <div>
+                    <div class="text-left">
                         <div class="font-semibold text-gray-900">No coupons available</div>
-                        <div class="text-xs text-gray-500">Check back later for offers</div>
+                        <div class="text-xs text-gray-500">
+                            {{ type === 'company' ? 'No store coupons available at the moment' : 'No app-wide coupons available' }}
+                        </div>
                     </div>
                 </div>
             </div>
@@ -57,25 +71,33 @@
                     <div class="km-icon">
                         <ion-icon :icon="createOutline" />
                     </div>
-                    <div>
+                    <div class="text-left">
                         <div class="font-semibold text-gray-900">Have a coupon code?</div>
                         <div class="text-xs text-gray-500">Enter manually below</div>
                     </div>
                 </div>
 
-                <!-- Text Input styled like FilterModal -->
                 <input type="text"
                     class="w-full text-center border border-gray-300 rounded-md py-2 text-gray-700 outline-0 mb-2 bg-white"
                     v-model="manualCode" placeholder="Enter coupon code" />
+                
+                <!-- Show eligibility for manual entry if we have the coupon in available list -->
+                <div v-if="manualCouponEligibility" class="text-xs mt-1" :class="manualCouponEligibility.eligible ? 'text-green-600' : 'text-red-500'">
+                    {{ manualCouponEligibility.message }}
+                </div>
             </div>
 
-            <!-- Actions with CTA button styling from FilterModal -->
+            <!-- Actions -->
             <div class="modal-actions">
                 <ion-button fill="outline" shape="round" color="medium" @click="closeModal" class="modal-btn">
                     Close
                 </ion-button>
 
-                <ion-button shape="round" color="primary" :disabled="!manualCode" @click="applyManualCoupon"
+                <ion-button 
+                    shape="round" 
+                    color="primary" 
+                    :disabled="!manualCode || !isManualCouponEligible()" 
+                    @click="applyManualCoupon"
                     class="modal-btn">
                     Apply Code
                 </ion-button>
@@ -85,7 +107,7 @@
 </template>
 
 <script setup lang="ts">
-import { computed, ref } from 'vue'
+import { computed, ref, watch } from 'vue'
 import {
     IonModal,
     IonIcon,
@@ -98,10 +120,13 @@ import {
 } from 'ionicons/icons'
 
 const props = defineProps<{
-    isOpen: boolean
-    companyId?: string | null
-    type: 'company' | 'app'
-    availableCoupons: any[]
+  isOpen: boolean
+  companyId?: string | null
+  type: 'company' | 'app'  
+  availableCoupons: any[]
+  // Use these passed values which should be kept items subtotal
+  companySubtotal?: number  // Should be KEPT items subtotal for company
+  overallSubtotal?: number  // Should be KEPT items subtotal overall
 }>()
 
 const emit = defineEmits(['update:isOpen', 'apply'])
@@ -109,14 +134,100 @@ const emit = defineEmits(['update:isOpen', 'apply'])
 const manualCode = ref('')
 
 const title = computed(() => {
-    return props.type === 'company' ? 'Store Coupons' : 'Markit Coupons'
+  return props.type === 'company' ? 'Store Coupons' : 'Markit Coupons'
+})
+
+// Get the relevant order value based on coupon type
+const currentOrderValue = computed(() => {
+  if (props.type === 'company') {
+    return props.companySubtotal || 0
+  } else {
+    return props.overallSubtotal || 0
+  }
+})
+
+// Check if a coupon is eligible based on min order value
+function isCouponEligible(coupon: any) {
+  const minOrder = coupon.min_order_value || 0
+  return currentOrderValue.value >= minOrder
+}
+
+// Find manual coupon in available list
+const manualCouponInfo = computed(() => {
+  if (!manualCode.value) return null
+  return props.availableCoupons.find(
+    c => c.code.toUpperCase() === manualCode.value.toUpperCase()
+  )
+})
+
+// Check if manual coupon is eligible
+function isManualCouponEligible() {
+  if (!manualCouponInfo.value) return false
+  return isCouponEligible(manualCouponInfo.value)
+}
+
+// Get eligibility message for manual coupon
+const manualCouponEligibility = computed(() => {
+  if (!manualCode.value) return null
+  
+  const coupon = manualCouponInfo.value
+  if (!coupon) {
+    return {
+      eligible: false,
+      message: 'Coupon code not found'
+    }
+  }
+  
+  const minOrder = coupon.min_order_value || 0
+  if (currentOrderValue.value < minOrder) {
+    return {
+      eligible: false,
+      message: `Minimum order ₹${minOrder} required (current: ₹${currentOrderValue.value})`
+    }
+  }
+  
+  return {
+    eligible: true,
+    message: 'Coupon is eligible'
+  }
 })
 
 const filteredCoupons = computed(() => {
-    if (props.type === 'app') {
-        return props.availableCoupons.filter(c => c.type === 'app')
-    }
-    return props.availableCoupons.filter(c => c.type === 'company' || !c.type)
+  console.log('Filtering coupons with props:', {
+    type: props.type,
+    companyId: props.companyId,
+    currentOrderValue: currentOrderValue.value,
+    totalCoupons: props.availableCoupons.length
+  })
+  
+  if (!props.availableCoupons || props.availableCoupons.length === 0) {
+    return []
+  }
+  
+  let filtered = []
+  
+  if (props.type === 'app') {
+    filtered = props.availableCoupons.filter(c => c.isMarkit === true)
+  } else {
+    filtered = props.availableCoupons.filter(c => 
+      c.isMarkit === false && c.companyId === props.companyId
+    )
+  }
+  
+  return filtered
+})
+
+// Watch for changes to help debug
+watch(() => props.isOpen, (newVal) => {
+  if (newVal) {
+    console.log('Modal opened with:', {
+      type: props.type,
+      companyId: props.companyId,
+      currentOrderValue: currentOrderValue.value,
+      availableCoupons: props.availableCoupons.length,
+      filteredCount: filteredCoupons.value.length
+    })
+  }
 })
 
 function closeModal() {
@@ -125,23 +236,43 @@ function closeModal() {
 }
 
 function selectCoupon(coupon: any) {
-    emit('apply', {
-        code: coupon.code,
-        discount: coupon.discount,
-        companyId: props.companyId
-    })
-    closeModal()
+  // Double-check eligibility before emitting
+  if (!isCouponEligible(coupon)) {
+    alert(`This coupon requires minimum order of ₹${coupon.min_order_value || 0}`)
+    return
+  }
+  
+  console.log('Selecting eligible coupon:', coupon)
+  
+  emit('apply', {
+    code: coupon.code,
+    discount: coupon.discount_value,
+    companyId: props.companyId,
+    isMarkit: coupon.isMarkit
+  })
+  closeModal()
 }
 
 function applyManualCoupon() {
-    if (!manualCode.value) return
+  if (!manualCode.value) return
+  
+  const coupon = manualCouponInfo.value
+  
+  // If coupon exists in our list, check eligibility
+  if (coupon && !isCouponEligible(coupon)) {
+    alert(`This coupon requires minimum order of ₹${coupon.min_order_value || 0}`)
+    return
+  }
 
-    emit('apply', {
-        code: manualCode.value.toUpperCase(),
-        discount: 50, // This should come from validation
-        companyId: props.companyId
-    })
-    closeModal()
+  console.log('Applying manual coupon:', manualCode.value)
+
+  emit('apply', {
+    code: manualCode.value.toUpperCase(),
+    discount: 0, // Will be calculated by validation
+    companyId: props.companyId,
+    isManual: true
+  })
+  closeModal()
 }
 </script>
 
@@ -286,22 +417,22 @@ input[type="text"]::placeholder {
 
 /* ===== Modal Button Container ===== */
 .modal-actions {
-  display: flex;
-  gap: 12px;
-  margin-top: 20px;
+    display: flex;
+    gap: 12px;
+    margin-top: 20px;
 }
 
 /* ===== Buttons ===== */
 .modal-btn {
-  flex: 1;
-  height: 52px;
-  font-size: 16px;
-  font-weight: 600;
+    flex: 1;
+    height: 52px;
+    font-size: 16px;
+    font-weight: 600;
 }
 
 /* Remove extra Ionic spacing */
 .modal-btn::part(native) {
-  margin: 0;
+    margin: 0;
 }
 
 

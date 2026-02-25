@@ -1,38 +1,22 @@
 <template>
   <ion-page>
-    <ion-content
-      class="ion-padding relative nearby-content"
-      :fullscreen="true"
-      @ionScroll="onScroll"
-      scrollEvents="true"
-    >
-      <div
-        slot="fixed"
-        class="w-full z-50 transition-all duration-300 ease-out fixed-shell"
-        :class="showFixedSearch ? 'opacity-100 translate-y-0' : 'opacity-0 -translate-y-2 pointer-events-none'"
-      >
+    <ion-content class="ion-padding relative nearby-content" :fullscreen="true" @ionScroll="onScroll"
+      scrollEvents="true">
+      <div slot="fixed" class="w-full z-50 transition-all duration-300 ease-out fixed-shell"
+        :class="showFixedSearch ? 'opacity-100 translate-y-0' : 'opacity-0 -translate-y-2 pointer-events-none'">
         <div class="fixed-surface">
           <div class="fixed-search">
             <div class="fixed-topbar-host">
               <Topbar :location="location" :collapsed="true" @search="onSearch" />
             </div>
-            <div
-              class="fixed-filters transition-all duration-400 ease-out"
-              :class="showFixedFilters ? 'opacity-100 translate-y-0' : 'fixed-filters--hidden opacity-0 -translate-y-2 pointer-events-none'"
-            >
+            <div class="fixed-filters transition-all duration-400 ease-out"
+              :class="showFixedFilters ? 'opacity-100 translate-y-0' : 'fixed-filters--hidden opacity-0 -translate-y-2 pointer-events-none'">
               <div class="px-4 pb-3">
                 <Category @select="searchTerm = $event" :selectedCategory="selectedCategory" />
               </div>
               <div class="nearby-gender-wrap grid grid-cols-4 gap-2 w-full px-4 pb-3">
-                <ion-button
-                  v-for="(btn, i) in categoryButtons"
-                  :key="`fixed-${i}`"
-                  size="small"
-                  expand="block"
-                  class="gender-btn"
-                  :fill="activeCategory === i ? 'solid' : 'outline'"
-                  @click="activeCategory = i"
-                >
+                <ion-button v-for="(btn, i) in categoryButtons" :key="`fixed-${i}`" size="small" expand="block"
+                  class="gender-btn" :fill="activeCategory === i ? 'solid' : 'outline'" @click="activeCategory = i">
                   {{ btn }}
                 </ion-button>
               </div>
@@ -54,80 +38,51 @@
       </div>
 
       <div class="nearby-body">
-        <div
-          class="nearby-gender-wrap grid grid-cols-4 gap-2 w-full transition-all duration-300"
-          :class="hideGender ? 'opacity-0 -translate-y-3 pointer-events-none' : 'opacity-100'"
-        >
-          <ion-button
-            v-for="(btn, i) in categoryButtons"
-            :key="i"
-            size="small"
-            expand="block"
-            class="gender-btn"
-            :fill="activeCategory === i ? 'solid' : 'outline'"
-            @click="activeCategory = i"
-          >
+        <div class="nearby-gender-wrap grid grid-cols-4 gap-2 w-full transition-all duration-300"
+          :class="hideGender ? 'opacity-0 -translate-y-3 pointer-events-none' : 'opacity-100'">
+          <ion-button v-for="(btn, i) in categoryButtons" :key="i" size="small" expand="block" class="gender-btn"
+            :fill="activeCategory === i ? 'solid' : 'outline'" @click="activeCategory = i">
             {{ btn }}
           </ion-button>
         </div>
 
-        <div
-          class="nearby-category-wrap transition-all duration-300"
-          :class="hideCategory ? 'opacity-0 -translate-y-3 pointer-events-none' : 'opacity-100'"
-        >
+        <div class="nearby-category-wrap transition-all duration-300"
+          :class="hideCategory ? 'opacity-0 -translate-y-3 pointer-events-none' : 'opacity-100'">
           <Category @select="searchTerm = $event" :selectedCategory="selectedCategory" />
         </div>
 
-      <div class="nearby-heading-wrap">
-        <Heading title="Explore Shops" />
-      </div>
+        <div class="nearby-heading-wrap">
+          <Heading title="Explore Shops" />
+        </div>
 
-      <div v-if="loading" class="grid gap-4"></div>
+        <div v-if="loading" class="grid gap-4"></div>
 
-      <div v-else class="nearby-shop-list mb-25">
-        <ShopCard
-          v-for="shop in filteredShops"
-          :key="shop.id"
-          :shop="shop"
-          @click="() => router.push({ name: 'shop', params: { companyId: shop.id, companyName: shop.name } })"
-        />
-        <div v-if="!filteredShops.length" class="text-center py-8 text-gray-500">
-          No shops found.
+        <div v-else class="nearby-shop-list mb-25">
+          <ShopCard v-for="shop in filteredShops" :key="shop.id" :shop="shop"
+            @click="() => router.push({ name: 'shop', params: { companyId: shop.id, companyName: shop.name } })" />
+          <div v-if="!filteredShops.length" class="text-center py-8 text-gray-500">
+            “We’re not offering this service in your location at the moment.” </div>
         </div>
       </div>
-      </div>
 
-      <div
-        v-if="packStore.packList.length"
-        class="nearby-pack-slider fixed left-0 right-0 bottom-16 z-50 overflow-x-auto no-scrollbar px-4"
-      >
-        <div
-          class="flex gap-4 pb-3 transition-all duration-300 ease-in-out"
-          :class="{
-            'justify-center': packStore.packList.length === 1,
-            'w-full': packStore.packList.length === 1,
-            'w-max': packStore.packList.length > 1
-          }"
-        >
-          <div
-            v-for="(pack, i) in packStore.packList"
-            :key="pack.trynbuy_id"
+      <div v-if="packStore.packList.length"
+        class="nearby-pack-slider fixed left-0 right-0 bottom-16 z-50 overflow-x-auto no-scrollbar px-4">
+        <div class="flex gap-4 pb-3 transition-all duration-300 ease-in-out" :class="{
+          'justify-center': packStore.packList.length === 1,
+          'w-full': packStore.packList.length === 1,
+          'w-max': packStore.packList.length > 1
+        }">
+          <div v-for="(pack, i) in packStore.packList" :key="pack.trynbuy_id"
             class="flex-shrink-0 bg-black text-white rounded-xl py-3 px-4 shadow-lg flex justify-between items-center"
-            :class="packStore.packList.length === 1 ? 'w-full' : 'w-[90%]'"
-          >
+            :class="packStore.packList.length === 1 ? 'w-full' : 'w-[90%]'">
             <div>
               <div class="text-green-400 font-bold">
                 Order #{{ pack.order_number }} {{ formatStatus(pack.order_status) }}
               </div>
               <div class="text-gray-400 text-sm">Pay after your trial</div>
             </div>
-            <ion-button
-              color="success"
-              size="small"
-              fill="solid"
-              expand="block"
-              @click="() => router.push({ name: 'pack', params: { id: pack.trynbuy_id } })"
-            >
+            <ion-button color="success" size="small" fill="solid" expand="block"
+              @click="() => router.push({ name: 'pack', params: { id: pack.trynbuy_id } })">
               Try & Pay
             </ion-button>
           </div>
@@ -261,8 +216,8 @@ const filteredShops = computed(() => {
 
     const matchesSearch = q
       ? nameMatch ||
-        shopCategory.some((c) => c.includes(q)) ||
-        shopCategories.some((c) => c.includes(q))
+      shopCategory.some((c) => c.includes(q)) ||
+      shopCategories.some((c) => c.includes(q))
       : true
 
     return matchesSearch && categoryMatch

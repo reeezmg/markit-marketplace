@@ -299,7 +299,7 @@ ion-toast.markit-toast::part(header) {
 }
 
 ion-toast.markit-toast::part(message) {
-  color: var(--markit-text-muted, #64748b);
+  color: inherit;
 }
 
 ion-toast.markit-toast-success::part(container) {
@@ -308,10 +308,12 @@ ion-toast.markit-toast-success::part(container) {
     var(--ion-color-primary) 28%,
     rgba(15, 23, 42, 0.08)
   );
+  color: var(--ion-color-primary) !important;
 }
 
 ion-toast.markit-toast-warning::part(container) {
   border-color: color-mix(in srgb, #f59e0b 30%, rgba(15, 23, 42, 0.08));
+  color: #f59e0b !important;
 }
 
 ion-toast.markit-toast-warning::part(icon) {
