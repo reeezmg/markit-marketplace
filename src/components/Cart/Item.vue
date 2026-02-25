@@ -1,107 +1,86 @@
 <template>
-  <!-- <div class="cart-group-switch bg-white mb-4 p-3">
-    <div class="cart-group-strip flex justify-between items-center">
-    <button
-      v-if="storeCount > 1"
-      type="button"
-      class="cart-switch-arrow"
-      aria-label="Previous cart group"
-      @click="prevGroup"
-    >
-      <IonIcon :icon="chevronBackOutline" />
-    </button>
-
-    <div class="cart-group-companies flex items-center justify-center">
-      <div
-        v-if="activeHeaderCompany"
-        class="cart-company-chip is-active flex flex-row items-center gap-2 transition-all duration-300"
-      >
-        <div class="cart-company-logo flex-shrink-0 w-16 h-10 overflow-hidden">
-          <img
-            v-if="hasCompanyLogo(activeHeaderCompany.companyLogo) && !failedCompanyLogos[activeHeaderCompany.companyId]"
-            :src="`https://images.markit.co.in/${activeHeaderCompany.companyLogo}`"
-            alt=""
-            class="w-full h-full object-fill"
-            @error="onCompanyLogoError(activeHeaderCompany.companyId)"
-          />
-          <div v-else class="cart-company-logo-fallback">
-            {{ companyInitial(activeHeaderCompany.companyName) }}
-          </div>
-        </div>
-      </div>
-
-      <button
-        v-else
-        type="button"
-        class="cart-company-chip cart-all-inline is-active transition-all duration-300"
-        @click="showAllStoresList"
-      >
-        <div class="cart-company-logo flex-shrink-0 w-16 h-10 overflow-hidden">
-          <div class="cart-company-logo-fallback">A</div>
-        </div>
-        <div class="flex flex-col justify-between py-[1px]">
-          <div class="cart-company-name">All Stores</div>
-        </div>
-      </button>
-    </div>
-
-    <button
-      v-if="storeCount > 1"
-      type="button"
-      class="cart-switch-arrow"
-      aria-label="Next cart group"
-      @click="nextGroup"
-    >
-      <IonIcon :icon="chevronForwardOutline" />
-    </button>
-    </div>
-
-  </div> -->
-
   <div>
     <template v-if="renderCompanies.length">
-      <div v-for="company in renderCompanies" :key="company.companyId" :class="[
-        'cart-company-card bg-white p-3 mb-3',
-        !isCompanyDeliverable(company.companyId)
-          ? 'opacity-50 pointer-events-none'
-          : ''
-      ]">
+      <div
+        v-for="company in renderCompanies"
+        :key="company.companyId"
+        :class="[
+          'cart-company-card bg-white p-3 mb-3',
+          !isNearbyLoaded
+            ? ''
+            : !isCompanyDeliverable(company.companyId)
+              ? 'opacity-50 pointer-events-none'
+              : ''
+        ]"
+      >
         <div class="cart-company-heading flex items-center gap-2 mb-3 w-full pb-1">
           <div class="cart-company-logo flex-shrink-0 w-16 h-10 overflow-hidden">
-            <img v-if="hasCompanyLogo(company.companyLogo) && !failedCompanyLogos[company.companyId]"
-              :src="`https://images.markit.co.in/${company.companyLogo}`" alt="" class="w-full h-full object-fill"
-              @error="onCompanyLogoError(company.companyId)" />
+            <img
+              v-if="hasCompanyLogo(company.companyLogo) && !failedCompanyLogos[company.companyId]"
+              :src="`https://images.markit.co.in/${company.companyLogo}`"
+              alt=""
+              class="w-full h-full object-fill"
+              @error="onCompanyLogoError(company.companyId)"
+            />
             <div v-else class="cart-company-logo-fallback">
               {{ companyInitial(company.companyName) }}
             </div>
           </div>
+
           <div>
             {{ formatCompanyName(company.companyName) }}
 
-            <p v-if="!isCompanyDeliverable(company.companyId)" class="text-red-500 text-xs font-semibold mt-1">
+            <!-- 🟡 Loading state -->
+            <p
+              v-if="!isNearbyLoaded"
+              class="text-gray-400 text-xs font-semibold mt-1"
+            >
+              Checking availability...
+            </p>
+
+            <!-- 🔴 Not deliverable (only AFTER load) -->
+            <p
+              v-else-if="!isCompanyDeliverable(company.companyId)"
+              class="text-red-500 text-xs font-semibold mt-1"
+            >
               Not deliverable to your location
             </p>
 
-            <p v-else class="text-green-600 text-xs font-semibold mt-1">
+            <!-- 🟢 Deliverable -->
+            <p
+              v-else
+              class="text-green-600 text-xs font-semibold mt-1"
+            >
               Deliverable
             </p>
           </div>
         </div>
 
         <ul role="list" class="divide-y divide-[var(--markit-border)]">
-          <li v-for="cartItem in company.items" :key="`${cartItem.id}-${cartItem.selectedSize || 'nosize'}`"
-            class="flex py-6">
+          <li
+            v-for="cartItem in company.items"
+            :key="`${cartItem.id}-${cartItem.selectedSize || 'nosize'}`"
+            class="flex py-6"
+          >
             <div class="cart-item-row flex justify-between w-full gap-x-5">
-              <RouterLink :to="{ name: 'product', params: { variantId: cartItem.id } }"
-                class="cart-item-media w-32 h-32 rounded-md">
-                <img v-if="cartItem.images?.length" :src="`https://images.markit.co.in/${cartItem.images[0]}`"
-                  class="w-full h-full object-cover rounded-md" />
+              <RouterLink
+                :to="{ name: 'product', params: { variantId: cartItem.id } }"
+                class="cart-item-media w-32 h-32 rounded-md"
+              >
+                <img
+                  v-if="cartItem.images?.length"
+                  :src="`https://images.markit.co.in/${cartItem.images[0]}`"
+                  class="w-full h-full object-cover rounded-md"
+                />
               </RouterLink>
 
               <div class="cart-item-content flex flex-col w-full justify-between p-1">
                 <div class="min-w-0">
                   <div class="cart-item-title-wrap">
-                    <RouterLink :to="{ name: 'product', params: { variantId: cartItem.id } }" class="cart-item-title">
+                    <RouterLink
+                      :to="{ name: 'product', params: { variantId: cartItem.id } }"
+                      class="cart-item-title"
+                    >
                       {{ formatProductTitle(cartItem.productName, cartItem.name) }}
                     </RouterLink>
                   </div>
@@ -113,24 +92,45 @@
                   <div>
                     <p class="cart-item-price">
                       <span v-if="cartItem.discount > 0">
-                        <del class="cart-item-price-strike">&#8377;{{ Number(cartItem.sprice || 0).toFixed(2) }}</del>
+                        <del class="cart-item-price-strike">
+                          &#8377;{{ Number(cartItem.sprice || 0).toFixed(2) }}
+                        </del>
                         <span class="cart-item-price-sale ml-1">
-                          &#8377;{{ (Number(cartItem.sprice || 0) * (1 - Number(cartItem.discount || 0) /
-                            100)).toFixed(2) }}
+                          &#8377;{{
+                            (Number(cartItem.sprice || 0) *
+                              (1 - Number(cartItem.discount || 0) / 100)
+                            ).toFixed(2)
+                          }}
                         </span>
                       </span>
-                      <span v-else class="cart-item-price-main">&#8377;{{ Number(cartItem.sprice || 0).toFixed(2)
-                      }}</span>
+                      <span v-else class="cart-item-price-main">
+                        &#8377;{{ Number(cartItem.sprice || 0).toFixed(2) }}
+                      </span>
                     </p>
                   </div>
                 </div>
 
                 <div class="cart-item-actions flex flex-row justify-between items-center">
                   <div class="cart-item-qty-controls flex items-center gap-3 me-4">
-                    <Badge size="lg" @click="decrement(cartItem)" color="secondary" variant="outline">-</Badge>
+                    <Badge
+                      size="lg"
+                      @click="decrement(cartItem)"
+                      color="secondary"
+                      variant="outline"
+                    >
+                      -
+                    </Badge>
                     <span class="cart-item-qty">{{ cartItem.quantity }}</span>
-                    <Badge size="lg" @click="increment(cartItem)" color="secondary" variant="outline">+</Badge>
+                    <Badge
+                      size="lg"
+                      @click="increment(cartItem)"
+                      color="secondary"
+                      variant="outline"
+                    >
+                      +
+                    </Badge>
                   </div>
+
                   <button @click="removeAll(cartItem)" class="cart-item-delete">
                     <ion-icon :icon="trash" class="w-6 h-6"></ion-icon>
                   </button>
@@ -142,19 +142,20 @@
       </div>
     </template>
 
-    <p v-else class="text-center text-gray-500">No items in this group.</p>
+    <p v-else class="text-center text-gray-500">
+      No items in this group.
+    </p>
   </div>
 </template>
 
 <script setup lang="ts">
-import { trash, bagHandleOutline, chevronBackOutline, chevronForwardOutline } from 'ionicons/icons'
+import { trash, chevronBackOutline, chevronForwardOutline } from 'ionicons/icons'
 import { IonIcon, createGesture } from '@ionic/vue'
 import Badge from '../Badge.vue'
 import { useCartStore } from '@/store/useCartStore'
 import { useNearbyStore } from '@/store/useNearbyStore'
 import { computed, ref, watch, onMounted } from 'vue'
 import { useIonRouter } from '@ionic/vue'
-
 
 const emit = defineEmits<{
   (e: 'groupedCart', payload: {
@@ -174,32 +175,38 @@ const emit = defineEmits<{
 const cart = useCartStore()
 const nearbyStore = useNearbyStore()
 const router = useIonRouter()
+
 const failedCompanyLogos = ref<Record<string, boolean>>({})
 
-/* --- Original cart logic: group-based navigation --- */
+/* --- Group logic --- */
 const activeGroupIndex = ref(0)
 const groupCount = computed(() => cart.groups.length)
 const activeGroup = computed(() => cart.groups[activeGroupIndex.value] || { companies: [] })
 
-/* --- UI adapter bindings (display only) --- */
-const storeCount = computed(() => groupCount.value)
+/* --- UI bindings --- */
 const renderCompanies = computed(() => activeGroup.value?.companies || [])
+
+/* ✅ NEW: track loading */
+const isNearbyLoaded = computed(() => {
+  return Array.isArray(nearbyStore.nearbyShops) && nearbyStore.nearbyShops.length > 0
+})
+
+/* --- Deliverable companies --- */
 const deliverableCompanyIds = computed(() => {
-  if (!nearbyStore.nearbyShops) return []
+  if (!isNearbyLoaded.value) return []
 
   return nearbyStore.nearbyShops
     .filter((shop: any) => shop.road_distance <= 10000)
     .map((shop: any) => shop.id)
 })
 
+/* ✅ FIX: default TRUE until loaded */
 const isCompanyDeliverable = (companyId: string) => {
+  if (!isNearbyLoaded.value) return true
   return deliverableCompanyIds.value.includes(companyId)
 }
-const activeHeaderCompany = computed(() => {
-  const companies = activeGroup.value?.companies || []
-  return companies.length === 1 ? companies[0] : null
-})
 
+/* --- Helpers --- */
 function hasCompanyLogo(logo?: string | null) {
   const value = String(logo || '').trim().toLowerCase()
   return value !== '' && value !== 'undefined' && value !== 'null'
@@ -223,10 +230,10 @@ function formatLabel(value?: string | null) {
     .trim()
     .toLowerCase()
     .split(' ')
-    .map((word) =>
+    .map(word =>
       word
         .split('-')
-        .map((part) => (part ? part[0].toUpperCase() + part.slice(1) : part))
+        .map(part => (part ? part[0].toUpperCase() + part.slice(1) : part))
         .join('-')
     )
     .join(' ')
@@ -238,10 +245,10 @@ function formatCompanyName(value?: string | null) {
     .trim()
     .toLowerCase()
     .split(/\s+/)
-    .map((word) =>
+    .map(word =>
       word
         .split('-')
-        .map((part) => (part ? part[0].toUpperCase() + part.slice(1) : ''))
+        .map(part => (part ? part[0].toUpperCase() + part.slice(1) : ''))
         .join('-')
     )
     .join(' ')
@@ -259,25 +266,18 @@ function formatSize(size?: string | null) {
   return String(size || '').trim().toUpperCase()
 }
 
+/* --- Navigation --- */
 function nextGroup() {
   if (!groupCount.value) return
   activeGroupIndex.value = (activeGroupIndex.value + 1) % groupCount.value
 }
+
 function prevGroup() {
   if (!groupCount.value) return
   activeGroupIndex.value = (activeGroupIndex.value - 1 + groupCount.value) % groupCount.value
 }
 
-function showAllStoresList() {
-  // Intentionally no-op to preserve original cart grouping business logic.
-}
-
-function goToShop(company: { companyId: string; companyName: string }) {
-  if (!company?.companyId) return
-  const name = encodeURIComponent(company.companyName || 'shop')
-  router.push({ name: 'shop', params: { companyId: company.companyId, companyName: name } })
-}
-
+/* --- Emit grouped cart --- */
 watch([() => cart.groups, activeGroupIndex], () => {
   const currentGroup = activeGroup.value || { cartNumber: 0, companies: [] }
   emit('groupedCart', {
@@ -296,15 +296,18 @@ watch(() => cart.groups, (groups) => {
   }
 }, { deep: true })
 
+/* --- Cart actions --- */
 function increment(item: any) {
   item.quantity += 1
   cart.saveCart()
 }
+
 function decrement(item: any) {
   if (item.quantity > 1) item.quantity -= 1
   else removeAll(item)
   cart.saveCart()
 }
+
 function removeAll(item: any) {
   for (const group of cart.groups) {
     for (const company of group.companies) {
@@ -322,8 +325,18 @@ function removeAll(item: any) {
   cart.saveCart()
 }
 
+/* --- Lifecycle --- */
 onMounted(async () => {
   await cart.loadCart()
+
+  // ⚠️ Make sure nearby shops are fetched here if not already
+  if (!nearbyStore.nearbyShops?.length) {
+    try {
+      await nearbyStore.fetchNearbyShops?.()
+    } catch (e) {
+      console.error('Failed to load nearby shops', e)
+    }
+  }
 
   if (groupCount.value > 1) {
     const el = document.querySelector('.bg-white') as HTMLElement
