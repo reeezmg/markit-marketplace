@@ -93,8 +93,16 @@
             <ShopCard :shop="shop"
               @click="() => router.push({ name: 'shop', params: { companyId: shop.id, companyName: shop.name } })" />
           </div>
-          <div v-if="!shopsList.length" class="text-center py-8 text-gray-500">
-            “We’re not offering this service in your location at the moment.” </div>
+          <div v-if="!filteredShops.length" class="text-center py-8">
+            <div class="text-gray-500 mb-4">
+              “We’re not offering this service in your location at the moment.”
+            </div>
+            <ion-button shape="round" color="primary"
+              @click="() => router.push({ name: 'account-address-add', params: { redirect: 'nearby' } })"
+              class="modal-btn">
+              Add New Address
+            </ion-button>
+          </div>
         </div>
 
         <!-- ✅ Floating Try & Pay Banner (Swipe + Drag) -->
@@ -539,12 +547,10 @@ const headerStyle = computed(() => ({}))
   inset: 0;
   z-index: 1;
 
-  background: linear-gradient(
-    to bottom,
-    rgba(0, 30, 20, 0.75),
-    rgba(0, 45, 30, 0.6),
-    rgba(0, 30, 20, 0.75)
-  );
+  background: linear-gradient(to bottom,
+      rgba(0, 30, 20, 0.75),
+      rgba(0, 45, 30, 0.6),
+      rgba(0, 30, 20, 0.75));
 }
 
 

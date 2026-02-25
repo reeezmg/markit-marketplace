@@ -406,11 +406,20 @@ function clear() {
   z-index: 10000;
   border-radius: 16px;
   padding: 8px;
-  max-height: min(46vh, 360px);
+  max-height: min(46vh, 340px);
   overflow-y: auto;
   background: var(--markit-glass-surface);
   backdrop-filter: blur(20px) saturate(145%);
   -webkit-backdrop-filter: blur(20px) saturate(145%);
+  
+
+  scrollbar-width: none; 
+  -ms-overflow-style: none;
+
+}
+
+.address-menu::-webkit-scrollbar {
+  display: none;
 }
 
 .address-menu-item {
