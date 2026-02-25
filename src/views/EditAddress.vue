@@ -32,29 +32,23 @@
         :formattedAddress="formattedAddress" @close="closeConfirmProceedModal" @save="confirmLocation" />
     </ion-content>
 
+    <ion-toast :is-open="toast.isOpen" :message="toast.message" :duration="toast.duration" :position="toast.position"
+      :color="toast.color" :icon="toast.icon" :css-class="toast.cssClass"
+      @didDismiss="toast.isOpen = false"></ion-toast>
+
     <ion-footer class="footer-btn">
-  <div class="modal-actions">
+      <div class="modal-actions">
 
-    <ion-button
-      shape="round"
-      color="danger"
-      @click="handleDeleteAddress"
-      class="modal-btn"
-    >
-      Delete
-    </ion-button>
+        <ion-button shape="round" color="danger" @click="handleDeleteAddress" class="modal-btn">
+          Delete
+        </ion-button>
 
-    <ion-button
-      shape="round"
-      color="primary"
-      @click="openConfirmProceedModal"
-      class="modal-btn"
-    >
-      Confirm & Proceed
-    </ion-button>
+        <ion-button shape="round" color="primary" @click="openConfirmProceedModal" class="modal-btn">
+          Confirm & Proceed
+        </ion-button>
 
-  </div>
-</ion-footer>
+      </div>
+    </ion-footer>
 
   </ion-page>
 </template>
@@ -66,6 +60,7 @@ import {
   IonButton,
   IonIcon,
   IonFooter,
+  IonToast,
 } from '@ionic/vue'
 import { ref, computed } from 'vue'
 import { onIonViewWillEnter } from '@ionic/vue'
@@ -78,6 +73,33 @@ import { useIonRouter } from '@ionic/vue'
 import { useRoute } from 'vue-router'
 import { updateAddress, deleteAddress } from '@/api/address'
 import { useAddressStore } from '@/store/useAddressStore'
+
+const toast = ref({
+  isOpen: false,
+  message: '',
+  duration: 3000,
+  position: 'bottom',
+  color: '',
+  icon: '',
+  cssClass: 'markit-toast'
+})
+
+// Helper function to show toast
+const showToast = (options) => {
+  toast.value = {
+    isOpen: true,
+    message: options.message,
+    duration: options.duration || 3000,
+    position: options.position || 'bottom',
+    color: options.color || '',
+    icon: options.icon || '',
+    cssClass: `markit-toast ${options.color === 'success' ? 'markit-toast-success' :
+      options.color === 'warning' ? 'markit-toast-warning' :
+        options.color === 'danger' ? 'markit-toast-warning' : ''
+      }`
+  }
+}
+
 
 const googleApiKey = import.meta.env.VITE_GOOGLE_MAPS_API_KEY
 const addressStore = useAddressStore()
@@ -240,7 +262,11 @@ const selectLocation = (place) => {
 // -----------------------------------------
 const confirmLocation = async (data) => {
   if (!lat.value || !lng.value || !formattedAddress.value) {
-    alert('Please select a valid location.')
+    showToast({
+      message: 'Please select a valid location.',
+      color: 'warning',
+      icon: 'warning-outline'
+    })
     return
   }
 
@@ -278,6 +304,13 @@ const confirmLocation = async (data) => {
 
   await addressStore.fetchFromApi()
 
+  showToast({
+    message: 'Address updated successfully!',
+    color: 'success',
+    icon: 'checkmark-circle-outline',
+    duration: 2000
+  })
+
   if (redirect === 'cart') {
     router.push({ name: 'cart' })
   } else if (redirect === 'account') {
@@ -304,31 +337,43 @@ const handleDeleteAddress = async () => {
     // remove from store
     await addressStore.fetchFromApi()
 
-    // redirect after delete
-    if (redirect === 'cart') {
-      router.push({ name: 'cart' })
-    } else if (redirect === 'account') {
-      router.push({ name: 'account' })
-    } else {
-      router.push({ name: 'shops' })
-    }
+    showToast({
+      message: 'Address deleted successfully!',
+      color: 'success',
+      icon: 'checkmark-circle-outline',
+      duration: 2000
+    })
+
+    setTimeout(() => {
+      if (redirect === 'cart') {
+        router.push({ name: 'cart' })
+      } else if (redirect === 'account') {
+        router.push({ name: 'account' })
+      } else {
+        router.push({ name: 'shops' })
+      }
+    }, 1500)
   } catch (err) {
     console.error('Delete failed:', err)
-    alert('Failed to delete address. Please try again.')
+    showToast({
+      message: 'Failed to delete address. Please try again.',
+      color: 'danger',
+      icon: 'close-circle-outline'
+    })
   }
 }
 
-// -----------------------------------------
-// LOAD GOOGLE MAP SCRIPT
-// -----------------------------------------
-onIonViewWillEnter(() => {
-  const script = document.createElement('script')
-  script.src = `https://maps.googleapis.com/maps/api/js?key=${googleApiKey}&libraries=places,marker`
-  script.async = true
-  script.defer = true
-  script.onload = initMap
-  document.head.appendChild(script)
-})
+  // -----------------------------------------
+  // LOAD GOOGLE MAP SCRIPT
+  // -----------------------------------------
+  onIonViewWillEnter(() => {
+    const script = document.createElement('script')
+    script.src = `https://maps.googleapis.com/maps/api/js?key=${googleApiKey}&libraries=places,marker`
+    script.async = true
+    script.defer = true
+    script.onload = initMap
+    document.head.appendChild(script)
+  })
 </script>
 
 
@@ -486,5 +531,4 @@ onIonViewWillEnter(() => {
   padding-bottom: calc(16px + var(--markit-bottom-inset));
   background: transparent;
 }
-
 </style>

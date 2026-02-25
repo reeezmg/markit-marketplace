@@ -34,8 +34,11 @@ export const getProfile = () => api.get('/client')
 export const updateProfile = (data) => api.put('/client', data)
 export const deleteProfile = () => api.delete('/client')
 
+// In api.ts - Update fetchCoupons function
 export const fetchCoupons = async (companyId: string, clientId?: string, type?: string) => {
   try {
+    console.log('Fetching coupons with params:', { companyId, clientId, type });
+    
     const response = await api.get('/coupon/findManyCoupon', {
       params: { 
         companyId,
@@ -43,10 +46,11 @@ export const fetchCoupons = async (companyId: string, clientId?: string, type?: 
         type 
       }
     });
+    
+    console.log('FetchCoupons response data:', response.data);
     return response;
   } catch (error: any) {
     console.error('Error fetching coupons:', error);
-    // Return empty array on error to prevent UI breakage
     return { data: [] };
   }
 }
