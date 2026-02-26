@@ -1,81 +1,98 @@
-import { createRouter, createWebHistory } from '@ionic/vue-router';
-import { RouteRecordRaw } from '@ionic/vue';
+import { createRouter, createWebHistory } from '@ionic/vue-router'
+import { RouteRecordRaw } from '@ionic/vue'
+
+// ✅ STATIC IMPORTS (NO lazy loading)
+import Login from '@/views/Login.vue'
+import Shops from '@/views/Shops.vue'
+import Products from '@/views/Products.vue'
+import Cart from '@/views/Cart.vue'
+import Wishlist from '@/views/Wishlist.vue'
+import ProductDetails from '@/views/ProductDetails.vue'
+import Account from '@/views/Account.vue'
+import Profile from '@/views/Profile.vue'
+import Address from '@/views/Address.vue'
+import AddAddress from '@/views/AddAddress.vue'
+import EditAddress from '@/views/EditAddress.vue'
+import OrderSuccess from '@/views/OrderSuccess.vue'
+import OrderHistory from '@/views/OrderHistory.vue'
+import OrderTryDetails from '@/views/OrderTryDetails.vue'
+import PrivacyPolicy from '@/views/PrivacyPolicy.vue'
+import TermsOfUse from '@/views/TermsOfUse.vue'
+import OrderTryPack from '@/views/OrderTryPack.vue'
+import KnowMore from '@/components/KnowMore.vue'
+import NearbyShops from '@/views/NearbyShops.vue'
 
 const routes: Array<RouteRecordRaw> = [
   {
     path: '/login',
     name: 'login',
-    component: () => import('@/views/Login.vue'),
+    component: Login,
     meta: { guestOnly: true }
   },
   {
     path: '/',
     name: 'shops',
-    component: () => import('@/views/Shops.vue'),
+    component: Shops,
     meta: { requiresAuth: false }
   },
   {
     path: '/shop/:companyId/:companyName',
     name: 'shop',
-    component: () => import('@/views/Products.vue'),
+    component: Products,
     meta: { requiresAuth: false }
   },
   {
     path: '/cart',
     name: 'cart',
-    component: () => import('@/views/Cart.vue'),
+    component: Cart,
     meta: { requiresAuth: false }
   },
   {
     path: '/wishlist',
     name: 'wishlist',
-    component: () => import('@/views/Wishlist.vue'),
+    component: Wishlist,
     meta: { requiresAuth: false }
-  },
-  {
-    path: '/wishlist',
-    redirect: '/wishlist',
   },
   {
     path: '/product/:variantId',
     name: 'product',
-    component: () => import('@/views/ProductDetails.vue'),
+    component: ProductDetails,
     meta: { requiresAuth: false }
   },
   {
     path: '/account',
     name: 'account',
-    component: () => import('@/views/Account.vue'),
+    component: Account,
     meta: { requiresAuth: false }
   },
   {
     path: '/account/profile',
     name: 'account-profile',
-    component: () => import('@/views/Profile.vue'),
+    component: Profile,
     meta: { requiresAuth: false }
   },
   {
     path: '/account/address/:redirect?',
     name: 'account-address',
-    component: () => import('@/views/Address.vue'),
+    component: Address,
     meta: { requiresAuth: false }
   },
   {
     path: '/account/address/add/:redirect?',
     name: 'account-address-add',
-    component: () => import('@/views/AddAddress.vue'),
+    component: AddAddress,
     meta: { requiresAuth: false }
   },
   {
     path: '/account/address/edit/:addressId/:redirect?',
     name: 'account-address-edit',
-    component: () => import('@/views/EditAddress.vue'),
+    component: EditAddress,
     meta: { requiresAuth: false }
   },
   {
     path: '/order-success',
     name: 'order-success',
-    component: () => import('@/views/OrderSuccess.vue'),
+    component: OrderSuccess,
     meta: { requiresAuth: false }
   },
   {
@@ -85,13 +102,13 @@ const routes: Array<RouteRecordRaw> = [
   {
     path: '/account/order-history',
     name: 'account-order-history',
-    component: () => import('@/views/OrderHistory.vue'),
+    component: OrderHistory,
     meta: { requiresAuth: false }
   },
   {
     path: '/account/order-history/:id',
     name: 'account-order-history-detail',
-    component: () => import('@/views/OrderTryDetails.vue'),
+    component: OrderTryDetails,
     meta: { requiresAuth: false }
   },
   {
@@ -105,25 +122,25 @@ const routes: Array<RouteRecordRaw> = [
   {
     path: '/account/privacy-policy',
     name: 'account-privacy-policy',
-    component: () => import('@/views/PrivacyPolicy.vue'),
+    component: PrivacyPolicy,
     meta: { requiresAuth: false }
   },
   {
     path: '/account/terms-of-use',
     name: 'account-terms-of-use',
-    component: () => import('@/views/TermsOfUse.vue'),
+    component: TermsOfUse,
     meta: { requiresAuth: false }
   },
   {
     path: '/pack/:id',
     name: 'pack',
-    component: () => import('@/views/OrderTryPack.vue'),
+    component: OrderTryPack,
     meta: { requiresAuth: false }
   },
   {
     path: '/know-more',
     name: 'know-more',
-    component: () => import('@/components/KnowMore.vue'),
+    component: KnowMore,
     meta: { requiresAuth: false }
   },
   {
@@ -133,34 +150,42 @@ const routes: Array<RouteRecordRaw> = [
   {
     path: '/nearby-shops',
     name: 'nearby-shops',
-    component: () => import('@/views/NearbyShops.vue'),
+    component: NearbyShops,
     meta: { requiresAuth: false }
   },
   {
     path: '/nearbyshops',
     redirect: '/nearby-shops',
   },
-];
-
+]
 
 const router = createRouter({
   history: createWebHistory(import.meta.env.BASE_URL),
-  routes
-});
+  routes,
+})
 
-// ✅ Add your global navigation guard here
+// ✅ Auth Guard
 router.beforeEach((to, from, next) => {
-  const isAuth = !!localStorage.getItem('token'); // For production, replace with SecureStorage
+  const isAuth = !!localStorage.getItem('token')
 
   if (to.meta.requiresAuth && !isAuth) {
-    return next('/login');
+    return next('/login')
   }
 
   if (to.meta.guestOnly && isAuth) {
-    return next('/');
+    return next('/')
   }
 
-  next();
-});
+  next()
+})
 
-export default router;
+// ✅ GLOBAL ERROR HANDLER (prevents white screen / stuck navigation)
+router.onError((error) => {
+  console.error('Router Error:', error)
+
+  if (error?.message?.includes('Failed to fetch dynamically imported module')) {
+    window.location.reload()
+  }
+})
+
+export default router

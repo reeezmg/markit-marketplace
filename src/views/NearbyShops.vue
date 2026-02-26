@@ -60,8 +60,16 @@
         <div v-else class="nearby-shop-list mb-25">
           <ShopCard v-for="shop in filteredShops" :key="shop.id" :shop="shop"
             @click="() => router.push({ name: 'shop', params: { companyId: shop.id, companyName: shop.name } })" />
-          <div v-if="!filteredShops.length" class="text-center py-8 text-gray-500">
-            “We’re not offering this service in your location at the moment.” </div>
+          <div v-if="!filteredShops.length" class="text-center py-8">
+            <div class="text-gray-500 mb-4">
+              “We’re not offering this service in your location at the moment.”
+            </div>
+            <ion-button shape="round" color="primary"
+              @click="() => router.push({ name: 'account-address-add', params: { redirect: 'nearby' } })"
+              class="modal-btn">
+              Add New Address
+            </ion-button>
+          </div>
         </div>
       </div>
 

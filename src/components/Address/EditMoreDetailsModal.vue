@@ -143,7 +143,7 @@ function submitForm() {
   text-align: center;
   font-size: 13px;
   font-weight: 700;
-  color: #ffffff;
+  color: var(--ion-color-primary);
   border-color: var(--ion-color-primary);
 }
 
