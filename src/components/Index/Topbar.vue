@@ -256,7 +256,7 @@ function clear() {
 .address-pin {
   width: 15px;
   height: 15px;
-  color: var(--ion-color-primary);
+  color: gray 700;
   flex-shrink: 0;
 }
 
