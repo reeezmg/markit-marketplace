@@ -5,7 +5,7 @@
     <ion-content class="address-content">
       <div class="map-container-wrapper">
         <div ref="mapContainer" class="map-container"></div>
-        <ion-button expand="block" class="use-location-btn" @click="useCurrentLocation">Use Current
+        <ion-button class="use-location-btn" @click="useCurrentLocation">Use Current
           Location</ion-button>
       </div>
 
@@ -322,18 +322,33 @@ const confirmProceed = () => {
 }
 
 .use-location-btn {
-  width: calc(100% - 16px);
+  width: min(78%, 300px);
   position: absolute;
-  left: 8px;
+  left: 50%;
+  transform: translateX(-50%);
   bottom: 8px;
   z-index: 10;
   --border-radius: var(--markit-btn-radius);
-  --background: var(--ion-color-primary);
-  --background-hover: var(--ion-color-primary);
-  --background-activated: var(--ion-color-primary);
-  --color: #ffffff;
+  --background: color-mix(in srgb, var(--ion-color-primary) 14%, rgba(255, 255, 255, 0.52));
+  --background-hover: color-mix(in srgb, var(--ion-color-primary) 20%, rgba(255, 255, 255, 0.62));
+  --background-activated: color-mix(in srgb, var(--ion-color-primary) 24%, rgba(255, 255, 255, 0.66));
+  --border-color: var(--markit-glass-border-hover);
+  --color: #2d5444;
+  --box-shadow: inset 0 1px 0 rgba(255, 255, 255, 0.9), 0 10px 18px rgba(20, 34, 28, 0.14);
+  backdrop-filter: blur(var(--markit-glass-blur)) saturate(var(--markit-glass-saturation));
+  -webkit-backdrop-filter: blur(var(--markit-glass-blur)) saturate(var(--markit-glass-saturation));
   font-weight: 700;
   letter-spacing: 0.01em;
+}
+
+.use-location-btn::part(native) {
+  border: 1px solid rgba(83, 129, 108, 0.34);
+  background-image: linear-gradient(
+    160deg,
+    rgba(255, 255, 255, 0.56) 0%,
+    rgba(255, 255, 255, 0.12) 52%,
+    rgba(83, 129, 108, 0.14) 100%
+  );
 }
 
 .map-container {
@@ -398,8 +413,9 @@ const confirmProceed = () => {
   }
 
   .use-location-btn {
-    width: calc(100% - 12px);
-    left: 6px;
+    width: min(84%, 280px);
+    left: 50%;
+    transform: translateX(-50%);
     bottom: 6px;
     font-size: 14px;
   }

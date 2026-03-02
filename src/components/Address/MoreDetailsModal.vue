@@ -1,6 +1,6 @@
 <template>
   <ion-modal
-    class="address-details-modals markit-filter-sheet overflow-y-scroll"
+    class="address-details-modal markit-filter-sheet"
     :is-open="isOpen"
     @didDismiss="close"
     :breakpoints="[0, 1, 1]"
@@ -66,7 +66,6 @@
 import { ref, toRef } from 'vue'
 import {
   IonItem,
-  IonContent,
   IonInput,
   IonButton,
   IonModal,
@@ -108,12 +107,18 @@ function submitForm() {
 <style scoped>
 
 .details-content {
-  margin: 25px 15px 10px 15px;
-  overflow-y: scroll;
-  --padding-top: 12px;
-  --padding-start: 14px;
-  --padding-end: 14px;
-  --padding-bottom: calc(18px + var(--markit-bottom-inset));
+  box-sizing: border-box;
+  width: 100%;
+  max-height: calc(88vh - var(--markit-bottom-inset));
+  padding: 14px 14px calc(16px + var(--markit-bottom-inset));
+  overflow-y: auto;
+  overflow-x: hidden;
+  -ms-overflow-style: none;
+  scrollbar-width: none;
+}
+
+.details-content::-webkit-scrollbar {
+  display: none;
 }
 
 .details-note {

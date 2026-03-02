@@ -154,6 +154,7 @@ import {
   IonButton,
   IonContent,
   onIonViewWillEnter,
+  alertController,
 } from '@ionic/vue'
 import { ref, computed, watch } from 'vue'
 import { useIonRouter } from '@ionic/vue'
@@ -206,11 +207,81 @@ watch(
   }
 )
 const slideDirection = ref<'left' | 'right'>('left')
+const viewEnterStartedAt = ref(0)
 const openKnowMoreModal = () => {
   isKnowMoreModalOpen.value = true
 }
 const closeKnowMoreModal = () => {
   isKnowMoreModalOpen.value = false
+}
+
+const isCurrentLocationData = (loc: any) => {
+  if (!loc) return false
+  const name = String(loc.name || '').trim().toLowerCase()
+  return name === 'current location'
+}
+
+const refreshCurrentLocationAndPersist = async () => {
+  const gps = await getCurrentLocation()
+
+  location.value = {
+    name: 'Current Location',
+    formattedAddress: 'Near you',
+    lat: gps.lat,
+    lng: gps.lng,
+    active: true,
+  } as any
+
+  await setLocation({
+    name: location.value.name,
+    formattedAddress: location.value.formattedAddress,
+    lat: location.value.lat,
+    lng: location.value.lng,
+    active: true
+  })
+}
+
+const waitForInitialVideoWindow = async () => {
+  if (!viewEnterStartedAt.value) return
+  const elapsed = Date.now() - viewEnterStartedAt.value
+  const minDelay = 4000
+  if (elapsed >= minDelay) return
+  await new Promise((resolve) => setTimeout(resolve, minDelay - elapsed))
+}
+
+const showLocationPermissionAlert = async () => {
+  await waitForInitialVideoWindow()
+  const alert = await alertController.create({
+    cssClass: 'markit-glass-alert',
+    header: 'Location Required',
+    message: 'Turn on location to find nearby shops, or add your location manually.',
+    backdropDismiss: false,
+    buttons: [
+      {
+        text: 'Add Location Manually',
+        cssClass: 'markit-alert-manual-btn',
+        role: 'cancel',
+        handler: () => {
+          router.push({ name: 'account-address-add', params: { redirect: 'nearby' } })
+        }
+      },
+      {
+        text: 'Turn On Location',
+        cssClass: 'markit-alert-enable-btn',
+        handler: async () => {
+          try {
+            await refreshCurrentLocationAndPersist()
+            loading.value = true
+            await loadShopsByLocation(location.value.lat, location.value.lng)
+          } catch (error) {
+            await showLocationPermissionAlert()
+          }
+        }
+      }
+    ]
+  })
+
+  await alert.present()
 }
 
 /* ---- Swipe + Mouse Drag Support ---- */
@@ -273,6 +344,7 @@ const selectedCategory = computed(() => {
 })
 
 onIonViewWillEnter(async () => {
+  viewEnterStartedAt.value = Date.now()
   await packStore.loadFromStorage()
 
   // 1️⃣ Logged-in user → use saved address
@@ -283,8 +355,17 @@ onIonViewWillEnter(async () => {
 
     const saved = await getLocation()
 
-    if (saved) {
+    if (saved && !isCurrentLocationData(saved)) {
       location.value = saved
+    } else if (saved && isCurrentLocationData(saved)) {
+      try {
+        await refreshCurrentLocationAndPersist()
+      } catch (e) {
+        console.error('Location access denied', e)
+        loading.value = false
+        await showLocationPermissionAlert()
+        return
+      }
     } else {
       router.push({ name: 'account-address' })
       const toast = await toastController.create({
@@ -304,31 +385,15 @@ onIonViewWillEnter(async () => {
   else {
     const cached = await getLocation()
 
-    if (cached) {
+    if (cached && !isCurrentLocationData(cached)) {
       location.value = cached
     } else {
       try {
-        const gps = await getCurrentLocation()
-
-        location.value = {
-          name: 'Current Location',
-          formattedAddress: 'Near you',
-          lat: gps.lat,
-          lng: gps.lng,
-          active: true,
-        } as any
-
-        await setLocation({
-          name: location.value.name,
-          formattedAddress: location.value.formattedAddress,
-          lat: location.value.lat,
-          lng: location.value.lng,
-          active: true
-        })
-
+        await refreshCurrentLocationAndPersist()
       } catch (e) {
         console.error('Location access denied', e)
         loading.value = false
+        await showLocationPermissionAlert()
         return
       }
     }

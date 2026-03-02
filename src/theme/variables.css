@@ -396,3 +396,79 @@ ion-toast.markit-toast-warning::part(container) {
 ion-toast.markit-toast-warning::part(icon) {
   color: #f59e0b;
 }
+
+/* Shared glass alert style */
+ion-alert.markit-glass-alert {
+  --backdrop-opacity: 0.22;
+}
+
+ion-alert.markit-glass-alert .alert-wrapper {
+  width: min(86vw, 300px);
+  max-width: 300px;
+  border-radius: 20px !important;
+  background: var(--markit-glass-surface) !important;
+  border: 1px solid var(--markit-glass-border);
+  box-shadow:
+    inset 0 1px 0 var(--markit-glass-highlight),
+    var(--markit-glass-shadow-lg) !important;
+  backdrop-filter: blur(var(--markit-glass-blur)) saturate(var(--markit-glass-saturation));
+  -webkit-backdrop-filter: blur(var(--markit-glass-blur)) saturate(var(--markit-glass-saturation));
+}
+
+ion-alert.markit-glass-alert .alert-head {
+  padding-bottom: 8px;
+}
+
+ion-alert.markit-glass-alert .alert-title {
+  color: #1f2937;
+  font-size: 1rem;
+  font-weight: 800;
+  letter-spacing: 0.1px;
+}
+
+ion-alert.markit-glass-alert .alert-message {
+  color: #1f2937;
+  font-size: 0.9rem;
+  line-height: 1.4;
+}
+
+ion-alert.markit-glass-alert .alert-button-group {
+  padding: 10px 12px 12px;
+  gap: 6px;
+  display: flex;
+  flex-direction: column;
+  flex-wrap: nowrap;
+  justify-content: flex-start;
+}
+
+ion-alert.markit-glass-alert button.alert-button {
+  border-radius: 10px !important;
+  min-height: 30px;
+  font-size: 0.82rem;
+  font-weight: 600;
+  letter-spacing: 0;
+  color: #1f2937;
+  width: 100%;
+  flex: 0 0 auto;
+  margin: 0 !important;
+  padding: 0 8px;
+  text-align: center;
+  justify-content: center;
+}
+
+ion-alert.markit-glass-alert button.alert-button .alert-button-inner {
+  width: 100%;
+  justify-content: center;
+  text-align: center;
+}
+
+ion-alert.markit-glass-alert button.alert-button.markit-alert-manual-btn {
+  border: 1px solid var(--markit-glass-border);
+  color: var(--markit-text) !important;
+  background: color-mix(in srgb, var(--markit-surface) 72%, transparent);
+}
+
+ion-alert.markit-glass-alert button.alert-button.markit-alert-enable-btn {
+  color: #ffffff !important;
+  background: var(--ion-color-primary);
+}

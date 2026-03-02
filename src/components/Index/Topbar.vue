@@ -148,13 +148,7 @@ async function openAddressSettings() {
     key: 'client',
   })
 
-  if (storedClient?.value) {
-    // User logged in
     router.push({ name: 'account-address' })
-  } else {
-    // User logged out
-    router.push({ name: 'login' })
-  }
 }
 
 function toggleAddressMenu() {
