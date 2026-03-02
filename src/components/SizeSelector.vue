@@ -121,9 +121,9 @@ const confirmSizes = async() => {
 /* ===== Size Chips Styling - White background when not selected ===== */
 .size-chip::part(native) {
   min-width: 42px;
-  height: 34px;
-  padding: 0 14px;
-  border-radius: 999px;
+  height: var(--markit-btn-height-sm);
+  padding: 0 12px;
+  border-radius: var(--markit-btn-radius);
   font-weight: 600;
   border: 1px solid #e5e7eb; /* Light gray border */
   background: white !important; /* Force white background */
@@ -147,8 +147,8 @@ const confirmSizes = async() => {
 /* ===== CTA Button ===== */
 .size-selector-cta {
   width: 100%;
-  padding: 14px;
-  border-radius: 12px;
+  min-height: var(--markit-btn-height-md);
+  border-radius: var(--markit-btn-radius);
   font-weight: 600;
   background: var(--ion-color-primary);
   color: var(--ion-color-primary-contrast);

@@ -237,7 +237,7 @@ function clear() {
   text-align: left;
   border: 1px solid var(--markit-glass-border);
   box-shadow: inset 0 1px 0 var(--markit-glass-highlight), var(--markit-glass-shadow);
-  border-radius: 14px;
+  border-radius: var(--markit-shell-radius);
   padding: 0 8px 0 10px;
   transition: border-color 0.2s ease, box-shadow 0.2s ease;
   background: var(--markit-glass-surface);
@@ -287,9 +287,9 @@ function clear() {
 }
 
 .icon-btn {
-  width: 34px;
-  height: 34px;
-  border-radius: 11px;
+  width: var(--markit-icon-btn-size);
+  height: var(--markit-icon-btn-size);
+  border-radius: var(--markit-icon-btn-radius);
   border: 1px solid var(--markit-glass-border);
   box-shadow: inset 0 1px 0 var(--markit-glass-highlight);
   display: flex;
@@ -298,8 +298,8 @@ function clear() {
   transition: border-color 0.2s ease, box-shadow 0.2s ease;
   /* Added the same glassmorphism background as address bar and search box */
   background: var(--markit-glass-surface);
-  backdrop-filter: blur(20px) saturate(145%);
-  -webkit-backdrop-filter: blur(20px) saturate(145%);
+  backdrop-filter: blur(var(--markit-glass-blur)) saturate(var(--markit-glass-saturation));
+  -webkit-backdrop-filter: blur(var(--markit-glass-blur)) saturate(var(--markit-glass-saturation));
 }
 
 .icon-btn--active {
@@ -329,13 +329,13 @@ function clear() {
   display: flex;
   align-items: center;
   flex: 1;
-  min-height: 44px;
-  border-radius: 12px;
+  min-height: var(--markit-search-height);
+  border-radius: var(--markit-search-radius);
   border: 1px solid var(--markit-glass-border);
   box-shadow: inset 0 1px 0 var(--markit-glass-highlight), var(--markit-glass-shadow);
   background: var(--markit-glass-surface);
-  backdrop-filter: blur(20px) saturate(145%);
-  -webkit-backdrop-filter: blur(20px) saturate(145%);
+  backdrop-filter: blur(var(--markit-glass-blur)) saturate(var(--markit-glass-saturation));
+  -webkit-backdrop-filter: blur(var(--markit-glass-blur)) saturate(var(--markit-glass-saturation));
   padding: 0 14px;
   transition: border-color 0.2s ease, box-shadow 0.2s ease;
 }

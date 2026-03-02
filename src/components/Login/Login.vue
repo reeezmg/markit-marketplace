@@ -149,7 +149,7 @@ defineEmits(['loginClicked'])
 
 /* ----- Clean Button - no animations ----- */
 .markit-cta {
-  --border-radius: 40px;
+  --border-radius: var(--markit-btn-radius);
   --padding-top: 14px;
   --padding-bottom: 14px;
   --background: var(--ion-color-primary);

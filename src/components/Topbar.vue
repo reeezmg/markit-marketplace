@@ -142,13 +142,13 @@ function goBack() {
 
 /* ----- Inner glass card – identical to wishlist/cart ----- */
 .topbar-inner {
-  padding: 10px 14px;
+  padding: var(--markit-shell-padding-block) var(--markit-shell-padding-inline);
   margin: 0 12px;
-  border-radius: 14px;
+  border-radius: var(--markit-shell-radius);
   border: 1px solid var(--markit-glass-border);
   background: var(--markit-glass-surface);
-  backdrop-filter: blur(20px) saturate(145%);
-  -webkit-backdrop-filter: blur(20px) saturate(145%);
+  backdrop-filter: blur(var(--markit-glass-blur)) saturate(var(--markit-glass-saturation));
+  -webkit-backdrop-filter: blur(var(--markit-glass-blur)) saturate(var(--markit-glass-saturation));
   box-shadow: inset 0 1px 0 var(--markit-glass-highlight),
               var(--markit-glass-shadow);
   transition: border-color 0.2s ease, box-shadow 0.2s ease;
@@ -194,9 +194,9 @@ function goBack() {
 }
 
 .topbar-icon-btn {
-  width: 34px;
-  height: 34px;
-  border-radius: 11px;       /* exact match */
+  width: var(--markit-icon-btn-size);
+  height: var(--markit-icon-btn-size);
+  border-radius: var(--markit-icon-btn-radius);
   background: var(--markit-glass-surface-strong);
   border: 1px solid var(--markit-glass-border);
   box-shadow: inset 0 1px 0 var(--markit-glass-highlight);

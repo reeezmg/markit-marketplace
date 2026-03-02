@@ -327,7 +327,7 @@ const confirmProceed = () => {
   left: 8px;
   bottom: 8px;
   z-index: 10;
-  --border-radius: var(--markit-radius-pill);
+  --border-radius: var(--markit-btn-radius);
   --background: var(--ion-color-primary);
   --background-hover: var(--ion-color-primary);
   --background-activated: var(--ion-color-primary);

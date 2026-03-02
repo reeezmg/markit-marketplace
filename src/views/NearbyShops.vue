@@ -11,9 +11,9 @@
             </div>
             <div class="fixed-filters transition-all duration-400 ease-out"
               :class="showFixedFilters ? 'opacity-100 translate-y-0' : 'fixed-filters--hidden opacity-0 -translate-y-2 pointer-events-none'">
-              <div class="px-4 pb-3">
+              <!-- <div class="px-4 pb-3">
                 <Category @select="searchTerm = $event" :selectedCategory="selectedCategory" />
-              </div>
+              </div> -->
               <div class="nearby-gender-wrap grid grid-cols-4 gap-2 w-full px-4 pb-3">
                 <ion-button v-for="(btn, i) in categoryButtons" :key="`fixed-${i}`" size="small" expand="block"
                   class="gender-btn" :fill="activeCategory === i ? 'solid' : 'outline'" @click="activeCategory = i">
@@ -25,19 +25,36 @@
         </div>
       </div>
 
-      <div class="nearby-hero ion-no-border relative transition-all duration-300 ease-in-out" :style="headerStyle">
-        <div class="nearby-topbar-wrap">
+      <div class="ion-no-border relative transition-all duration-300 ease-in-out hero-header">
+        <div class="hero-overlay"></div>
+
+        <div class="relative z-10 droplet-shell">
           <Topbar :location="location" :collapsed="isCollapsed" @search="onSearch" />
         </div>
 
-        <div v-if="!isCollapsed" class="transition-opacity duration-300 nearby-tagline-wrap">
-          <div class="text-xl text-[#2f5f49] font-bold py-3 px-2 flex flex-col items-center justify-center">
-            <div class="w-fit text-center nearby-tagline">Add products from shops on your way</div>
+        <div class="transition-all duration-300 ease-out text-center will-change-transform hero-copy"
+          :class="isCollapsed ? 'opacity-0 -translate-y-6 pointer-events-none' : 'opacity-100 translate-y-0'">
+          <div class="text-xl font-bold py-3 px-2 flex flex-col items-center justify-center hero-title">
+            <h1 class="hero-main">
+              <span class="hero-small">Try Before</span>
+              <span class="hero-big">You Buy</span>
+            </h1>
+
+            <p class="hero-tagline">
+              Try outfits at home. Pay only for what you keep.
+            </p>
+
+            <div class="mt-6 flex justify-center">
+              <ion-button class="mt-4 hero-cta" color="primary" fill="solid" size="small"
+                @click="() => router.push({ name: 'know-more' })">
+                Know more
+              </ion-button>
+            </div>
           </div>
         </div>
       </div>
 
-      <div class="nearby-body">
+      <div class="ion-padding content-wrap">
         <div class="nearby-gender-wrap grid grid-cols-4 gap-2 w-full transition-all duration-300"
           :class="hideGender ? 'opacity-0 -translate-y-3 pointer-events-none' : 'opacity-100'">
           <ion-button v-for="(btn, i) in categoryButtons" :key="i" size="small" expand="block" class="gender-btn"
@@ -46,18 +63,14 @@
           </ion-button>
         </div>
 
-        <div class="nearby-category-wrap transition-all duration-300"
+        <!-- <div class="nearby-category-wrap transition-all duration-300"
           :class="hideCategory ? 'opacity-0 -translate-y-3 pointer-events-none' : 'opacity-100'">
           <Category @select="searchTerm = $event" :selectedCategory="selectedCategory" />
-        </div>
-
-        <div class="nearby-heading-wrap">
-          <Heading title="Explore Shops" />
-        </div>
+        </div> -->
 
         <div v-if="loading" class="grid gap-4"></div>
 
-        <div v-else class="nearby-shop-list mb-25">
+        <div v-else class="nearby-shop-list">
           <ShopCard v-for="shop in filteredShops" :key="shop.id" :shop="shop"
             @click="() => router.push({ name: 'shop', params: { companyId: shop.id, companyName: shop.name } })" />
           <div v-if="!filteredShops.length" class="text-center py-8">
@@ -108,7 +121,6 @@
 import { IonPage, IonFooter, IonButton, IonContent, onIonViewWillEnter } from '@ionic/vue'
 import Topbar from '@/components/Index/Topbar.vue'
 import ShopCard from '@/components/Index/ShopCard.vue'
-import Heading from '@/components/Heading.vue'
 import { getNearbyShop } from '@/api/api'
 import { ref, computed } from 'vue'
 import { useLocationStore } from '@/composables/useLocationStore'
@@ -194,12 +206,6 @@ const showFixedFilters = computed(() => scrollY.value > 260)
 const hideGender = computed(() => scrollY.value > 200)
 const hideCategory = computed(() => scrollY.value > 300)
 
-const headerStyle = computed(() => ({
-  backgroundImage: "url('design.png')",
-  backgroundSize: 'cover',
-  backgroundPosition: 'center',
-}))
-
 function onScroll(ev: CustomEvent) {
   const scrollTop = ev.detail.scrollTop
   scrollY.value = scrollTop
@@ -251,27 +257,97 @@ function formatStatus(status: string | null): string {
   overflow: hidden;
 }
 
-.nearby-topbar-wrap {
-  padding-bottom: 2px;
+.hero-header {
+  position: relative;
+  z-index: 40;
+  min-height: 260px;
+  padding-bottom: 20px;
+  overflow: hidden;
+  background-image: url('/hero-bg.png');
+  background-size: cover;
+  background-position: center;
+  background-repeat: no-repeat;
 }
 
-.nearby-tagline-wrap {
-  padding-bottom: 8px;
+.hero-overlay {
+  position: absolute;
+  inset: 0;
+  z-index: 1;
+  background: linear-gradient(to bottom,
+      rgba(0, 30, 20, 0.75),
+      rgba(0, 45, 30, 0.6),
+      rgba(0, 30, 20, 0.75));
 }
 
-.nearby-tagline {
-  font-size: 1rem;
-  line-height: 1.35;
+.droplet-shell :deep(.rounded-xl) {
+  background: var(--markit-surface);
+  border: 1px solid var(--markit-border);
+  box-shadow: none;
+  backdrop-filter: none;
+}
+
+.hero-copy {
+  position: relative;
+  z-index: 2;
+  margin-top: 4px;
+}
+
+.hero-title {
+  font-size: 1.7rem;
+  line-height: 1.15;
   font-weight: 700;
-  color: #2f5f49;
-  border-radius: var(--markit-radius-pill);
-  padding: 6px 14px;
-  background: rgba(244, 251, 227, 0.78);
-  border: 1px solid var(--markit-glass-border);
+  letter-spacing: 0.2px;
 }
 
-.nearby-body {
-  padding: 14px 16px calc(92px + var(--markit-bottom-inset));
+.hero-cta {
+  --border-radius: var(--markit-btn-radius);
+  --padding-start: 24px;
+  --padding-end: 24px;
+  --padding-top: 10px;
+  --padding-bottom: 10px;
+  --background: var(--ion-color-primary);
+  --box-shadow: none;
+  font-size: 0.96rem;
+  font-weight: 600;
+  letter-spacing: 0.2px;
+}
+
+.hero-main {
+  text-align: center;
+  line-height: 1.1;
+  letter-spacing: -0.5px;
+  text-shadow: 0 8px 30px rgba(0, 0, 0, 0.4);
+}
+
+.hero-small {
+  display: block;
+  font-size: 28px;
+  font-weight: 600;
+  color: rgba(255, 255, 255, 0.9);
+}
+
+.hero-big {
+  display: block;
+  font-size: 40px;
+  font-weight: 800;
+  margin-top: 4px;
+  color: #ffffff;
+}
+
+.hero-tagline {
+  margin-top: 14px;
+  font-size: 14px;
+  color: rgba(255, 255, 255, 0.75);
+  text-align: center;
+}
+
+.content-wrap {
+  position: relative;
+  z-index: 1;
+  padding-top: 6px;
+  padding-bottom: calc(88px + var(--markit-bottom-inset));
+  max-width: 980px;
+  margin: 0 auto;
 }
 
 .nearby-gender-wrap {
@@ -279,7 +355,7 @@ function formatStatus(status: string | null): string {
 }
 
 .nearby-gender-wrap :deep(.gender-btn) {
-  --border-radius: var(--markit-radius-lg);
+  --border-radius: var(--markit-btn-radius);
   --padding-top: 10px;
   --padding-bottom: 10px;
   --background: var(--markit-glass-surface-strong);
@@ -332,9 +408,10 @@ function formatStatus(status: string | null): string {
   isolation: isolate;
   overflow: hidden;
   background: var(--markit-glass-surface);
+  border-bottom: none;
   box-shadow: inset 0 1px 0 var(--markit-glass-highlight), 0 8px 18px rgba(20, 34, 28, 0.08);
-  backdrop-filter: blur(18px) saturate(145%);
-  -webkit-backdrop-filter: blur(18px) saturate(145%);
+  backdrop-filter: blur(var(--markit-glass-blur)) saturate(var(--markit-glass-saturation));
+  -webkit-backdrop-filter: blur(var(--markit-glass-blur)) saturate(var(--markit-glass-saturation));
 }
 
 .fixed-search {
@@ -346,8 +423,8 @@ function formatStatus(status: string | null): string {
 }
 
 .fixed-filters {
-  background: var(--markit-glass-surface-strong);
-  box-shadow: inset 0 1px 0 rgba(255, 255, 255, 0.45);
+  background: color-mix(in srgb, var(--markit-glass-surface) 80%, transparent);
+  box-shadow: none;
   overflow: hidden;
   padding-top: 6px;
   transition: max-height 0.3s ease, opacity 0.3s ease, transform 0.3s ease;
@@ -359,10 +436,6 @@ function formatStatus(status: string | null): string {
   overflow: hidden;
   padding-top: 0;
   padding-bottom: 0;
-}
-
-.nearby-heading-wrap {
-  margin: 0 0 10px;
 }
 
 .nearby-shop-list {
@@ -378,13 +451,18 @@ function formatStatus(status: string | null): string {
 }
 
 @media (max-width: 390px) {
-  .nearby-tagline {
-    font-size: 0.92rem;
-    padding: 5px 10px;
-  }
-
   .nearby-gender-wrap {
     gap: 6px;
+  }
+}
+
+@media (min-width: 768px) {
+  .hero-small {
+    font-size: 34px;
+  }
+
+  .hero-big {
+    font-size: 52px;
   }
 }
 </style>

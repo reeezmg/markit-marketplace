@@ -72,7 +72,7 @@ function setLocationPage() {
   --background: #53816c;
   --color: #ffffff;
   --border-color: #53816c;
-  --border-radius: 999px;
+  --border-radius: var(--markit-btn-radius);
   --padding-start: 10px;
   --padding-end: 10px;
   --padding-top: 6px;

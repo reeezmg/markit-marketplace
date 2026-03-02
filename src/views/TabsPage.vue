@@ -1,6 +1,6 @@
 <template>
   <ion-footer class="tabs-shell ">
-    <div class="tabs-capsule">
+    <div class="tabs-capsule markit-glass-footer-shell">
       <button @click="$router.push({ name: 'shops' })" class="tab-btn text-gray-700" :class="{ 'is-active': isStoreActive }">
         <ion-icon :icon="storefrontOutline" class="tab-icon"></ion-icon>
         <span class="tab-label">Store</span>
@@ -76,14 +76,6 @@ const isCartActive = computed(() => route.name === 'cart')
   display: flex;
   justify-content: space-around;
   align-items: center;
-  border-top: 1px solid var(--markit-border);
-  background: var( --markit-glass-surface);
-   backdrop-filter: blur(20px) saturate(145%);
-     -webkit-backdrop-filter: blur(20px) saturate(145%);
-  border-radius: 0;
-  min-height: 64px;
-  width: 100%;
-  padding: 8px 10px calc(var(--markit-bottom-inset) + 8px);
 }
 
 .tab-btn {

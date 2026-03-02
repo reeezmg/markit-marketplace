@@ -26,6 +26,11 @@
   --markit-radius-lg: 18px;
   --markit-radius-xl: 24px;
   --markit-radius-pill: 999px;
+  --markit-btn-radius: 10px;
+  --markit-btn-height-sm: 34px;
+  --markit-btn-height-md: 40px;
+  --markit-btn-height-lg: 46px;
+  --markit-btn-max-inline: 340px;
   --markit-shadow-soft: 0 10px 24px rgba(15, 23, 42, 0.06);
 
   /* iOS glass tokens */
@@ -44,6 +49,26 @@
   --markit-glass-highlight: rgba(255, 255, 255, 0.84);
   --markit-glass-shadow: 0 10px 18px rgba(20, 34, 28, 0.09);
   --markit-glass-shadow-lg: 0 14px 28px rgba(20, 34, 28, 0.12);
+  --markit-glass-blur: 20px;
+  --markit-glass-saturation: 145%;
+  --markit-shell-radius: 14px;
+  --markit-shell-padding-inline: 14px;
+  --markit-shell-padding-block: 10px;
+  --markit-icon-btn-size: 34px;
+  --markit-icon-btn-radius: 11px;
+  --markit-search-height: 44px;
+  --markit-search-radius: 12px;
+}
+
+.markit-glass-footer-shell {
+  border-top: 1px solid var(--markit-border);
+  background: var(--markit-glass-surface);
+  backdrop-filter: blur(var(--markit-glass-blur)) saturate(var(--markit-glass-saturation));
+  -webkit-backdrop-filter: blur(var(--markit-glass-blur)) saturate(var(--markit-glass-saturation));
+  border-radius: 0;
+  min-height: 64px;
+  width: 100%;
+  padding: 8px 10px calc(var(--markit-bottom-inset) + 8px);
 }
 
 html,
@@ -181,10 +206,56 @@ ion-content select:focus {
 }
 
 ion-button {
-  --border-radius: var(--markit-radius-pill);
+  --border-radius: var(--markit-btn-radius);
   --box-shadow: none;
+  --padding-start: 14px;
+  --padding-end: 14px;
+  --padding-top: 10px;
+  --padding-bottom: 10px;
+  min-height: var(--markit-btn-height-md);
   text-transform: none;
   letter-spacing: 0;
+}
+
+ion-button::part(native) {
+  min-height: var(--markit-btn-height-md);
+  border-radius: var(--markit-btn-radius);
+}
+
+ion-button[size="small"] {
+  --padding-start: 12px;
+  --padding-end: 12px;
+  --padding-top: 8px;
+  --padding-bottom: 8px;
+  min-height: var(--markit-btn-height-sm);
+}
+
+ion-button[size="small"]::part(native) {
+  min-height: var(--markit-btn-height-sm);
+}
+
+ion-button[size="large"] {
+  --padding-top: 12px;
+  --padding-bottom: 12px;
+  min-height: var(--markit-btn-height-lg);
+}
+
+ion-button[size="large"]::part(native) {
+  min-height: var(--markit-btn-height-lg);
+}
+
+ion-button[shape="round"] {
+  --border-radius: var(--markit-btn-radius) !important;
+}
+
+ion-button[expand="block"] {
+  width: 100%;
+  max-width: var(--markit-btn-max-inline);
+  margin-inline: auto;
+}
+
+ion-button[expand="block"]::part(native) {
+  width: 100%;
 }
 
 /* Hide content scrollbars */
@@ -254,13 +325,19 @@ ion-modal.markit-filter-sheet::part(content) {
   display: flex;
   flex-direction: column;
 
-  /* ✅ Allow growth instead of clipping */
-  overflow-y: auto;
+  /* Use internal pane scrolling only */
+  overflow-y: hidden;
+  -ms-overflow-style: none;
+  scrollbar-width: none;
+}
+
+ion-modal.markit-filter-sheet::part(content)::-webkit-scrollbar {
+  display: none;
 }
 
 /* Remove internal extra gap */
 ion-modal.markit-filter-sheet::part(scroll) {
-  padding-bottom: 20px !important;
+  padding-bottom: 0 !important;
 }
 
 /* Wrapper fit */

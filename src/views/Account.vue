@@ -251,7 +251,7 @@ const logoutUser = async () => {
 
 .account-row {
   width: 100%;
-  border-radius: 18px;
+  border-radius: var(--markit-btn-radius);
   background: var(--markit-glass-surface-strong);
   border: 1px solid var(--markit-glass-border);
   box-shadow: inset 0 1px 0 var(--markit-glass-highlight),

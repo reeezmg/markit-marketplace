@@ -118,16 +118,22 @@
     </ion-modal>
 
     <ion-footer v-if="!loading" class="details-footer ion-no-border">
-      <div class="grid grid-cols-[5fr_1fr] gap-3 p-3 w-full">
-        <ion-button class="flex-1 details-action-btn cart-btn" @click="addToCart">
+      <div class="details-footer-actions markit-glass-footer-shell">
+        <ion-button class="details-action-btn cart-btn" @click="addToCart">
           <ion-icon class="me-2" slot="start" :icon="cartOutline"></ion-icon>
           Add to Cart
         </ion-button>
 
-        <ion-button class="flex-1 details-icon-action-btn wishlist-btn" @click="toggleLike">
+        <ion-button
+          fill="clear"
+          class="details-icon-action-btn wishlist-btn"
+          :class="{ 'heart-burst': heartAnimating }"
+          @click="toggleLike"
+          aria-label="Toggle wishlist"
+        >
           <ion-icon
-            class="p-0 details-wishlist-icon"
-            slot="start"
+            class="details-wishlist-icon"
+            :class="{ 'heart-pop': heartAnimating }"
             :icon="isLiked ? heart : heartOutline"
             :style="{ color: isLiked ? '#ef4444' : '#738092' }"
           ></ion-icon>
@@ -153,13 +159,13 @@
 
 /* ----- Inner glass card – exact match of wishlist/cart ----- */
 .details-topbar-shell {
-  padding: 10px 14px;
+  padding: var(--markit-shell-padding-block) var(--markit-shell-padding-inline);
   margin: 0 12px;                    /* consistent with all other pages */
-  border-radius: 14px;              /* was var(--markit-radius-xl) – now fixed 14px */
+  border-radius: var(--markit-shell-radius);
   border: 1px solid var(--markit-glass-border);
   background: var(--markit-glass-surface);
-  backdrop-filter: blur(20px) saturate(145%);
-  -webkit-backdrop-filter: blur(20px) saturate(145%);
+  backdrop-filter: blur(var(--markit-glass-blur)) saturate(var(--markit-glass-saturation));
+  -webkit-backdrop-filter: blur(var(--markit-glass-blur)) saturate(var(--markit-glass-saturation));
   box-shadow: inset 0 1px 0 var(--markit-glass-highlight),
               var(--markit-glass-shadow);
   transition: border-color 0.2s ease, box-shadow 0.2s ease;
@@ -234,9 +240,9 @@
 }
 
 .details-head-icon-btn {
-  width: 34px;                      /* was 32px – now 34px */
-  height: 34px;
-  border-radius: 11px;             /* was 12px – now 11px */
+  width: var(--markit-icon-btn-size);
+  height: var(--markit-icon-btn-size);
+  border-radius: var(--markit-icon-btn-radius);
   border: 1px solid var(--markit-glass-border);
   background: var(--markit-glass-surface-strong);
   backdrop-filter: blur(16px) saturate(140%);
@@ -385,18 +391,33 @@
 }
 
 .details-footer {
-  background: var(--markit-glass-surface);
-  border-top: 1px solid var(--markit-border);
-  border-radius: var(--markit-radius-xl) var(--markit-radius-xl) 0 0;
-  box-shadow: var(--markit-shadow-soft);
-  backdrop-filter: blur(10px);
-  -webkit-backdrop-filter: blur(10px);
-  padding: 4px 0 calc(var(--markit-bottom-inset) + 4px);
+  --background: transparent !important;
+  background: transparent !important;
+  position: fixed;
+  left: 0;
+  right: 0;
+  bottom: 0;
+  width: 100%;
+  z-index: 1200;
+  pointer-events: auto;
+  border-top: 0;
+  border-radius: 0;
+  box-shadow: none;
+  backdrop-filter: none;
+  -webkit-backdrop-filter: none;
+  padding: 0;
+}
+
+.details-footer-actions {
+  display: flex;
+  align-items: center;
+  justify-content: flex-start;
+  gap: 12px;
 }
 
 .cart-btn::part(native) {
-  min-height: 46px;
-  border-radius: var(--markit-radius-pill) !important;
+  min-height: var(--markit-btn-height-lg);
+  border-radius: var(--markit-btn-radius) !important;
   background: var(--ion-color-primary) !important;
   color: #ffffff !important;
   border: 1px solid color-mix(in srgb, var(--ion-color-primary) 70%, #ffffff) !important;
@@ -407,22 +428,114 @@
 }
 
 .wishlist-btn::part(native) {
-  min-height: 46px;
-  border-radius: var(--markit-radius-pill) !important;
-  background-color: var(--markit-surface-muted) !important;
+  min-height: var(--markit-btn-height-lg);
+  min-width: 52px;
+  width: 52px;
+  border-radius: 0 !important;
+  background: transparent !important;
   color: #5f6b7a !important;
-  width: 56px;
-  font-size: 22px;
+  font-size: 24px;
   padding: 0;
-  border: 1px solid var(--markit-border) !important;
+  border: none !important;
   box-shadow: none !important;
   transition: none !important;
   transform: none !important;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
 }
 
 .details-action-btn,
 .details-icon-action-btn {
   --box-shadow: none;
+}
+
+.details-action-btn {
+  flex: 1 1 auto;
+  max-width: none;
+  min-width: 0;
+}
+
+.details-icon-action-btn {
+  flex: 0 0 auto;
+  position: relative;
+  overflow: visible;
+  --padding-start: 0;
+  --padding-end: 0;
+  --padding-top: 0;
+  --padding-bottom: 0;
+  align-self: center;
+}
+
+.details-wishlist-icon {
+  font-size: 30px;
+  line-height: 1;
+  display: block;
+}
+
+.heart-pop {
+  animation: heart-pop 420ms cubic-bezier(0.2, 0.9, 0.25, 1.15);
+}
+
+.wishlist-btn.heart-burst::after {
+  content: "";
+  position: absolute;
+  left: 50%;
+  top: 50%;
+  width: 8px;
+  height: 8px;
+  border-radius: 999px;
+  transform: translate(-50%, -50%) scale(0.25);
+  pointer-events: none;
+  box-shadow:
+    0 -18px 0 0 rgba(239, 68, 68, 0.85),
+    13px -13px 0 0 rgba(248, 113, 113, 0.8),
+    18px 0 0 0 rgba(239, 68, 68, 0.75),
+    13px 13px 0 0 rgba(251, 146, 146, 0.75),
+    0 18px 0 0 rgba(239, 68, 68, 0.78),
+    -13px 13px 0 0 rgba(248, 113, 113, 0.8),
+    -18px 0 0 0 rgba(239, 68, 68, 0.75),
+    -13px -13px 0 0 rgba(251, 146, 146, 0.75);
+  animation: heart-burst 420ms ease-out;
+}
+
+@keyframes heart-pop {
+  0% {
+    transform: scale(1);
+  }
+  25% {
+    transform: scale(1.34);
+  }
+  45% {
+    transform: scale(0.9);
+  }
+  70% {
+    transform: scale(1.12);
+  }
+  100% {
+    transform: scale(1);
+  }
+}
+
+@keyframes heart-burst {
+  0% {
+    opacity: 0;
+    transform: translate(-50%, -50%) scale(0.2);
+  }
+  20% {
+    opacity: 1;
+  }
+  100% {
+    opacity: 0;
+    transform: translate(-50%, -50%) scale(1.12);
+  }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .heart-pop,
+  .wishlist-btn.heart-burst::after {
+    animation: none !important;
+  }
 }
 
 .wishlist-btn {
@@ -480,6 +593,7 @@ const selectedVariant = ref<Variant | null>(null);
 const product = ref<any>(null);
 const selectedSizes = ref<(string | null)[]>([]);
 const loading = ref(true);
+const heartAnimating = ref(false);
 
 const likeStore = useLikeStore();
 const cartStore = useCartStore();
@@ -602,6 +716,13 @@ async function addToCart() {
 
 function toggleLike() {
   likeStore.toggleLike(product.value);
+  heartAnimating.value = false;
+  requestAnimationFrame(() => {
+    heartAnimating.value = true;
+  });
+  window.setTimeout(() => {
+    heartAnimating.value = false;
+  }, 430);
 }
 
 function goWishlist() {

@@ -297,9 +297,9 @@ function applyManualCoupon() {
 /* Size Chips Styling - White background when not selected */
 .size-chip::part(native) {
     min-width: 42px;
-    height: 34px;
-    padding: 0 14px;
-    border-radius: 999px;
+    height: var(--markit-btn-height-sm);
+    padding: 0 12px;
+    border-radius: var(--markit-btn-radius);
     font-weight: 600;
     border: 1px solid #e5e7eb;
     background: white !important;
@@ -425,7 +425,7 @@ input[type="text"]::placeholder {
 /* ===== Buttons ===== */
 .modal-btn {
     flex: 1;
-    height: 52px;
+    height: var(--markit-btn-height-md);
     font-size: 16px;
     font-weight: 600;
 }

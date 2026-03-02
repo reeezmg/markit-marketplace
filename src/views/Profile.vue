@@ -44,19 +44,20 @@
           </div>
         </div>
 
-        <ion-button expand="block" color="primary" class="profile-submit" @click="submit">
-          Save Profile
-        </ion-button>
+        <div class="profile-actions">
+          <ion-button color="primary" class="profile-submit" @click="submit">
+            Save Profile
+          </ion-button>
 
-        <ion-button
-          expand="block"
-          fill="outline"
-          color="danger"
-          class="profile-delete"
-          @click="deleteAccount"
-        >
-          Delete Account
-        </ion-button>
+          <ion-button
+            fill="outline"
+            color="danger"
+            class="profile-delete"
+            @click="deleteAccount"
+          >
+            Delete Account
+          </ion-button>
+        </div>
       </div>
     </ion-content>
   </ion-page>
@@ -183,6 +184,13 @@ const deleteAccount = async () => {
   gap: 12px;
 }
 
+.profile-actions {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 10px;
+  margin-top: 4px;
+}
+
 .section-block {
   display: grid;
   gap: 8px;
@@ -239,7 +247,7 @@ const deleteAccount = async () => {
   border: 1px solid var(--markit-glass-border);
   background: var(--markit-glass-surface-strong);
   color: var(--markit-text);
-  border-radius: var(--markit-radius-pill);
+  border-radius: var(--markit-btn-radius);
   min-height: 40px;
   padding: 8px 10px;
   display: inline-flex;
@@ -262,13 +270,14 @@ const deleteAccount = async () => {
 }
 
 .profile-submit {
-  margin-top: 4px;
   min-height: 48px;
   font-weight: 700;
+  width: 100%;
 }
 
 .profile-delete {
   min-height: 46px;
   font-weight: 700;
+  width: 100%;
 }
 </style>

@@ -186,7 +186,7 @@ function submitForm() {
 
 .type-chip {
   --color: var(--markit-text);
-  --border-radius: 999px;
+  --border-radius: var(--markit-btn-radius);
   --padding-start: 14px;
   --padding-end: 14px;
   min-width: 74px;
@@ -196,7 +196,7 @@ function submitForm() {
 }
 
 .type-chip::part(native) {
-  border-radius: 999px !important;
+  border-radius: var(--markit-btn-radius) !important;
   border: 1px solid var(--markit-glass-border);
   background: var(--markit-glass-surface-strong);
   box-shadow: inset 0 1px 0 var(--markit-glass-highlight);

@@ -1,47 +1,52 @@
 <template>
   <div
-    class="bottom-filter-bar fixed bottom-4 left-0 right-0 z-50 flex items-center gap-3
-          px-4 py-3 justify-around shadow-lg rounded-full mx-auto w-[65%] iced"
+    class="bottom-filter-bar"
   >
 
 <button
-  class="flex items-center gap-2 text-[13px] relative"
+  class="footer-action relative"
   @click="$emit('open','sort')"
 >
-  <IonIcon :icon="funnelOutline" class="text-[14px]" />
-  Sort
+  <span class="footer-icon-wrap">
+    <IonIcon :icon="funnelOutline" class="footer-icon" />
+  </span>
+  <span class="footer-label">Sort</span>
   <span v-if="props.sortCount > 0"
-        class="absolute -top-1.5 -right-4 bg-[#097D4C] text-white text-[10px] px-1 py-0.25 rounded-full">
+        class="action-badge">
     {{ props.sortCount }}
   </span>
 </button>
 
 
-    <div class="w-px h-5 bg-gray-300"></div>
+    <div class="footer-divider"></div>
 
 <button
-  class="flex items-center gap-2 text-[13px] relative"
+  class="footer-action relative"
   @click="$emit('open','category')"
 >
-  <IonIcon :icon="gridOutline" class="text-[14px]" />
-  Filter
+  <span class="footer-icon-wrap">
+    <IonIcon :icon="gridOutline" class="footer-icon" />
+  </span>
+  <span class="footer-label">Filter</span>
   <span v-if="props.categoryCount > 0"
-        class="absolute -top-1.5 -right-4 bg-[#097D4C] text-white text-[10px] px-1 py-0.25 rounded-full">
+        class="action-badge">
     {{ props.categoryCount }}
   </span>
 </button>
 
 
-    <div class="w-px h-5 bg-gray-300"></div>
+    <div class="footer-divider"></div>
 
 <button
-  class="flex items-center gap-2 text-[13px] relative"
+  class="footer-action relative"
   @click="$emit('open','size')"
 >
-  <IonIcon :icon="resizeOutline" class="text-[14px]" />
-  Size
+  <span class="footer-icon-wrap">
+    <IonIcon :icon="resizeOutline" class="footer-icon" />
+  </span>
+  <span class="footer-label">Size</span>
   <span v-if="props.sizeCount > 0"
-        class="absolute -top-1.5 -right-4 bg-[#097D4C] text-white text-[10px] px-1 py-0.25 rounded-full">
+        class="action-badge">
     {{ props.sizeCount }}
   </span>
 </button>
@@ -77,13 +82,67 @@ import {
 </script>
 
 <style scoped>
-.iced {
+.bottom-filter-bar {
+  width: 100%;
+  display: grid;
+  grid-template-columns: 1fr auto 1fr auto 1fr;
+  align-items: center;
+  justify-items: center;
+  gap: 0;
+  min-height: 64px;
+  padding: 8px 12px calc(var(--markit-bottom-inset) + 8px);
+  border-top: 1px solid var(--markit-border);
   background: var(--markit-glass-surface);
-  backdrop-filter: blur(20px) saturate(145%);
-  -webkit-backdrop-filter: blur(20px) saturate(145%);
+  backdrop-filter: blur(var(--markit-glass-blur)) saturate(var(--markit-glass-saturation));
+  -webkit-backdrop-filter: blur(var(--markit-glass-blur)) saturate(var(--markit-glass-saturation));
 }
 
-.bottom-filter-bar {
-  bottom: var(--markit-bottom-inset);
+.footer-action {
+  display: inline-flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  gap: 3px;
+  min-width: 72px;
+  color: var(--markit-text);
+}
+
+.footer-icon-wrap {
+  position: relative;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+}
+
+.footer-icon {
+  width: 24px;
+  height: 24px;
+}
+
+.footer-label {
+  font-size: 12px;
+  font-weight: 600;
+}
+
+.action-badge {
+  position: absolute;
+  top: -2px;
+  right: 10px;
+  min-width: 16px;
+  height: 16px;
+  padding: 0 4px;
+  border-radius: 999px;
+  background: #097d4c;
+  color: #fff;
+  font-size: 10px;
+  font-weight: 700;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+}
+
+.footer-divider {
+  height: 20px;
+  background: var(--markit-border-strong);
 }
 </style>

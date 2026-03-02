@@ -126,7 +126,7 @@ const editAddress = (id: string) => {
   text-align: center;
   background: var(--ion-color-primary);
   color: var(--ion-color-primary-contrast);
-  border-radius: 999px;
+  border-radius: var(--markit-btn-radius);
   padding: 14px 16px;
   font-size: 1.12rem;
   line-height: 1.2;
@@ -176,7 +176,7 @@ const editAddress = (id: string) => {
   border: 1px solid color-mix(in srgb, var(--ion-color-primary) 30%, var(--markit-border));
   background: color-mix(in srgb, var(--ion-color-primary) 12%, #ffffff);
   color: var(--ion-color-primary);
-  border-radius: 999px;
+  border-radius: var(--markit-btn-radius);
   padding: 8px 14px;
   font-size: 0.9rem;
   font-weight: 700;

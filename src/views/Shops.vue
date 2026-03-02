@@ -87,7 +87,7 @@
           <ShopCardSkeleton v-for="n in 4" :key="n" />
         </div>
 
-        <div v-else class="mb-24 shop-list">
+        <div v-else class="shop-list">
           <div v-for="(shop, index) in shopsList" :key="shop.id" class="shop-item"
             :style="{ animationDelay: `${Math.min(index * 70, 420)}ms` }">
             <ShopCard :shop="shop"
@@ -492,8 +492,8 @@ const headerStyle = computed(() => ({}))
   background: var(--markit-glass-surface);
   border-bottom: none;
   box-shadow: inset 0 1px 0 var(--markit-glass-highlight), 0 8px 18px rgba(20, 34, 28, 0.08);
-  backdrop-filter: blur(18px) saturate(145%);
-  -webkit-backdrop-filter: blur(18px) saturate(145%);
+  backdrop-filter: blur(var(--markit-glass-blur)) saturate(var(--markit-glass-saturation));
+  -webkit-backdrop-filter: blur(var(--markit-glass-blur)) saturate(var(--markit-glass-saturation));
 }
 
 .fixed-search {
@@ -575,7 +575,7 @@ const headerStyle = computed(() => ({}))
 }
 
 .hero-cta {
-  --border-radius: var(--markit-radius-lg);
+  --border-radius: var(--markit-btn-radius);
   --padding-start: 24px;
   --padding-end: 24px;
   --padding-top: 10px;
@@ -616,7 +616,7 @@ const headerStyle = computed(() => ({}))
 .content-wrap {
   position: relative;
   z-index: 1;
-  padding-top: 14px;
+  padding-top: 6px;
   padding-bottom: calc(88px + var(--markit-bottom-inset));
   max-width: 980px;
   margin: 0 auto;
@@ -627,7 +627,7 @@ const headerStyle = computed(() => ({}))
 }
 
 .gender-btn {
-  --border-radius: var(--markit-radius-lg);
+  --border-radius: var(--markit-btn-radius);
   --padding-top: 10px;
   --padding-bottom: 10px;
   --background: var(--markit-glass-surface-strong);

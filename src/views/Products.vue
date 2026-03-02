@@ -4,7 +4,7 @@
       <Topbar @search="onSearch" :name="companyName" />
     </ion-header>
 
-    <ion-content :fullscreen="true" color="light">
+    <ion-content :fullscreen="true" color="light" class="products-content">
       <div class="px-4 py-2">
 
         <!-- Skeleton -->
@@ -26,21 +26,22 @@
           />
         </ul>
 
-        <!-- Bottom Bar -->
-        <BottomFilterBar
-          @open="openFilterModal"
-          :categoryCount="selectedCategory.length + selectedBrand.length"
-          :sizeCount="selectedSize.length"
-          :sortCount="selectedSort ? 1 : 0"
-        />
-
       </div>
     </ion-content>
+
+    <ion-footer class="ion-no-border products-filter-footer">
+      <BottomFilterBar
+        @open="openFilterModal"
+        :categoryCount="selectedCategory.length + selectedBrand.length"
+        :sizeCount="selectedSize.length"
+        :sortCount="selectedSort ? 1 : 0"
+      />
+    </ion-footer>
   </ion-page>
 </template>
 
 <script setup lang="ts">
-import { IonPage, IonHeader, IonContent } from "@ionic/vue";
+import { IonPage, IonHeader, IonContent, IonFooter } from "@ionic/vue";
 import { ref, computed } from "vue";
 import { onIonViewWillEnter } from "@ionic/vue";
 import { useIonRouter } from "@ionic/vue";
@@ -319,5 +320,15 @@ function handleImageError(id: string) {
 <style scoped>
 .products-header {
   background: transparent !important;
+}
+
+.products-content {
+  --padding-bottom: calc(88px + var(--markit-bottom-inset));
+}
+
+.products-filter-footer {
+  --background: transparent;
+  background: transparent;
+  box-shadow: none;
 }
 </style>

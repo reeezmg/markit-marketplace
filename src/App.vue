@@ -1,6 +1,23 @@
 <template>
   <ion-app class="app-container">
     <ion-router-outlet />
+
+    <Transition name="netflix-splash">
+      <div v-if="showLaunchSplash" class="netflix-splash" aria-label="App launch splash">
+        <video
+          ref="splashVideoRef"
+          class="splash-video"
+          autoplay
+          muted
+          playsinline
+          preload="auto"
+          @ended="hideSplash"
+          @error="hideSplash"
+        >
+          <source :src="splashVideo" type="video/mp4" />
+        </video>
+      </div>
+    </Transition>
   </ion-app>
 </template>
 
@@ -32,6 +49,73 @@
   overflow: hidden;
 }
 
+.netflix-splash {
+  position: absolute;
+  inset: 0;
+  z-index: 9999;
+  background: #000;
+}
+
+.splash-video {
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
+}
+
+.netflix-splash-enter-active,
+.netflix-splash-leave-active {
+  transition: opacity 420ms ease;
+}
+
+.netflix-splash-enter-from,
+.netflix-splash-leave-to {
+  opacity: 0;
+}
+
+@keyframes splashLeft {
+  0% {
+    transform: scaleY(0);
+    opacity: 0;
+  }
+  100% {
+    transform: scaleY(1);
+    opacity: 1;
+  }
+}
+
+@keyframes splashCenter {
+  0% {
+    transform: skewX(-21deg) scaleY(0);
+    opacity: 0;
+  }
+  100% {
+    transform: skewX(-21deg) scaleY(1);
+    opacity: 1;
+  }
+}
+
+@keyframes splashRight {
+  0% {
+    transform: scaleY(0);
+    opacity: 0;
+  }
+  100% {
+    transform: scaleY(1);
+    opacity: 1;
+  }
+}
+
+@keyframes splashBrand {
+  0% {
+    opacity: 0;
+    transform: translateY(8px);
+  }
+  100% {
+    opacity: 1;
+    transform: translateY(0);
+  }
+}
+
 ion-modal {
   --max-width: 460px;
   --border-radius: 24px;
@@ -42,7 +126,7 @@ ion-modal {
 
 <script setup lang="ts">
 import { IonApp, IonRouterOutlet } from '@ionic/vue'
-import { onUnmounted, ref } from 'vue'
+import { nextTick, onMounted, onUnmounted, ref } from 'vue'
 import { onIonViewWillEnter } from '@ionic/vue'
 import { Preferences } from '@capacitor/preferences'
 import socket from '@/services/socket'
@@ -51,6 +135,7 @@ import { useTryHistoryStore } from '@/store/useTryHistoryStore'
 import { useProfileStore } from './store/useProfileStore'
 import { useNearbyStore } from './store/useNearbyStore'
 import { useCartStore } from './store/useCartStore'
+import splashVideo from '@/assets/splash.mp4'
 
 // store instance
 const packStore = usePackStore()
@@ -62,6 +147,31 @@ const cartStore = useCartStore()
 const token = ref<string | null>(null)
 const client = ref<Record<string, any> | null>(null)
 const profileStore = useProfileStore()
+const showLaunchSplash = ref(true)
+const splashVideoRef = ref<HTMLVideoElement | null>(null)
+
+onMounted(() => {
+  const fallbackTimer = window.setTimeout(() => {
+    hideSplash()
+  }, 5000)
+
+  nextTick(async () => {
+    try {
+      await splashVideoRef.value?.play()
+    } catch {
+      hideSplash()
+    } finally {
+      if (!showLaunchSplash.value) {
+        window.clearTimeout(fallbackTimer)
+      }
+    }
+  })
+})
+
+function hideSplash() {
+  if (!showLaunchSplash.value) return
+  showLaunchSplash.value = false
+}
 
 onIonViewWillEnter(async () => {
   await profileStore.loadFromStorage()

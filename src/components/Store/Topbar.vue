@@ -171,15 +171,15 @@ function goBack() {
 
 /* ----- Inner glass card – exact match of wishlist/cart ----- */
 .topbar-inner {
-  padding: 10px 14px;
+  padding: var(--markit-shell-padding-block) var(--markit-shell-padding-inline);
   margin: 0 12px;
   /* consistent with all other pages */
-  border-radius: 14px;
+  border-radius: var(--markit-shell-radius);
   /* was var(--markit-radius-xl) – now fixed 14px */
   border: 1px solid var(--markit-glass-border);
   background: var(--markit-glass-surface);
-  backdrop-filter: blur(20px) saturate(145%);
-  -webkit-backdrop-filter: blur(20px) saturate(145%);
+  backdrop-filter: blur(var(--markit-glass-blur)) saturate(var(--markit-glass-saturation));
+  -webkit-backdrop-filter: blur(var(--markit-glass-blur)) saturate(var(--markit-glass-saturation));
   box-shadow: inset 0 1px 0 var(--markit-glass-highlight),
     var(--markit-glass-shadow);
   transition: border-color 0.2s ease, box-shadow 0.2s ease;
@@ -226,10 +226,10 @@ function goBack() {
 }
 
 .topbar-icon-btn {
-  width: 34px;
+  width: var(--markit-icon-btn-size);
   /* was 32px – now 34px */
-  height: 34px;
-  border-radius: 11px;
+  height: var(--markit-icon-btn-size);
+  border-radius: var(--markit-icon-btn-radius);
   /* was 12px – now 11px */
   border: 1px solid var(--markit-glass-border);
   background: var(--markit-glass-surface-strong);
@@ -350,15 +350,15 @@ function goBack() {
   display: flex;
   align-items: center;
   width: 100%;
-  min-height: 44px;
+  min-height: var(--markit-search-height);
   /* was 46px – now 44px */
   padding: 0 14px;
-  border-radius: 12px;
+  border-radius: var(--markit-search-radius);
   /* was 14px – now 12px */
   border: 1px solid var(--markit-glass-border);
   background: var(--markit-glass-surface-strong);
-  backdrop-filter: blur(18px) saturate(145%);
-  -webkit-backdrop-filter: blur(18px) saturate(145%);
+  backdrop-filter: blur(var(--markit-glass-blur)) saturate(var(--markit-glass-saturation));
+  -webkit-backdrop-filter: blur(var(--markit-glass-blur)) saturate(var(--markit-glass-saturation));
   box-shadow: inset 0 1px 0 var(--markit-glass-highlight),
     var(--markit-glass-shadow);
   transition: border-color 0.2s ease, box-shadow 0.2s ease;
