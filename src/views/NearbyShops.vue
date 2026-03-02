@@ -62,7 +62,7 @@
             @click="() => router.push({ name: 'shop', params: { companyId: shop.id, companyName: shop.name } })" />
           <div v-if="!filteredShops.length" class="text-center py-8">
             <div class="text-gray-500 mb-4">
-              “Store not found”
+              “No store's at this location”
             </div>
           </div>
         </div>
