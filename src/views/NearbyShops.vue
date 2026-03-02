@@ -62,13 +62,8 @@
             @click="() => router.push({ name: 'shop', params: { companyId: shop.id, companyName: shop.name } })" />
           <div v-if="!filteredShops.length" class="text-center py-8">
             <div class="text-gray-500 mb-4">
-              “We’re not offering this service in your location at the moment.”
+              “Store not found”
             </div>
-            <ion-button shape="round" color="primary"
-              @click="() => router.push({ name: 'account-address-add', params: { redirect: 'nearby' } })"
-              class="modal-btn">
-              Add New Address
-            </ion-button>
           </div>
         </div>
       </div>
