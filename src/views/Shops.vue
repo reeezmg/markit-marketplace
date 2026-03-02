@@ -208,6 +208,7 @@ watch(
 )
 const slideDirection = ref<'left' | 'right'>('left')
 const viewEnterStartedAt = ref(0)
+const isLocationAlertOpen = ref(false)
 const openKnowMoreModal = () => {
   isKnowMoreModalOpen.value = true
 }
@@ -249,12 +250,64 @@ const waitForInitialVideoWindow = async () => {
   await new Promise((resolve) => setTimeout(resolve, minDelay - elapsed))
 }
 
-const showLocationPermissionAlert = async () => {
-  await waitForInitialVideoWindow()
-  const alert = await alertController.create({
-    cssClass: 'markit-glass-alert',
+const getLocationErrorDetails = (error: any) => {
+  if (typeof error === 'string' && error.toLowerCase().includes('not supported')) {
+    return {
+      header: 'Location Not Supported',
+      message: 'Your device/browser does not support location. Please add location manually.',
+    }
+  }
+
+  if (error && typeof error === 'object' && 'code' in error) {
+    switch (error.code) {
+      case 1:
+        return {
+          header: 'Location Permission Blocked',
+          message: 'Location access is blocked. Enable location permission in browser/app settings or add location manually.',
+        }
+      case 2:
+        return {
+          header: 'Location Unavailable',
+          message: 'We could not detect your location right now. Turn on GPS and try again.',
+        }
+      case 3:
+        return {
+          header: 'Location Request Timed Out',
+          message: 'Location took too long to respond. Please retry or add location manually.',
+        }
+      default:
+        break
+    }
+  }
+
+  return {
     header: 'Location Required',
     message: 'Turn on location to find nearby shops, or add your location manually.',
+  }
+}
+
+const showLocationFailureToast = async (error: any) => {
+  const details = getLocationErrorDetails(error)
+  const toast = await toastController.create({
+    header: details.header,
+    message: details.message,
+    icon: alertCircleOutline,
+    duration: 2200,
+    position: 'bottom',
+    color: 'warning',
+  })
+  await toast.present()
+}
+
+const showLocationPermissionAlert = async (error?: any) => {
+  if (isLocationAlertOpen.value) return
+  await waitForInitialVideoWindow()
+  isLocationAlertOpen.value = true
+  const details = getLocationErrorDetails(error)
+  const alert = await alertController.create({
+    cssClass: 'markit-glass-alert',
+    header: details.header,
+    message: details.message,
     backdropDismiss: false,
     buttons: [
       {
@@ -273,14 +326,20 @@ const showLocationPermissionAlert = async () => {
             await refreshCurrentLocationAndPersist()
             loading.value = true
             await loadShopsByLocation(location.value.lat, location.value.lng)
+            return true
           } catch (error) {
-            await showLocationPermissionAlert()
+            console.error('Location refresh failed:', error)
+            await showLocationFailureToast(error)
+            return false
           }
         }
       }
     ]
   })
 
+  alert.onDidDismiss().then(() => {
+    isLocationAlertOpen.value = false
+  })
   await alert.present()
 }
 
@@ -361,9 +420,9 @@ onIonViewWillEnter(async () => {
       try {
         await refreshCurrentLocationAndPersist()
       } catch (e) {
-        console.error('Location access denied', e)
+        console.error('Location fetch failed', e)
         loading.value = false
-        await showLocationPermissionAlert()
+        await showLocationPermissionAlert(e)
         return
       }
     } else {
@@ -391,9 +450,9 @@ onIonViewWillEnter(async () => {
       try {
         await refreshCurrentLocationAndPersist()
       } catch (e) {
-        console.error('Location access denied', e)
+        console.error('Location fetch failed', e)
         loading.value = false
-        await showLocationPermissionAlert()
+        await showLocationPermissionAlert(e)
         return
       }
     }
@@ -442,7 +501,8 @@ const onLocationChange = async (newLocation: any) => {
 const getCurrentLocation = (): Promise<{ lat: number; lng: number }> => {
   return new Promise((resolve, reject) => {
     if (!navigator.geolocation) {
-      reject('Geolocation not supported')
+      reject(new Error('Geolocation not supported'))
+      return
     }
 
     navigator.geolocation.getCurrentPosition(
