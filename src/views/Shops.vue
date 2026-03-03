@@ -17,7 +17,8 @@
             </div> -->
               <div class="grid grid-cols-4 gap-2 w-full px-4 pb-3">
                 <ion-button v-for="(btn, i) in categoryButtons" :key="i" size="small" expand="block" class="gender-btn"
-                  :fill="activeCategory === i ? 'solid' : 'outline'" @click="activeCategory = i">
+                  :fill="activeCategory === i ? 'solid' : 'outline'"   @click="activeCategory = activeCategory === i ? null : i"
+>
                   {{ btn }}
                 </ion-button>
               </div>
@@ -68,7 +69,8 @@
           :class="hideGender ? 'opacity-0 -translate-y-3 pointer-events-none' : 'opacity-100'">
           <div class="grid grid-cols-4 gap-2 w-full my-4">
             <ion-button v-for="(btn, i) in categoryButtons" :key="i" size="small" expand="block" class="gender-btn"
-              :fill="activeCategory === i ? 'solid' : 'outline'" @click="activeCategory = i">
+              :fill="activeCategory === i ? 'solid' : 'outline'"   @click="activeCategory = activeCategory === i ? null : i"
+>
               {{ btn }}
             </ion-button>
           </div>
