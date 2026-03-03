@@ -5,7 +5,7 @@
     </ion-header>
 
     <ion-content :fullscreen="true" color="light" class="products-content">
-      <div class="px-4 py-2">
+      <div class="px-3 py-2">
 
         <!-- Skeleton -->
         <ul v-if="loading && variants.length === 0"
@@ -16,7 +16,7 @@
         </ul>
 
         <!-- Products -->
-        <ul class="grid grid-cols-2 gap-3 mb-10">
+        <ul class="grid grid-cols-2 gap-1 mb-10">
           <VariantCard
             v-for="variant in validVariants"
             :key="variant.id"

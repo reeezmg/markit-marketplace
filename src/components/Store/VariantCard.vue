@@ -55,7 +55,7 @@
             </div>
           </template>
           <template v-else>
-            <div class="flex items-baseline gap-2">
+            <div class="variant-price-group">
               <div class="variant-price-strike">
                 {{ formatPrice(variant.sprice) }}
               </div>
@@ -274,10 +274,20 @@ const handleSizeSelect = async (
   line-height: 1.2;
   font-weight: 700;
   color: var(--markit-text);
+  white-space: normal;
+  overflow-wrap: anywhere;
+  word-break: break-word;
 }
 
 .variant-price-main--discount {
   color: #2d5444;
+}
+
+.variant-price-group {
+  display: flex;
+  align-items: baseline;
+  flex-wrap: wrap;
+  gap: 4px 8px;
 }
 
 .variant-price-strike {
@@ -285,5 +295,8 @@ const handleSizeSelect = async (
   line-height: 1.2;
   color: var(--markit-text-muted);
   text-decoration: line-through;
+  white-space: normal;
+  overflow-wrap: anywhere;
+  word-break: break-word;
 }
 </style>
