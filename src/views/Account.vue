@@ -72,6 +72,11 @@
             <ion-icon :icon="chevronForwardOutline" class="account-row-arrow" />
           </button>
 
+          <button class="account-row" @click="navigate('marketplace-declaration')" type="button">
+            <span class="account-row-label">Marketplace Declaration</span>
+            <ion-icon :icon="chevronForwardOutline" class="account-row-arrow" />
+          </button>
+
           <button class="account-row" @click="navigate('about-us')" type="button">
             <span class="account-row-label">About Us</span>
             <ion-icon :icon="chevronForwardOutline" class="account-row-arrow" />
@@ -155,6 +160,7 @@ const navigate = (route: string) => {
     'address/account': { name: 'account-address', params: { redirect: 'account' } },
     'privacy-policy': { name: 'account-privacy-policy' },
     'terms-of-use': { name: 'account-terms-of-use' },
+    'marketplace-declaration': { name: 'account-marketplace-declaration' },
     'about-us': { name: 'account-about-us' },
     'contact-us': { name: 'account-contact-us' },
     profile: { name: 'account-profile' },

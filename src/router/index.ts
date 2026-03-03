@@ -20,6 +20,7 @@ import PrivacyPolicy from '@/views/PrivacyPolicy.vue'
 import TermsOfUse from '@/views/TermsOfUse.vue'
 import AboutUs from '@/views/AboutUs.vue'
 import ContactUs from '@/views/ContactUs.vue'
+import MarketplaceDeclaration from '@/views/MarketplaceDeclaration.vue'
 import OrderTryPack from '@/views/OrderTryPack.vue'
 import KnowMore from '@/components/KnowMore.vue'
 import NearbyShops from '@/views/NearbyShops.vue'
@@ -143,6 +144,12 @@ const routes: Array<RouteRecordRaw> = [
     path: '/account/contact-us',
     name: 'account-contact-us',
     component: ContactUs,
+    meta: { requiresAuth: false }
+  },
+  {
+    path: '/account/marketplace-declaration',
+    name: 'account-marketplace-declaration',
+    component: MarketplaceDeclaration,
     meta: { requiresAuth: false }
   },
   {
