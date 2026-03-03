@@ -18,6 +18,7 @@ import OrderHistory from '@/views/OrderHistory.vue'
 import OrderTryDetails from '@/views/OrderTryDetails.vue'
 import PrivacyPolicy from '@/views/PrivacyPolicy.vue'
 import TermsOfUse from '@/views/TermsOfUse.vue'
+import AboutUs from '@/views/AboutUs.vue'
 import OrderTryPack from '@/views/OrderTryPack.vue'
 import KnowMore from '@/components/KnowMore.vue'
 import NearbyShops from '@/views/NearbyShops.vue'
@@ -129,6 +130,12 @@ const routes: Array<RouteRecordRaw> = [
     path: '/account/terms-of-use',
     name: 'account-terms-of-use',
     component: TermsOfUse,
+    meta: { requiresAuth: false }
+  },
+  {
+    path: '/account/about-us',
+    name: 'account-about-us',
+    component: AboutUs,
     meta: { requiresAuth: false }
   },
   {

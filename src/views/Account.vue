@@ -72,6 +72,11 @@
             <ion-icon :icon="chevronForwardOutline" class="account-row-arrow" />
           </button>
 
+          <button class="account-row" @click="navigate('about-us')" type="button">
+            <span class="account-row-label">About Us</span>
+            <ion-icon :icon="chevronForwardOutline" class="account-row-arrow" />
+          </button>
+
           <button class="account-row" @click="openWhatsApp" type="button">
             <span class="account-row-label">Contact Us</span>
             <ion-icon :icon="chevronForwardOutline" class="account-row-arrow" />
@@ -150,6 +155,7 @@ const navigate = (route: string) => {
     'address/account': { name: 'account-address', params: { redirect: 'account' } },
     'privacy-policy': { name: 'account-privacy-policy' },
     'terms-of-use': { name: 'account-terms-of-use' },
+    'about-us': { name: 'account-about-us' },
     profile: { name: 'account-profile' },
   }
 
