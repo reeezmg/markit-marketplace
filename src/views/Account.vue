@@ -77,7 +77,7 @@
             <ion-icon :icon="chevronForwardOutline" class="account-row-arrow" />
           </button>
 
-          <button class="account-row" @click="openWhatsApp" type="button">
+          <button class="account-row" @click="navigate('contact-us')" type="button">
             <span class="account-row-label">Contact Us</span>
             <ion-icon :icon="chevronForwardOutline" class="account-row-arrow" />
           </button>
@@ -156,16 +156,11 @@ const navigate = (route: string) => {
     'privacy-policy': { name: 'account-privacy-policy' },
     'terms-of-use': { name: 'account-terms-of-use' },
     'about-us': { name: 'account-about-us' },
+    'contact-us': { name: 'account-contact-us' },
     profile: { name: 'account-profile' },
   }
 
   router.push(accountRouteMap[route] ?? `/account/${route}`)
-}
-
-const openWhatsApp = () => {
-  const phone = '9538340789'
-  const message = encodeURIComponent('Hello, I need help')
-  window.open(`https://wa.me/91${phone}?text=${message}`, '_blank')
 }
 
 const logoutUser = async () => {
