@@ -522,12 +522,18 @@ function onSearch(value: string) {
   searchTerm.value = (value || '').toLowerCase().trim()
 }
 
+const hasShopImage = (shop: any) => {
+  return !!String(shop?.logo || '').trim()
+}
+
 const filteredShops = computed(() => {
   // For now , filter on FE for search, Backend api is available but not integrated yet
   const q = searchTerm.value.toLowerCase().trim()
   const genderCategory = selectedCategory.value?.toLowerCase()
 
   return shops.value.filter((shop) => {
+    if (!hasShopImage(shop)) return false
+
     // ---- Search (FE) ----
     const name = (shop.name || '').toLowerCase()
     const matchesSearch = q ? name.includes(q) : true
@@ -563,7 +569,9 @@ async function fetchShopsBySubCategory() {
     })
 
     console.log('SUB CATEGORY RESULT:', res.data)
-    filteredBySubcategoryShops.value = res.data
+    filteredBySubcategoryShops.value = Array.isArray(res.data)
+      ? res.data.filter((shop: any) => hasShopImage(shop))
+      : []
   } catch (err) {
     console.error('Failed to fetch shops by sub category', err)
   }
@@ -575,7 +583,8 @@ watch(subCategoryFilter, (newVal) => {
 })
 
 shopsList = computed(() => {
-  return subCategoryFilter?.value ? filteredBySubcategoryShops.value : filteredShops.value;
+  const list = subCategoryFilter?.value ? filteredBySubcategoryShops.value : filteredShops.value
+  return Array.isArray(list) ? list.filter((shop: any) => hasShopImage(shop)) : []
 });
 
 console.log(shopsList, 'filtered after subc');
