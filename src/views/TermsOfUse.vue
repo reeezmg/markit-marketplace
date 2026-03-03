@@ -9,7 +9,7 @@
         <h1 class="text-2xl font-bold">TERMS OF USE</h1>
         <p class="text-lg font-semibold mt-2">MARKIT</p>
         <p class="text-sm font-medium mt-1">
-          Operated by Flobit Technologies Private Limited
+          Operated by FLOBIT TECHNOLOGIES PRIVATE LIMITED
         </p>
         <p class="text-sm text-gray-600 mt-3">
           Effective Date – September 17, 2025
@@ -30,7 +30,7 @@
           <div slot="content" class="px-4 pb-5 text-sm leading-relaxed text-gray-700">
             <p>
               Welcome to <strong>Markit</strong>, a try-first fashion platform
-              operated by <strong>Flobit Technologies Private Limited</strong>,
+              operated by <strong>FLOBIT TECHNOLOGIES PRIVATE LIMITED</strong>,
               a company incorporated under the laws of India, having its
               registered office at 2nd Floor, K-Tech Innovation Hub, Plama Center, Bejai – Kapikad Road, Mangaluru, Karnataka – 575004
               (“Flobit”, “we”, “us”, “our”).
@@ -237,7 +237,7 @@
           </ion-item>
           <div slot="content" class="px-4 pb-5 text-sm leading-relaxed text-gray-700">
             <p>
-              Flobit Technologies Private Limited shall not be liable for indirect,
+              FLOBIT TECHNOLOGIES PRIVATE LIMITED shall not be liable for indirect,
               incidental, or consequential damages.
             </p>
             <p class="mt-2">
@@ -268,7 +268,7 @@
             <ion-label class="font-semibold">Contact Us</ion-label>
           </ion-item>
           <div slot="content" class="px-4 pb-5 text-sm leading-relaxed text-gray-700">
-            <p><strong>Flobit Technologies Private Limited</strong></p>
+            <p><strong>FLOBIT TECHNOLOGIES PRIVATE LIMITED</strong></p>
             <p class="mt-1">
               2nd Floor, K-Tech Innovation Hub, Plama Center,<br />
               Bejai – Kapikad Road,<br />
@@ -282,7 +282,7 @@
       </ion-accordion-group>
 
       <p class="text-center text-xs text-gray-400 mt-6 mb-4">
-        © 2025 Flobit Technologies Private Limited. All rights reserved.
+        © 2025 FLOBIT TECHNOLOGIES PRIVATE LIMITED. All rights reserved.
       </p>
     </ion-content>
   </ion-page>
@@ -358,3 +358,4 @@ import Topbar from '@/components/Topbar.vue'
   box-shadow: none !important;
 }
 </style>
+

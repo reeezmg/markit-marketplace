@@ -5,7 +5,7 @@
     <ion-content :fullscreen="true" class="ion-padding contact-page">
       <section class="contact-hero glass-card">
         <p class="kicker">LEGAL ENTITY</p>
-        <h1 class="company">Flobit Technologies Private Limited</h1>
+        <h1 class="company">FLOBIT TECHNOLOGIES PRIVATE LIMITED</h1>
         <p class="helper">Reach out anytime. Tap any option below to connect directly.</p>
       </section>
 
@@ -111,3 +111,4 @@ import Topbar from '@/components/Topbar.vue'
   color: #2d5444;
 }
 </style>
+

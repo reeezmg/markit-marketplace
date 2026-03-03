@@ -11,7 +11,7 @@
       <section class="declaration-card glass-card">
         <h2>1. Introduction</h2>
         <p>
-          Welcome to store.markit.co.in, a digital marketplace operated by Flobit Technologies Private Limited.
+          Welcome to store.markit.co.in, a digital marketplace operated by FLOBIT TECHNOLOGIES PRIVATE LIMITED.
           Markit enables seamless interaction between buyers and sellers for purchasing products with delivery and
           try-at-home services.
         </p>
@@ -24,7 +24,7 @@
       <section class="declaration-card glass-card">
         <h2>2. Definitions</h2>
         <ul>
-          <li><strong>Marketplace:</strong> The online platform operated by Flobit Technologies Private Limited under the brand Markit.</li>
+          <li><strong>Marketplace:</strong> The online platform operated by FLOBIT TECHNOLOGIES PRIVATE LIMITED under the brand Markit.</li>
           <li><strong>User:</strong> Any individual or entity registered on the platform, including buyers and sellers.</li>
           <li><strong>Buyer:</strong> A user who purchases or books products via the platform.</li>
           <li><strong>Seller:</strong> A business or individual listing products for sale on the platform.</li>
@@ -157,7 +157,7 @@
 
       <section class="declaration-card glass-card">
         <h2>13. Contact Information</h2>
-        <p><strong>Flobit Technologies Private Limited</strong></p>
+        <p><strong>FLOBIT TECHNOLOGIES PRIVATE LIMITED</strong></p>
         <p><a href="https://store.markit.co.in" target="_blank" rel="noopener noreferrer">https://store.markit.co.in</a></p>
         <p><a href="mailto:support@markit.co.in">support@markit.co.in</a></p>
         <p><a href="tel:+919538340789">+91 9538340789</a></p>
@@ -202,6 +202,7 @@ import Topbar from '@/components/Topbar.vue'
 .declaration-card {
   border-radius: 16px;
   padding: 14px;
+  margin:  5px 0;
 }
 
 .declaration-card h2 {
@@ -236,3 +237,4 @@ import Topbar from '@/components/Topbar.vue'
   text-decoration: none;
 }
 </style>
+

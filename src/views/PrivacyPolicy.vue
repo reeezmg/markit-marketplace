@@ -21,7 +21,7 @@
           <div slot="content" class="accordion-content">
             <p>
               Thank you for choosing <strong>Markit</strong>, a fashion platform
-              operated by <strong>Flobit Technologies Private Limited</strong>
+              operated by <strong>FLOBIT TECHNOLOGIES PRIVATE LIMITED</strong>
               (“Flobit”, “we”, “us”, “our”).
             </p>
             <p>
@@ -265,3 +265,4 @@ ion-label {
   box-shadow: none !important;
 }
 </style>
+

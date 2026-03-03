@@ -58,7 +58,7 @@
 
       <section class="company glass-card">
         <p class="company-kicker">OPERATED BY</p>
-        <h2 class="company-name">Flobit Technologies Private Limited</h2>
+        <h2 class="company-name">FLOBIT TECHNOLOGIES PRIVATE LIMITED</h2>
         <p class="company-address">
           2nd Floor, K-tech Innovation Hub, Plama Center,
           Bejai - Kapikad Road, Mangaluru, Karnataka - 575004
@@ -236,3 +236,4 @@ import Topbar from '@/components/Topbar.vue'
   }
 }
 </style>
+
