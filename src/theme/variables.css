@@ -472,3 +472,35 @@ ion-alert.markit-glass-alert button.alert-button.markit-alert-enable-btn {
   color: #ffffff !important;
   background: var(--ion-color-primary);
 }
+
+/* Mobile-first typography normalization */
+html {
+  -webkit-text-size-adjust: 100%;
+  text-size-adjust: 100%;
+}
+
+@media (max-width: 768px) {
+  html {
+    font-size: 16px;
+  }
+
+  body,
+  ion-app,
+  ion-content {
+    font-size: 0.96rem;
+    line-height: 1.35;
+  }
+
+  ion-button {
+    font-size: 0.9rem;
+  }
+
+  ion-label,
+  ion-note,
+  ion-text,
+  p,
+  li,
+  small {
+    line-height: 1.35;
+  }
+}

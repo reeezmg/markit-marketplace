@@ -11,19 +11,13 @@
 
           <div class="details-head-actions">
             <button @click="goWishlist" class="details-head-icon-btn" aria-label="Open wishlist">
-              <ion-icon
-                :icon="heartOutline"
-                class="details-head-icon"
-                :style="{ color: '#2d5444' }"
-              ></ion-icon>
+              <ion-icon :icon="heartOutline" class="details-head-icon" :style="{ color: '#2d5444' }"></ion-icon>
             </button>
 
             <button @click="$router.push({ name: 'cart' })" class="relative details-head-icon-btn">
               <ion-icon :icon="cartOutline" class="details-head-icon"></ion-icon>
-              <ion-badge
-                v-if="totalCartCount > 0"
-                class="absolute -top-1 -right-2 rounded-full p-[1px] bg-danger w-[18px] h-[18px] text-xs"
-              >
+              <ion-badge v-if="totalCartCount > 0"
+                class="absolute -top-1 -right-2 rounded-full p-[1px] bg-danger w-[18px] h-[18px] text-xs">
                 {{ totalCartCount }}
               </ion-badge>
             </button>
@@ -38,19 +32,10 @@
       </div>
 
       <div v-else class="details-body">
-        <swiper
-          :slides-per-view="1"
-          :loop="true"
-          :pagination="{ clickable: true }"
-          class="details-swiper"
-        >
+        <swiper :slides-per-view="1" :loop="true" :pagination="{ clickable: true }" class="details-swiper">
           <swiper-slide v-for="(img, index) in selectedVariant?.images" :key="index">
-            <img
-              :src="`https://images.markit.co.in/${img}`"
-              alt="Product Image"
-              class="w-full h-full object-cover"
-              @click="openImageViewer(index)"
-            />
+            <img :src="`https://images.markit.co.in/${img}`" alt="Product Image" class="w-full h-full object-cover"
+              @click="openImageViewer(index)" />
           </swiper-slide>
         </swiper>
 
@@ -72,40 +57,44 @@
           </div>
         </div>
 
-        <div v-if="selectedVariant?.items?.length" class="mt-6">
+        <div v-if="selectedVariant?.items?.length && hasSelectableSizes" class="mt-6">
           <div class="flex justify-between items-center">
             <div class="details-size-title">Select Sizes</div>
-                </div>
+          </div>
 
           <div class="p-3 details-sizes-card">
             <div class="flex flex-wrap gap-3">
-              <div
-                v-for="item in selectedVariant.items"
-                :key="item.id"
-                class="size-chip-wrap"
-                :class="{ 'size-chip-wrap--oos': item.qty === 0 }"
-              >
-                <ion-button
-                  class="size-chip-btn"
-                  shape="round"
-                  size="small"
+              <div v-for="item in selectableSizeItems" :key="item.id" class="size-chip-wrap"
+                :class="{ 'size-chip-wrap--oos': item.qty === 0 }">
+                <ion-button class="size-chip-btn" shape="round" size="small"
                   :color="selectedSizes.includes(item.size) ? 'primary' : 'medium'"
-                  :fill="selectedSizes.includes(item.size) ? 'solid' : 'outline'"
-                  @click="toggleSize(item.size)"
-                  :disabled="item.qty === 0"
-                >
+                  :fill="selectedSizes.includes(item.size) ? 'solid' : 'outline'" @click="toggleSize(item.size)"
+                  :disabled="item.qty === 0">
                   {{ formatSizeLabel(item.size) }}
                 </ion-button>
               </div>
             </div>
           </div>
         </div>
+
+        <div v-if="relatedLoading || relatedProducts.length" class="mt-8">
+          <div class="details-related-title">You may also like</div>
+
+          <div v-if="relatedLoading" class="details-related-loading">
+            <ion-spinner name="crescent"></ion-spinner>
+          </div>
+
+          <ul v-else class="details-related-grid">
+            <VariantCard v-for="item in relatedProducts" :key="item.id" :variant="item" />
+          </ul>
+        </div>
       </div>
     </ion-content>
 
     <ion-modal :is-open="isImageViewerOpen" @didDismiss="isImageViewerOpen = false" class="full-image-modal">
       <div class="relative w-full h-full bg-black flex items-center justify-center">
-        <button class="absolute top-5 right-5 z-50 backdrop-blur-md p-2 rounded-full" @click="isImageViewerOpen = false">
+        <button class="absolute top-5 right-5 z-50 backdrop-blur-md p-2 rounded-full"
+          @click="isImageViewerOpen = false">
           <ion-icon :icon="closeOutline" class="text-white text-3xl"></ion-icon>
         </button>
 
@@ -124,19 +113,10 @@
           Add to Cart
         </ion-button>
 
-        <ion-button
-          fill="clear"
-          class="details-icon-action-btn wishlist-btn"
-          :class="{ 'heart-burst': heartAnimating }"
-          @click="toggleLike"
-          aria-label="Toggle wishlist"
-        >
-          <ion-icon
-            class="details-wishlist-icon"
-            :class="{ 'heart-pop': heartAnimating }"
-            :icon="isLiked ? heart : heartOutline"
-            :style="{ color: isLiked ? '#ef4444' : '#738092' }"
-          ></ion-icon>
+        <ion-button fill="clear" class="details-icon-action-btn wishlist-btn" :class="{ 'heart-burst': heartAnimating }"
+          @click="toggleLike" aria-label="Toggle wishlist">
+          <ion-icon class="details-wishlist-icon" :class="{ 'heart-pop': heartAnimating }"
+            :icon="isLiked ? heart : heartOutline" :style="{ color: isLiked ? '#ef4444' : '#738092' }"></ion-icon>
         </ion-button>
       </div>
     </ion-footer>
@@ -153,21 +133,24 @@
   position: sticky;
   top: 0;
   z-index: 80;
-  background: transparent !important;   /* was var(--markit-bg) – now transparent */
-  padding: 10px 0 0;                  /* side margins moved to inner shell */
+  background: transparent !important;
+  /* was var(--markit-bg) – now transparent */
+  padding: 10px 0 0;
+  /* side margins moved to inner shell */
 }
 
 /* ----- Inner glass card – exact match of wishlist/cart ----- */
 .details-topbar-shell {
   padding: var(--markit-shell-padding-block) var(--markit-shell-padding-inline);
-  margin: 0 12px;                    /* consistent with all other pages */
+  margin: 0 12px;
+  /* consistent with all other pages */
   border-radius: var(--markit-shell-radius);
   border: 1px solid var(--markit-glass-border);
   background: var(--markit-glass-surface);
   backdrop-filter: blur(var(--markit-glass-blur)) saturate(var(--markit-glass-saturation));
   -webkit-backdrop-filter: blur(var(--markit-glass-blur)) saturate(var(--markit-glass-saturation));
   box-shadow: inset 0 1px 0 var(--markit-glass-highlight),
-              var(--markit-glass-shadow);
+    var(--markit-glass-shadow);
   transition: border-color 0.2s ease, box-shadow 0.2s ease;
 }
 
@@ -175,7 +158,7 @@
 .details-topbar-shell:focus-within {
   border-color: var(--markit-glass-border-hover);
   box-shadow: inset 0 1px 0 var(--markit-glass-highlight),
-              var(--markit-glass-shadow-lg);
+    var(--markit-glass-shadow-lg);
 }
 
 /* ----- Row layout – unchanged structure ----- */
@@ -236,7 +219,8 @@
 .details-head-actions {
   display: flex;
   align-items: center;
-  gap: 6px;                         /* was 12px – now exactly 6px */
+  gap: 6px;
+  /* was 12px – now exactly 6px */
 }
 
 .details-head-icon-btn {
@@ -252,7 +236,8 @@
   align-items: center;
   justify-content: center;
   transition: border-color 0.2s ease, box-shadow 0.2s ease;
-  color: #1f2937;                  /* was #2d5444 – now neutral dark */
+  color: #1f2937;
+  /* was #2d5444 – now neutral dark */
   padding: 0;
   margin: 0;
   cursor: pointer;
@@ -262,7 +247,7 @@
 .details-head-icon-btn:focus-visible {
   border-color: var(--markit-glass-border-hover);
   box-shadow: inset 0 1px 0 var(--markit-glass-highlight),
-              var(--markit-glass-shadow-lg);
+    var(--markit-glass-shadow-lg);
   outline: none;
 }
 
@@ -271,19 +256,18 @@
 }
 
 .details-head-icon {
-  width: 21px;                      /* was 22px – now 21px */
+  width: 21px;
+  /* was 22px – now 21px */
   height: 21px;
-  color: #1f2937;                  /* was #2d5444 – now neutral dark */
+  color: #1f2937;
+  /* was #2d5444 – now neutral dark */
   transition: color 0.2s ease;
 }
 
 /* active state – not used here, but kept for consistency */
 .details-head-icon--active {
   color: var(--ion-color-primary);
-  filter: drop-shadow(
-    0 0 0.35rem
-      color-mix(in srgb, var(--ion-color-primary) 38%, transparent)
-  );
+  filter: drop-shadow(0 0 0.35rem color-mix(in srgb, var(--ion-color-primary) 38%, transparent));
 }
 
 /* ----- RESPONSIVE – matches all other topbars ----- */
@@ -332,6 +316,18 @@
   padding-bottom: calc(100px + var(--markit-bottom-inset));
 }
 
+.details-price-strike {
+  text-decoration: line-through;
+  color: var(--markit-text-muted, #6b7280);
+  font-size: 0.95rem;
+}
+
+.details-price-main {
+  font-size: 1.35rem;
+  font-weight: 700;
+  color: var(--markit-text, #1f2937);
+}
+
 .details-product-title {
   font-size: 1.45rem;
   line-height: 1.25;
@@ -344,6 +340,29 @@
   font-size: 0.84rem;
   line-height: 1.3;
   color: #2d5444;
+}
+
+.details-related-title {
+  font-size: 1.05rem;
+  line-height: 1.3;
+  font-weight: 700;
+  color: var(--markit-text);
+  margin-bottom: 10px;
+}
+
+.details-related-loading {
+  min-height: 84px;
+  display: grid;
+  place-items: center;
+}
+
+.details-related-grid {
+  display: grid;
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+  gap: 8px;
+  list-style: none;
+  margin: 0;
+  padding: 0 0 8px;
 }
 
 .details-swiper {
@@ -503,15 +522,19 @@
   0% {
     transform: scale(1);
   }
+
   25% {
     transform: scale(1.34);
   }
+
   45% {
     transform: scale(0.9);
   }
+
   70% {
     transform: scale(1.12);
   }
+
   100% {
     transform: scale(1);
   }
@@ -522,9 +545,11 @@
     opacity: 0;
     transform: translate(-50%, -50%) scale(0.2);
   }
+
   20% {
     opacity: 1;
   }
+
   100% {
     opacity: 0;
     transform: translate(-50%, -50%) scale(1.12);
@@ -532,6 +557,7 @@
 }
 
 @media (prefers-reduced-motion: reduce) {
+
   .heart-pop,
   .wishlist-btn.heart-burst::after {
     animation: none !important;
@@ -563,6 +589,7 @@ import {
 } from "@ionic/vue";
 import { heartOutline, heart, cartOutline, arrowBackOutline } from "ionicons/icons";
 import Badge from "@/components/Badge.vue";
+import VariantCard from "@/components/Store/VariantCard.vue";
 import "swiper/css";
 import { Swiper, SwiperSlide } from "swiper/vue";
 import { useLikeStore } from "@/store/useLikeStore";
@@ -584,6 +611,11 @@ type Variant = {
   items: Item[];
   companyId: string;
   companyName: string;
+  categoryId?: string;
+  category?: any;
+  categories?: any[];
+  subcategory?: any;
+  subCategory?: any;
 };
 
 const route = useRoute();
@@ -593,13 +625,16 @@ const selectedVariant = ref<Variant | null>(null);
 const product = ref<any>(null);
 const selectedSizes = ref<(string | null)[]>([]);
 const loading = ref(true);
+const relatedLoading = ref(false);
 const heartAnimating = ref(false);
+const relatedProducts = ref<Variant[]>([]);
 
 const likeStore = useLikeStore();
 const cartStore = useCartStore();
 likeStore.loadLikes();
 const isImageViewerOpen = ref(false);
 const startIndex = ref(0);
+const apiUrl = import.meta.env.VITE_API_URL as string;
 
 function openImageViewer(i: number) {
   startIndex.value = i;
@@ -646,23 +681,23 @@ const detailsTitle = computed(() => {
   return color ? `${base} (${color})` : base
 })
 
+const selectableSizeItems = computed(() =>
+  (selectedVariant.value?.items || []).filter((item) => !!item.size)
+)
+
+const hasSelectableSizes = computed(() => selectableSizeItems.value.length > 0)
+
 onIonViewWillEnter(async () => {
-  try {
-    const variantId = route.params.variantId as string;
-    const res = await getVariantById(variantId);
-
-    selectedVariant.value = res.data;
-    product.value = res.data;
-
-    if (selectedVariant?.value?.items.length === 1 && !selectedVariant.value.items[0].size) {
-      selectedSizes.value = [null];
-    }
-  } catch (err) {
-    console.error("Failed to fetch variant", err);
-  } finally {
-    loading.value = false;
-  }
+  await loadVariantDetails(route.params.variantId as string);
 });
+
+watch(
+  () => route.params.variantId,
+  async (variantId, prevId) => {
+    if (!variantId || variantId === prevId) return;
+    await loadVariantDetails(String(variantId));
+  }
+);
 
 watch(selectedVariant, (v) => {
   if (!v) return;
@@ -680,6 +715,137 @@ function formatSizeLabel(size: string | null) {
   if (!size) return 'NO SIZE'
   return String(size).trim().toUpperCase()
 }
+
+const normalizeToken = (value?: string | null) =>
+  String(value || '')
+    .toLowerCase()
+    .replace(/[^a-z0-9]/g, '');
+
+const getVariantCategoryId = (variant: Variant | null): string | null => {
+  if (!variant) return null;
+  const direct = (variant as any)?.categoryId || (variant as any)?.category_id;
+  if (direct) return String(direct);
+  const categoryObjId = (variant as any)?.category?.id || (variant as any)?.subCategory?.id || (variant as any)?.subcategory?.id;
+  if (categoryObjId) return String(categoryObjId);
+  const categories = Array.isArray((variant as any)?.categories) ? (variant as any).categories : [];
+  const first = categories[0];
+  if (first?.id) return String(first.id);
+  return null;
+};
+
+const fetchCompanyVariants = async (companyId: string, categoryId?: string): Promise<Variant[]> => {
+  const params = new URLSearchParams();
+  if (categoryId) params.append('categoryId', categoryId);
+  const query = params.toString() ? `?${params.toString()}` : '';
+
+  const res = await fetch(`${apiUrl}/products/company/${companyId}${query}`);
+  if (!res.ok) return [];
+
+  const reader = res.body?.getReader();
+  if (!reader) {
+    const payload = await res.json().catch(() => []);
+    return Array.isArray(payload) ? payload : [];
+  }
+
+  const decoder = new TextDecoder();
+  let buffer = '';
+  const variants: Variant[] = [];
+
+  while (true) {
+    const { done, value } = await reader.read();
+    if (done) break;
+
+    buffer += decoder.decode(value, { stream: true });
+    const lines = buffer.split('\n');
+    buffer = lines.pop() || '';
+
+    for (const line of lines) {
+      const trimmed = line.trim();
+      if (!trimmed) continue;
+      try {
+        variants.push(JSON.parse(trimmed));
+      } catch {
+        // Ignore malformed stream chunks.
+      }
+    }
+  }
+
+  const final = buffer.trim();
+  if (final) {
+    try {
+      variants.push(JSON.parse(final));
+    } catch {
+      // Ignore malformed final chunk.
+    }
+  }
+
+  return variants;
+};
+
+const isSameCategoryFallback = (base: Variant, candidate: Variant) => {
+  const baseTokens = [
+    normalizeToken((base as any)?.productName),
+    normalizeToken((base as any)?.category?.name),
+    normalizeToken((base as any)?.subCategory?.name),
+    normalizeToken((base as any)?.subcategory?.name),
+  ].filter(Boolean);
+
+  const candidateTokens = [
+    normalizeToken((candidate as any)?.productName),
+    normalizeToken((candidate as any)?.category?.name),
+    normalizeToken((candidate as any)?.subCategory?.name),
+    normalizeToken((candidate as any)?.subcategory?.name),
+  ].filter(Boolean);
+
+  return candidateTokens.some((token) => baseTokens.some((baseToken) => token === baseToken));
+};
+
+const fetchRelatedProducts = async (baseVariant: Variant | null) => {
+  relatedProducts.value = [];
+  if (!baseVariant?.companyId) return;
+
+  relatedLoading.value = true;
+  try {
+    const categoryId = getVariantCategoryId(baseVariant);
+    let variants = await fetchCompanyVariants(baseVariant.companyId, categoryId || undefined);
+
+    if (!categoryId) {
+      variants = variants.filter((variant) => isSameCategoryFallback(baseVariant, variant));
+    }
+
+    relatedProducts.value = variants
+      .filter((variant) => variant.id !== baseVariant.id)
+      .filter((variant) => Array.isArray(variant.images) && variant.images.length > 0)
+      .slice(0, 12);
+  } catch (error) {
+    console.error('Failed to fetch related products', error);
+    relatedProducts.value = [];
+  } finally {
+    relatedLoading.value = false;
+  }
+};
+
+const loadVariantDetails = async (variantId: string) => {
+  if (!variantId) return;
+  loading.value = true;
+  relatedProducts.value = [];
+
+  try {
+    const res = await getVariantById(variantId);
+    selectedVariant.value = res.data;
+    product.value = res.data;
+
+    if (selectedVariant?.value?.items.length === 1 && !selectedVariant.value.items[0].size) {
+      selectedSizes.value = [null];
+    }
+
+    await fetchRelatedProducts(selectedVariant.value);
+  } catch (err) {
+    console.error("Failed to fetch variant", err);
+  } finally {
+    loading.value = false;
+  }
+};
 
 async function addToCart() {
   if (!selectedVariant.value) return;
