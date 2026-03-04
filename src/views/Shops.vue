@@ -97,7 +97,7 @@
               <div class="subcat-store-header"
                 @click="() => router.push({ name: 'shop', params: { companyId: shop.id, companyName: shop.name } })">
                 <div>
-                  <div class="subcat-store-name">{{ shop.name }}</div>
+                  <div class="subcat-store-name">{{ formatShopName(shop.name) }}</div>
                   <p class="subcat-store-meta">
                     {{ shop.products.length }} products in this subcategory
                   </p>
@@ -137,7 +137,7 @@
         <div v-else class="shop-list">
           <div v-for="(shop, index) in shopsList" :key="shop.id" class="shop-item"
             :style="{ animationDelay: `${Math.min(index * 70, 420)}ms` }">
-            <ShopCard :shop="shop"
+            <ShopCard :shop="{ ...shop, name: formatShopName(shop.name) }"
               @click="() => router.push({ name: 'shop', params: { companyId: shop.id, companyName: shop.name } })" />
           </div>
           <div v-if="!filteredShops.length" class="text-center py-8">
@@ -710,6 +710,21 @@ const formatLabel = (value?: string | null) => {
     .join(' ')
 }
 
+const formatShopName = (value?: string | null) => {
+  if (!value) return ''
+  return String(value)
+    .trim()
+    .toLowerCase()
+    .split(/\s+/)
+    .map((word) =>
+      word
+        .split('-')
+        .map((part) => (part ? part[0].toUpperCase() + part.slice(1) : ''))
+        .join('-')
+    )
+    .join(' ')
+}
+
 const normalizeToken = (value?: string | null) => {
   if (!value) return ''
   return String(value).toLowerCase().replace(/[^a-z0-9]/g, '')
@@ -1222,16 +1237,7 @@ function onScroll(ev: CustomEvent) {
   display: flex;
   gap: 10px;
   width: 100%;
-  overflow-x: auto;
-  overflow-y: hidden;
-  padding-bottom: 8px; /* Slightly increased for better touch target */
-  scroll-snap-type: x proximity;
-  -webkit-overflow-scrolling: touch; /* Critical for iOS smooth scrolling */
-  scrollbar-width: none; /* Firefox */
-  cursor: grab; /* Indicates scrollable area */
-  touch-action: pan-x; /* Explicitly allow horizontal panning */
-  overscroll-behavior-x: contain; /* Prevent pull-to-refresh interference */
-  min-height: 220px;
+  overflow-x: scroll;
 }
 
 .subcat-product-scroll::-webkit-scrollbar {
