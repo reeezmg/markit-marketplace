@@ -33,6 +33,7 @@
     "install": "^0.13.0",
     "ionicons": "^7.0.0",
     "localforage": "^1.10.0",
+    "lottie-web": "^5.13.0",
     "lucide-react": "^0.575.0",
     "npm": "^11.5.2",
     "pinia": "^3.0.3",

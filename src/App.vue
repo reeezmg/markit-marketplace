@@ -7,10 +7,16 @@
         <video
           ref="splashVideoRef"
           class="splash-video"
+          :class="{ 'splash-video--ready': splashVideoReady }"
           autoplay
           muted
           playsinline
+          webkit-playsinline
           preload="auto"
+          :controls="false"
+          disablepictureinpicture
+          controlslist="nodownload nofullscreen noplaybackrate noremoteplayback"
+          @playing="onSplashPlaying"
           @ended="hideSplash"
           @error="hideSplash"
         >
@@ -60,6 +66,22 @@
   width: 100%;
   height: 100%;
   object-fit: cover;
+  pointer-events: none;
+  opacity: 0;
+  transition: opacity 120ms linear;
+}
+
+.splash-video--ready {
+  opacity: 1;
+}
+
+.splash-video::-webkit-media-controls-start-playback-button,
+.splash-video::-webkit-media-controls-overlay-play-button,
+.splash-video::-webkit-media-controls,
+.splash-video::-webkit-media-controls-enclosure,
+.splash-video::-webkit-media-controls-panel {
+  display: none !important;
+  -webkit-appearance: none;
 }
 
 .netflix-splash-enter-active,
@@ -149,6 +171,7 @@ const client = ref<Record<string, any> | null>(null)
 const profileStore = useProfileStore()
 const showLaunchSplash = ref(true)
 const splashVideoRef = ref<HTMLVideoElement | null>(null)
+const splashVideoReady = ref(false)
 
 onMounted(() => {
   const fallbackTimer = window.setTimeout(() => {
@@ -171,6 +194,10 @@ onMounted(() => {
 function hideSplash() {
   if (!showLaunchSplash.value) return
   showLaunchSplash.value = false
+}
+
+function onSplashPlaying() {
+  splashVideoReady.value = true
 }
 
 onIonViewWillEnter(async () => {

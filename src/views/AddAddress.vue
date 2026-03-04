@@ -56,6 +56,7 @@ import { useRoute } from 'vue-router'
 import { createAddress } from '@/api/address';
 import { useAddressStore } from '@/store/useAddressStore';
 import { v4 as uuidv4 } from 'uuid'
+import { getDeviceLocation } from '@/utils/geolocation'
 
 const googleApiKey = import.meta.env.VITE_GOOGLE_MAPS_API_KEY;
 const addressStore = useAddressStore()
@@ -75,35 +76,28 @@ let placesService = null
 let map, marker, autocomplete
 let geocoder = null
 
-const useCurrentLocation = () => {
-  if (navigator.geolocation) {
-    navigator.geolocation.getCurrentPosition(
-      (position) => {
-        const { latitude, longitude } = position.coords
-        const location = { lat: latitude, lng: longitude }
-        map.setCenter(location)
-        map.setZoom(15)
-        if (marker) marker.position = location
-        if (geocoder) {
-          geocoder.geocode({ location }, (results, status) => {
-            if (status === 'OK' && results && results.length > 0) {
-              name.value = results[0].address_components?.[0]?.long_name || ''
-              formattedAddress.value = results[0].formatted_address || ''
-            } else {
-              name.value = ''
-              formattedAddress.value = ''
-            }
-          });
+const useCurrentLocation = async () => {
+  try {
+    const { lat: latitude, lng: longitude } = await getDeviceLocation()
+    const location = { lat: latitude, lng: longitude }
+    map.setCenter(location)
+    map.setZoom(15)
+    if (marker) marker.position = location
+    if (geocoder) {
+      geocoder.geocode({ location }, (results, status) => {
+        if (status === 'OK' && results && results.length > 0) {
+          name.value = results[0].address_components?.[0]?.long_name || ''
+          formattedAddress.value = results[0].formatted_address || ''
+        } else {
+          name.value = ''
+          formattedAddress.value = ''
         }
-        lat.value = latitude
-        lng.value = longitude
-      },
-      (error) => {
-        alert('Unable to retrieve your location.')
-      }
-    )
-  } else {
-    alert('Geolocation is not supported by this browser.')
+      });
+    }
+    lat.value = latitude
+    lng.value = longitude
+  } catch (error) {
+    alert('Unable to retrieve location. Please check location permission and turn on device location services (GPS).')
   }
 }
 
