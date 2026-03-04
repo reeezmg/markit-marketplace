@@ -105,25 +105,27 @@
                 <ion-button size="small" fill="outline">View Store</ion-button>
               </div>
 
-              <div class="subcat-product-scroll">
-                <button v-for="product in shop.products" :key="product.id" class="subcat-product-tile" type="button"
-                  @click="() => router.push({ name: 'product', params: { variantId: product.id } })">
-                  <div class="subcat-product-image-wrap">
-                    <img v-if="product.images?.length" :src="imageUrl(product.images[0])" :alt="formatLabel(product.productName || product.name)"
-                      class="subcat-product-image" />
-                  </div>
-                  <div class="subcat-product-name">{{ formatLabel(product.productName || product.name) }}</div>
-                  <div class="subcat-product-brand">{{ formatLabel(product.brandName) }}</div>
-                  <div class="subcat-product-price">
-                    <template v-if="product.discount > 0 && product.dprice">
-                      <span class="subcat-product-price-discount">{{ formatPrice(product.dprice) }}</span>
-                      <span class="subcat-product-price-strike">{{ formatPrice(product.sprice) }}</span>
-                    </template>
-                    <template v-else>
-                      <span class="subcat-product-price-discount">{{ formatPrice(product.sprice) }}</span>
-                    </template>
-                  </div>
-                </button>
+              <div class="subcat-product-scroll" ref="scrollContainerRef" @wheel.passive @touchmove.passive>
+                <div class="subcat-product-track" :style="{ width: trackWidth + 'px' }">
+                  <button v-for="product in shop.products" :key="product.id" class="subcat-product-tile" type="button"
+                    @click="() => router.push({ name: 'product', params: { variantId: product.id } })">
+                    <div class="subcat-product-image-wrap">
+                      <img v-if="product.images?.length" :src="imageUrl(product.images[0])"
+                        :alt="formatLabel(product.productName || product.name)" class="subcat-product-image" />
+                    </div>
+                    <div class="subcat-product-name">{{ formatLabel(product.productName || product.name) }}</div>
+                    <div class="subcat-product-brand">{{ formatLabel(product.brandName) }}</div>
+                    <div class="subcat-product-price">
+                      <template v-if="product.discount > 0 && product.dprice">
+                        <span class="subcat-product-price-discount">{{ formatPrice(product.dprice) }}</span>
+                        <span class="subcat-product-price-strike">{{ formatPrice(product.sprice) }}</span>
+                      </template>
+                      <template v-else>
+                        <span class="subcat-product-price-discount">{{ formatPrice(product.sprice) }}</span>
+                      </template>
+                    </div>
+                  </button>
+                </div>
               </div>
             </div>
           </div>
@@ -221,7 +223,16 @@ import api from '@/api/client'
 import { toastController } from '@ionic/vue'
 import { alertCircleOutline } from 'ionicons/icons';
 
-
+const debug = ref(true) // Set to false in production
+const scrollContainerRef = ref<HTMLElement | null>(null)
+const trackWidth = ref(0)
+// Add this computed property or method to calculate track width
+const updateTrackWidth = (productsCount: number) => {
+  // Tile width (132px) + gap (10px) = 142px per tile, minus last gap
+  const tileWidth = 132
+  const gap = 10
+  trackWidth.value = (productsCount * tileWidth) + ((productsCount - 1) * gap)
+}
 
 
 const profileStore = useProfileStore()
@@ -1210,14 +1221,33 @@ function onScroll(ev: CustomEvent) {
 .subcat-product-scroll {
   display: flex;
   gap: 10px;
+  width: 100%;
   overflow-x: auto;
-  padding-bottom: 6px;
-  -webkit-overflow-scrolling: touch;
-  scrollbar-width: none;
+  overflow-y: hidden;
+  padding-bottom: 8px; /* Slightly increased for better touch target */
+  scroll-snap-type: x proximity;
+  -webkit-overflow-scrolling: touch; /* Critical for iOS smooth scrolling */
+  scrollbar-width: none; /* Firefox */
+  cursor: grab; /* Indicates scrollable area */
+  touch-action: pan-x; /* Explicitly allow horizontal panning */
+  overscroll-behavior-x: contain; /* Prevent pull-to-refresh interference */
+  min-height: 220px;
 }
 
 .subcat-product-scroll::-webkit-scrollbar {
   display: none;
+}
+
+.subcat-product-scroll:active {
+  cursor: grabbing;
+}
+
+.subcat-product-track {
+  display: flex;
+  flex-wrap: nowrap;
+  gap: 10px;
+  width: max-content;
+  min-width: 100%;
 }
 
 .subcat-product-tile {
@@ -1230,6 +1260,18 @@ function onScroll(ev: CustomEvent) {
   overflow: hidden;
   text-align: left;
   padding: 8px;
+  scroll-snap-align: start;
+  touch-action: pan-y pinch-zoom; /* Allow vertical scrolling within tile if needed */
+  -webkit-tap-highlight-color: transparent; /* Remove tap highlight */
+}
+
+.subcat-product-track::after {
+  content: '';
+  display: none; /* Set to 'block' for debugging */
+  width: 1px;
+  height: 100%;
+  background: red;
+  opacity: 0.5;
 }
 
 .subcat-product-image-wrap {
