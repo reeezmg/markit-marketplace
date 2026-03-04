@@ -125,13 +125,16 @@
           </div>
 
           <div class="flex justify-between text-sm mb-2">
-            <span>Delivery</span>
+            <span>Delivery Fees</span>
             <span>₹ {{ summary.delivery }}</span>
           </div>
 
           <div class="flex justify-between text-sm mb-2">
             <span>Waiting Fees</span>
-            <span>₹ {{ order.waiting_fee || 0 }}</span>
+            <span class="flex items-center gap-2">
+              <span class="line-through text-gray-400">&#8377; {{ order.waiting_fee || 0 }}</span>
+              <span>&#8377; 0</span>
+            </span>
           </div>
 
           <div class="flex justify-between text-sm mb-2">
@@ -163,11 +166,9 @@
     <ion-footer class="pack-footer">
       <div class="pack-footer-bg">
         <div class="flex justify-between items-center px-4 py-3">
-          <div>
+          <div class="flex items-center gap-2">
             <div class="text-sm text-gray-600">Total Amount</div>
-            <div class="text-lg font-semibold text-gray-900">
-              ₹ {{ summary.total }}
-            </div>
+            <div class="text-lg font-semibold text-gray-900">&#8377; {{ summary.total }}</div>
           </div>
 
           <ion-button expand="block" shape="round" :color="allDecided ? 'primary' : 'medium'" :disabled="!allDecided"
@@ -408,7 +409,7 @@ const summary = computed(() => {
   })
 
   const delivery = order.value.shipping || 0
-  const waitingFees = Number(order.value.waiting_fee) || 0
+  const waitingFees = 0
   const MarkitDiscount = calculateMarkitDiscount()
 
   // Ensure total doesn't go negative

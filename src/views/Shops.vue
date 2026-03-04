@@ -102,7 +102,7 @@
                     {{ shop.products.length }} products in this subcategory
                   </p>
                 </div>
-                <ion-button size="small" fill="outline">View Store</ion-button>
+                <ion-button size="small" fill="outline">Open</ion-button>
               </div>
 
               <div class="subcat-product-scroll" ref="scrollContainerRef" @wheel.passive @touchmove.passive>
