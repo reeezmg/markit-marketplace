@@ -549,7 +549,12 @@ const shopsList = computed(() => {
 const loadShopsByLocation = async (lat: number, lng: number) => {
   try {
     const response = await getAllShop(lat, lng)
-    shops.value = response.data
+    const data = Array.isArray(response.data) ? response.data : []
+    shops.value = data.map((shop: any) => ({
+      ...shop,
+      name: formatShopName(shop?.name),
+      displayName: formatShopName(shop?.name),
+    }))
   } catch (error) {
     console.error('Failed to fetch shops:', error)
   } finally {
@@ -642,7 +647,13 @@ async function fetchShopsBySubCategory() {
 
     if (requestId !== subcategoryRequestSeq) return
     const filteredShopsData = Array.isArray(res.data)
-      ? res.data.filter((shop: any) => hasShopImage(shop))
+      ? res.data
+        .filter((shop: any) => hasShopImage(shop))
+        .map((shop: any) => ({
+          ...shop,
+          name: formatShopName(shop?.name),
+          displayName: formatShopName(shop?.name),
+        }))
       : []
     filteredBySubcategoryShops.value = filteredShopsData
 
@@ -893,7 +904,7 @@ const fetchProductsForMatchedShops = async (
         if (!matched.length) return null
         return {
           id: shopId,
-          name: shop?.name || shop?.companyName || 'Store',
+          name: formatShopName(shop?.name || shop?.companyName || 'Store'),
           products: matched,
         } as SubcategoryShopGroup
       } catch (error) {

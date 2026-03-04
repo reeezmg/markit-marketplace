@@ -4,19 +4,19 @@
       <img
         v-if="shop.logo"
         :src="`https://images.markit.co.in/${shop.logo}`"
-        :alt="shop.name"
+        :alt="displayName"
         class="w-full h-full object-fill"
       />
       <img
         v-else
         src="/shop.png"
-        :alt="shop.name"
+        :alt="displayName"
         class="w-full h-full object-fill"
       />
     </div>
 
     <div class="flex-1 w-full shop-copy p-3">
-      <div class="shop-title">{{ shop.name }}</div>
+      <div class="shop-title">{{ displayName }}</div>
       <p class="shop-desc">{{ shop.description }}</p>
       <p class="shop-meta">
         {{ shop.street }} • {{ (shop.road_distance / 1000).toFixed(2) }} km
@@ -46,6 +46,10 @@ const nearbyStore = useNearbyStore()
 
 const canBeAddedToExisting = computed(() =>
   nearbyStore.isNearbyCompany(props.shop.id)
+)
+
+const displayName = computed(() =>
+  formatShopName(props.shop?.displayName || props.shop?.name)
 )
 
 function formatShopName(value?: string | null) {
@@ -124,4 +128,3 @@ function formatShopName(value?: string | null) {
 
 
 </style>
-
