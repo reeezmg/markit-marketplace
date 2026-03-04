@@ -11,19 +11,13 @@
 
           <div class="details-head-actions">
             <button @click="goWishlist" class="details-head-icon-btn" aria-label="Open wishlist">
-              <ion-icon
-                :icon="heartOutline"
-                class="details-head-icon"
-                :style="{ color: '#2d5444' }"
-              ></ion-icon>
+              <ion-icon :icon="heartOutline" class="details-head-icon" :style="{ color: '#2d5444' }"></ion-icon>
             </button>
 
             <button @click="$router.push({ name: 'cart' })" class="relative details-head-icon-btn">
               <ion-icon :icon="cartOutline" class="details-head-icon"></ion-icon>
-              <ion-badge
-                v-if="totalCartCount > 0"
-                class="absolute -top-1 -right-2 rounded-full p-[1px] bg-danger w-[18px] h-[18px] text-xs"
-              >
+              <ion-badge v-if="totalCartCount > 0"
+                class="absolute -top-1 -right-2 rounded-full p-[1px] bg-danger w-[18px] h-[18px] text-xs">
                 {{ totalCartCount }}
               </ion-badge>
             </button>
@@ -38,19 +32,10 @@
       </div>
 
       <div v-else class="details-body">
-        <swiper
-          :slides-per-view="1"
-          :loop="true"
-          :pagination="{ clickable: true }"
-          class="details-swiper"
-        >
+        <swiper :slides-per-view="1" :loop="true" :pagination="{ clickable: true }" class="details-swiper">
           <swiper-slide v-for="(img, index) in selectedVariant?.images" :key="index">
-            <img
-              :src="`https://images.markit.co.in/${img}`"
-              alt="Product Image"
-              class="w-full h-full object-cover"
-              @click="openImageViewer(index)"
-            />
+            <img :src="`https://images.markit.co.in/${img}`" alt="Product Image" class="w-full h-full object-cover"
+              @click="openImageViewer(index)" />
           </swiper-slide>
         </swiper>
 
@@ -72,28 +57,19 @@
           </div>
         </div>
 
-        <div v-if="selectedVariant?.items?.length" class="mt-6">
+        <div v-if="selectedVariant?.items?.length && hasSelectableSizes" class="mt-6">
           <div class="flex justify-between items-center">
             <div class="details-size-title">Select Sizes</div>
-                </div>
+          </div>
 
           <div class="p-3 details-sizes-card">
             <div class="flex flex-wrap gap-3">
-              <div
-                v-for="item in selectedVariant.items"
-                :key="item.id"
-                class="size-chip-wrap"
-                :class="{ 'size-chip-wrap--oos': item.qty === 0 }"
-              >
-                <ion-button
-                  class="size-chip-btn"
-                  shape="round"
-                  size="small"
+              <div v-for="item in selectableSizeItems" :key="item.id" class="size-chip-wrap"
+                :class="{ 'size-chip-wrap--oos': item.qty === 0 }">
+                <ion-button class="size-chip-btn" shape="round" size="small"
                   :color="selectedSizes.includes(item.size) ? 'primary' : 'medium'"
-                  :fill="selectedSizes.includes(item.size) ? 'solid' : 'outline'"
-                  @click="toggleSize(item.size)"
-                  :disabled="item.qty === 0"
-                >
+                  :fill="selectedSizes.includes(item.size) ? 'solid' : 'outline'" @click="toggleSize(item.size)"
+                  :disabled="item.qty === 0">
                   {{ formatSizeLabel(item.size) }}
                 </ion-button>
               </div>
@@ -109,11 +85,7 @@
           </div>
 
           <ul v-else class="details-related-grid">
-            <VariantCard
-              v-for="item in relatedProducts"
-              :key="item.id"
-              :variant="item"
-            />
+            <VariantCard v-for="item in relatedProducts" :key="item.id" :variant="item" />
           </ul>
         </div>
       </div>
@@ -121,7 +93,8 @@
 
     <ion-modal :is-open="isImageViewerOpen" @didDismiss="isImageViewerOpen = false" class="full-image-modal">
       <div class="relative w-full h-full bg-black flex items-center justify-center">
-        <button class="absolute top-5 right-5 z-50 backdrop-blur-md p-2 rounded-full" @click="isImageViewerOpen = false">
+        <button class="absolute top-5 right-5 z-50 backdrop-blur-md p-2 rounded-full"
+          @click="isImageViewerOpen = false">
           <ion-icon :icon="closeOutline" class="text-white text-3xl"></ion-icon>
         </button>
 
@@ -140,19 +113,10 @@
           Add to Cart
         </ion-button>
 
-        <ion-button
-          fill="clear"
-          class="details-icon-action-btn wishlist-btn"
-          :class="{ 'heart-burst': heartAnimating }"
-          @click="toggleLike"
-          aria-label="Toggle wishlist"
-        >
-          <ion-icon
-            class="details-wishlist-icon"
-            :class="{ 'heart-pop': heartAnimating }"
-            :icon="isLiked ? heart : heartOutline"
-            :style="{ color: isLiked ? '#ef4444' : '#738092' }"
-          ></ion-icon>
+        <ion-button fill="clear" class="details-icon-action-btn wishlist-btn" :class="{ 'heart-burst': heartAnimating }"
+          @click="toggleLike" aria-label="Toggle wishlist">
+          <ion-icon class="details-wishlist-icon" :class="{ 'heart-pop': heartAnimating }"
+            :icon="isLiked ? heart : heartOutline" :style="{ color: isLiked ? '#ef4444' : '#738092' }"></ion-icon>
         </ion-button>
       </div>
     </ion-footer>
@@ -169,21 +133,24 @@
   position: sticky;
   top: 0;
   z-index: 80;
-  background: transparent !important;   /* was var(--markit-bg) – now transparent */
-  padding: 10px 0 0;                  /* side margins moved to inner shell */
+  background: transparent !important;
+  /* was var(--markit-bg) – now transparent */
+  padding: 10px 0 0;
+  /* side margins moved to inner shell */
 }
 
 /* ----- Inner glass card – exact match of wishlist/cart ----- */
 .details-topbar-shell {
   padding: var(--markit-shell-padding-block) var(--markit-shell-padding-inline);
-  margin: 0 12px;                    /* consistent with all other pages */
+  margin: 0 12px;
+  /* consistent with all other pages */
   border-radius: var(--markit-shell-radius);
   border: 1px solid var(--markit-glass-border);
   background: var(--markit-glass-surface);
   backdrop-filter: blur(var(--markit-glass-blur)) saturate(var(--markit-glass-saturation));
   -webkit-backdrop-filter: blur(var(--markit-glass-blur)) saturate(var(--markit-glass-saturation));
   box-shadow: inset 0 1px 0 var(--markit-glass-highlight),
-              var(--markit-glass-shadow);
+    var(--markit-glass-shadow);
   transition: border-color 0.2s ease, box-shadow 0.2s ease;
 }
 
@@ -191,7 +158,7 @@
 .details-topbar-shell:focus-within {
   border-color: var(--markit-glass-border-hover);
   box-shadow: inset 0 1px 0 var(--markit-glass-highlight),
-              var(--markit-glass-shadow-lg);
+    var(--markit-glass-shadow-lg);
 }
 
 /* ----- Row layout – unchanged structure ----- */
@@ -252,7 +219,8 @@
 .details-head-actions {
   display: flex;
   align-items: center;
-  gap: 6px;                         /* was 12px – now exactly 6px */
+  gap: 6px;
+  /* was 12px – now exactly 6px */
 }
 
 .details-head-icon-btn {
@@ -268,7 +236,8 @@
   align-items: center;
   justify-content: center;
   transition: border-color 0.2s ease, box-shadow 0.2s ease;
-  color: #1f2937;                  /* was #2d5444 – now neutral dark */
+  color: #1f2937;
+  /* was #2d5444 – now neutral dark */
   padding: 0;
   margin: 0;
   cursor: pointer;
@@ -278,7 +247,7 @@
 .details-head-icon-btn:focus-visible {
   border-color: var(--markit-glass-border-hover);
   box-shadow: inset 0 1px 0 var(--markit-glass-highlight),
-              var(--markit-glass-shadow-lg);
+    var(--markit-glass-shadow-lg);
   outline: none;
 }
 
@@ -287,19 +256,18 @@
 }
 
 .details-head-icon {
-  width: 21px;                      /* was 22px – now 21px */
+  width: 21px;
+  /* was 22px – now 21px */
   height: 21px;
-  color: #1f2937;                  /* was #2d5444 – now neutral dark */
+  color: #1f2937;
+  /* was #2d5444 – now neutral dark */
   transition: color 0.2s ease;
 }
 
 /* active state – not used here, but kept for consistency */
 .details-head-icon--active {
   color: var(--ion-color-primary);
-  filter: drop-shadow(
-    0 0 0.35rem
-      color-mix(in srgb, var(--ion-color-primary) 38%, transparent)
-  );
+  filter: drop-shadow(0 0 0.35rem color-mix(in srgb, var(--ion-color-primary) 38%, transparent));
 }
 
 /* ----- RESPONSIVE – matches all other topbars ----- */
@@ -346,6 +314,18 @@
 
 .details-body {
   padding-bottom: calc(100px + var(--markit-bottom-inset));
+}
+
+.details-price-strike {
+  text-decoration: line-through;
+  color: var(--markit-text-muted, #6b7280);
+  font-size: 0.95rem;
+}
+
+.details-price-main {
+  font-size: 1.35rem;
+  font-weight: 700;
+  color: var(--markit-text, #1f2937);
 }
 
 .details-product-title {
@@ -542,15 +522,19 @@
   0% {
     transform: scale(1);
   }
+
   25% {
     transform: scale(1.34);
   }
+
   45% {
     transform: scale(0.9);
   }
+
   70% {
     transform: scale(1.12);
   }
+
   100% {
     transform: scale(1);
   }
@@ -561,9 +545,11 @@
     opacity: 0;
     transform: translate(-50%, -50%) scale(0.2);
   }
+
   20% {
     opacity: 1;
   }
+
   100% {
     opacity: 0;
     transform: translate(-50%, -50%) scale(1.12);
@@ -571,6 +557,7 @@
 }
 
 @media (prefers-reduced-motion: reduce) {
+
   .heart-pop,
   .wishlist-btn.heart-burst::after {
     animation: none !important;
@@ -693,6 +680,12 @@ const detailsTitle = computed(() => {
       : ''
   return color ? `${base} (${color})` : base
 })
+
+const selectableSizeItems = computed(() =>
+  (selectedVariant.value?.items || []).filter((item) => !!item.size)
+)
+
+const hasSelectableSizes = computed(() => selectableSizeItems.value.length > 0)
 
 onIonViewWillEnter(async () => {
   await loadVariantDetails(route.params.variantId as string);
