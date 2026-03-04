@@ -481,18 +481,18 @@ html {
 
 @media (max-width: 768px) {
   html {
-    font-size: 18px;
+    font-size: 16px;
   }
 
   body,
   ion-app,
   ion-content {
-    font-size: 1rem;
-    line-height: 1.45;
+    font-size: 0.96rem;
+    line-height: 1.35;
   }
 
   ion-button {
-    font-size: 0.95rem;
+    font-size: 0.9rem;
   }
 
   ion-label,
@@ -501,27 +501,6 @@ html {
   p,
   li,
   small {
-    line-height: 1.45;
-  }
-
-  /* Lift common utility sizes so cards/components don't look zoomed out on phones */
-  .text-xs {
-    font-size: 0.82rem !important;
-    line-height: 1.2rem !important;
-  }
-
-  .text-sm {
-    font-size: 0.92rem !important;
-    line-height: 1.3rem !important;
-  }
-
-  .text-base {
-    font-size: 1rem !important;
-    line-height: 1.45rem !important;
-  }
-
-  .text-lg {
-    font-size: 1.06rem !important;
-    line-height: 1.5rem !important;
+    line-height: 1.35;
   }
 }
