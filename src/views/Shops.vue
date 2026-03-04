@@ -1291,7 +1291,7 @@ onUnmounted(() => {
   text-align: left;
   padding: 8px;
   scroll-snap-align: start;
-  touch-action: pan-y pinch-zoom; /* Allow vertical scrolling within tile if needed */
+  touch-action: pan-x pan-y pinch-zoom; /* Allow horizontal swipe gestures to start on cards */
   -webkit-tap-highlight-color: transparent; /* Remove tap highlight */
 }
 
