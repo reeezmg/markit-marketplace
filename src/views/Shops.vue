@@ -204,7 +204,7 @@ import {
   onIonViewWillEnter,
   alertController,
 } from '@ionic/vue'
-import { ref, computed, watch } from 'vue'
+import { ref, computed, watch, onUnmounted } from 'vue'
 import { useIonRouter } from '@ionic/vue'
 import Topbar from '@/components/Index/Topbar.vue'
 import ShopCard from '@/components/Index/ShopCard.vue'
@@ -988,15 +988,43 @@ const normalizeSubcategoryData = (data: any): SubcategoryShopGroup[] => {
 
 /* ---- Collapsible Header ---- */
 const scrollY = ref(0)
-const showFixedSearch = computed(() => scrollY.value > 80)
-const showFixedFilters = computed(() => scrollY.value > 260)
-const hideGender = computed(() => scrollY.value > 200)
-const hideCategory = computed(() => scrollY.value > 300)
+const showFixedSearch = ref(false)
+const showFixedFilters = ref(false)
+const hideGender = ref(false)
+const hideCategory = ref(false)
+
+let scrollRaf: number | null = null
+let latestScrollTop = 0
+
+const applyScrollState = (top: number) => {
+  scrollY.value = top
+
+  const nextCollapsed = top > 80
+  const nextShowFixedSearch = top > 80
+  const nextShowFixedFilters = top > 260
+  const nextHideGender = top > 200
+  const nextHideCategory = top > 300
+
+  if (isCollapsed.value !== nextCollapsed) isCollapsed.value = nextCollapsed
+  if (showFixedSearch.value !== nextShowFixedSearch) showFixedSearch.value = nextShowFixedSearch
+  if (showFixedFilters.value !== nextShowFixedFilters) showFixedFilters.value = nextShowFixedFilters
+  if (hideGender.value !== nextHideGender) hideGender.value = nextHideGender
+  if (hideCategory.value !== nextHideCategory) hideCategory.value = nextHideCategory
+}
 
 function onScroll(ev: CustomEvent) {
-  scrollY.value = ev.detail.scrollTop
-  isCollapsed.value = scrollY.value > 80
+  latestScrollTop = Number(ev.detail?.scrollTop || 0)
+
+  if (scrollRaf !== null) return
+  scrollRaf = requestAnimationFrame(() => {
+    scrollRaf = null
+    applyScrollState(latestScrollTop)
+  })
 }
+
+onUnmounted(() => {
+  if (scrollRaf !== null) cancelAnimationFrame(scrollRaf)
+})
 </script>
 
 <style scoped>
@@ -1337,9 +1365,10 @@ function onScroll(ev: CustomEvent) {
 .shop-item {
   animation: shop-rise 0.5s ease both;
   background: var(--markit-glass-surface);
-  backdrop-filter: blur(20px) saturate(145%);
-  -webkit-backdrop-filter: blur(20px) saturate(145%);
+  backdrop-filter: none;
+  -webkit-backdrop-filter: none;
   border-radius: 20px;
+  contain: layout paint;
 }
 
 
