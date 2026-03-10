@@ -31,12 +31,7 @@ import Topbar from '@/components/Topbar.vue'
 const trynbuys = useTryHistoryStore()
 
 onIonViewWillEnter(async () => {
-   await trynbuys.fetchFromApi()
-  await trynbuys.loadFromStorage()
-  console.log(trynbuys.tryHistoryList)
-  if (!trynbuys.tryHistoryList.length) {
-    await trynbuys.fetchFromApi()
-  }
+  await trynbuys.fetchFromApi()
 })
 </script>
 

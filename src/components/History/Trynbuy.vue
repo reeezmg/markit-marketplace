@@ -43,23 +43,160 @@
         <div class="order-date-text">
           Ordered: {{ formatDate(trynbuy.created_at) }}
         </div>
+        <div class="order-date-text">
+          Kept: {{ keptCount }} · Returned: {{ returnedCount }}
+        </div>
       </div>
+      <button
+        v-if="canCheckout"
+        type="button"
+        class="order-checkout-btn"
+        @click.stop="goToCheckout"
+      >
+        Checkout
+      </button>
     </div>
   </div>
 </template>
 
 <script setup lang="ts">
+import { computed } from 'vue'
 import { useIonRouter } from '@ionic/vue'
+import { usePackStore } from '@/store/usePackStore'
 
 const props = defineProps<{
   trynbuy: any
 }>()
 
 const router = useIonRouter()
-console.log(props.trynbuy)
+const packStore = usePackStore()
+
+const terminalStatuses = ['PAID', 'COMPLETED', 'CANCELLED', 'cancelled']
+
+const keptCount = computed(() => {
+  const cartItems = Array.isArray(props.trynbuy?.cartitems) ? props.trynbuy.cartitems : []
+  return cartItems.filter((item: any) => item.status !== 'RETURNED').length
+})
+
+const returnedCount = computed(() => {
+  if (Array.isArray(props.trynbuy?.returneditems) && props.trynbuy.returneditems.length) {
+    return props.trynbuy.returneditems.length
+  }
+
+  const cartItems = Array.isArray(props.trynbuy?.cartitems) ? props.trynbuy.cartitems : []
+  return cartItems.filter((item: any) => item.status === 'RETURNED').length
+})
+
+const canCheckout = computed(() => {
+  const status = props.trynbuy?.order_status
+  return !!status && !terminalStatuses.includes(status)
+})
+
+function buildPackFromHistory(trynbuy: any) {
+  const companiesMap = new Map<string, any>()
+  const companies = Array.isArray(trynbuy?.companies) ? trynbuy.companies : []
+
+  companies.forEach((company: any) => {
+    companiesMap.set(company.id, {
+      id: company.id,
+      name: company.name,
+      logo: company.logo ?? null,
+      cartitems: [],
+      returneditems: [],
+    })
+  })
+
+  const cartItems = Array.isArray(trynbuy?.cartitems) ? trynbuy.cartitems : []
+  cartItems.forEach((item: any) => {
+    const company = item.company || {}
+    if (!companiesMap.has(company.id)) {
+      companiesMap.set(company.id, {
+        id: company.id,
+        name: company.name || 'Unknown Company',
+        logo: company.logo ?? null,
+        cartitems: [],
+        returneditems: [],
+      })
+    }
+
+    companiesMap.get(company.id).cartitems.push({
+      id: item.id,
+      name: item.name,
+      s_price: item.s_price,
+      d_price: item.d_price,
+      discount: item.discount,
+      images: item.images,
+      size: item.size,
+      quantity: item.quantity,
+      itemId: item.itemId,
+      barcode: item.barcode,
+      status: item.status || 'PENDING',
+      product_name: item.product_name,
+    })
+  })
+
+  const returnedItems = Array.isArray(trynbuy?.returneditems) ? trynbuy.returneditems : []
+  returnedItems.forEach((item: any) => {
+    const company = item.company || {}
+    if (!companiesMap.has(company.id)) {
+      companiesMap.set(company.id, {
+        id: company.id,
+        name: company.name || 'Unknown Company',
+        logo: company.logo ?? null,
+        cartitems: [],
+        returneditems: [],
+      })
+    }
+
+    companiesMap.get(company.id).returneditems.push({
+      id: item.id,
+      name: item.name,
+      s_price: item.s_price,
+      d_price: item.d_price,
+      discount: item.discount,
+      images: item.images,
+      size: item.size,
+      quantity: item.quantity,
+      itemId: item.itemId,
+      barcode: item.barcode,
+      product_name: item.product_name,
+    })
+  })
+
+  return {
+    trynbuy_id: trynbuy.trynbuy_id,
+    order_number: trynbuy.order_number,
+    created_at: trynbuy.created_at,
+    checkout_method: trynbuy.checkout_method,
+    subtotal: trynbuy.subtotal,
+    product_discount: trynbuy.product_discount,
+    total_discount: trynbuy.total_discount,
+    shipping: trynbuy.shipping,
+    delivery_type: trynbuy.delivery_type,
+    delivery_time: trynbuy.delivery_time,
+    waiting_time: trynbuy.waiting_time,
+    waiting_fee: trynbuy.waiting_fee,
+    order_status: trynbuy.order_status,
+    packing_status: trynbuy.packing_status,
+    companies: Array.from(companiesMap.values()),
+  }
+}
 
 const goToDetails = () => {
   router.push({ name: 'account-order-history-detail', params: { id: props.trynbuy.trynbuy_id } })
+}
+
+const goToCheckout = async () => {
+  const pack = buildPackFromHistory(props.trynbuy)
+  const existing = packStore.getById(props.trynbuy.trynbuy_id)
+
+  if (existing) {
+    await packStore.update(props.trynbuy.trynbuy_id, pack)
+  } else {
+    await packStore.add(pack)
+  }
+
+  router.push({ name: 'pack', params: { id: props.trynbuy.trynbuy_id } })
 }
 
 function formatDate(date: string) {
@@ -165,6 +302,7 @@ function formatStatus(status: string | null): string {
   justify-content: space-between;
   align-items: flex-start;
   margin-top: 10px;
+  gap: 12px;
 }
 
 .order-status-text {
@@ -190,5 +328,18 @@ function formatStatus(status: string | null): string {
   font-size: 0.86rem;
   line-height: 1.3;
   color: var(--markit-text-muted);
+}
+
+.order-checkout-btn {
+  flex-shrink: 0;
+  align-self: center;
+  border: 1px solid color-mix(in srgb, var(--ion-color-primary) 24%, var(--markit-border));
+  background: color-mix(in srgb, var(--ion-color-primary) 10%, #ffffff);
+  color: var(--ion-color-primary);
+  border-radius: 999px;
+  padding: 8px 14px;
+  font-size: 0.84rem;
+  font-weight: 700;
+  line-height: 1;
 }
 </style>

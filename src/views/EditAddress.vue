@@ -271,6 +271,7 @@ const confirmLocation = async (data) => {
   }
 
   const location = {
+    id: addressId,
     lat: lat.value,
     lng: lng.value,
     name: name.value,

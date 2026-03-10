@@ -276,7 +276,7 @@ const checkout = async () => {
   await cart.loadCart()
 
   const locationToast = await toastController.create({
-    message: 'Please set a delivery address',
+    message: 'Please select a saved delivery address',
     duration: 2000,
     color: 'danger',
     position: 'bottom'
@@ -288,7 +288,7 @@ const checkout = async () => {
     position: 'bottom'
   })
 
-  if (!location.value) {
+  if (!location.value?.id) {
     await locationToast.present()
     loading.value = false
     return
@@ -328,13 +328,21 @@ const checkout = async () => {
     console.log('✅ Order placed successfully:', orderRes)
     console.log(deliveryTime.value)
 
-    const existing = packStore.getById(orderRes.trynbuy.trynbuy_id)
-    if (existing) {
-      packStore.update(orderRes.trynbuy.trynbuy_id, orderRes.trynbuy)
-    } else {
-      packStore.add(orderRes.trynbuy)
+    const createdOrders = Array.isArray(orderRes.trynbuys) && orderRes.trynbuys.length
+      ? orderRes.trynbuys
+      : orderRes.trynbuy
+        ? [orderRes.trynbuy]
+        : []
+
+    for (const createdOrder of createdOrders) {
+      const existing = packStore.getById(createdOrder.trynbuy_id)
+      if (existing) {
+        await packStore.update(createdOrder.trynbuy_id, createdOrder)
+      } else {
+        await packStore.add(createdOrder)
+      }
+      await tryHistoryStore.updateOrderStatus(createdOrder.trynbuy_id, createdOrder.order_status)
     }
-    tryHistoryStore.updateOrderStatus(orderRes.trynbuy.trynbuy_id, orderRes.order_status)
 
 
     await tryHistory.fetchFromApi()

@@ -18,13 +18,44 @@ export interface ItemCompany {
 export interface TryItem {
   id: string
   name: string
+  product_name?: string
   s_price: number
   d_price: number
   discount: number
   images: string[]
   size: string | null
   quantity: number
+  itemId?: string
+  barcode?: string | null
+  status?: string | null
   company: ItemCompany
+}
+
+export interface BillBreakdown {
+  billId: string
+  companyId: string
+  companyName: string
+  subtotal: number
+  grandTotal: number
+  couponDiscount: number
+  deliveryFee: number
+  waitingFee: number
+  paymentMethod?: string | null
+  paymentStatus?: string | null
+}
+
+export interface AppliedCoupon {
+  couponId: string
+  code: string
+  type: string
+  isMarkit: boolean
+  discountValue: number
+  maxDiscountAmount?: number | null
+  billId: string
+  companyId?: string | null
+  companyName?: string | null
+  billSubtotal: number
+  discount?: number
 }
 
 export interface TryHistory {
@@ -40,9 +71,18 @@ export interface TryHistory {
   delivery_time: string | null
   order_status: string | null
   packing_status: string | null
+  waiting_fee?: number
+  waiting_time?: number
   companies: CompanyInfo[]
   cartitems: TryItem[]
   returneditems: TryItem[]
+  purchasedSubtotal?: number
+  companyCouponDiscountTotal?: number
+  markitCouponDiscount?: number
+  totalPaid?: number
+  companyCoupons?: AppliedCoupon[]
+  markitCoupon?: AppliedCoupon | null
+  billBreakdown?: BillBreakdown[]
 }
 
 // 🧠 LocalForage instance

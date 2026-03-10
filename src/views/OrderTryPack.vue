@@ -422,7 +422,7 @@ const summary = computed(() => {
   })
 
   const delivery = order.value.shipping || 0
-  const waitingFees = 0
+  const waitingFees = order.value.waiting_fee || 0
   const MarkitDiscount = calculateMarkitDiscount()
 
   // Ensure total doesn't go negative
@@ -805,6 +805,7 @@ async function proceed() {
 async function submitBills(paymentMethod: 'CASH' | 'UPI' | 'NONE') {
   try {
     const amount = summary.value.total
+    const allocatedMarkitDiscount = calculateMarkitDiscount()
 
     // Collect all returned items across all companies for the delivery partner
     const allReturnedItems = order.value.companies.flatMap((company: any) =>
@@ -821,6 +822,10 @@ async function submitBills(paymentMethod: 'CASH' | 'UPI' | 'NONE') {
       returnedItems: allReturnedItems,
     })
 
+    const firstKeptCompanyId = order.value.companies.find((company: any) =>
+      company.cartitems.some((i: any) => decisions.value[i.id] === 'keep')
+    )?.id
+
     const billPromises = order.value.companies.map(async (company: any) => {
       const keptItems = company.cartitems.filter(
         (i: any) => decisions.value[i.id] === 'keep'
@@ -828,6 +833,9 @@ async function submitBills(paymentMethod: 'CASH' | 'UPI' | 'NONE') {
       const returnedItems = company.cartitems.filter(
         (i: any) => decisions.value[i.id] === 'return'
       )
+      const companyCouponDiscount = calculateCompanyDiscount(company.id)
+      const companyMarkitDiscount =
+        firstKeptCompanyId === company.id ? allocatedMarkitDiscount : 0
 
       const payload = {
         trynbuyId: order.value.trynbuy_id,
@@ -835,15 +843,24 @@ async function submitBills(paymentMethod: 'CASH' | 'UPI' | 'NONE') {
         paymentMethod,
         transactionId: null,
         subtotal: keptItems.reduce((s: number, i: any) => s + i.d_price, 0),
-        grandTotal: keptItems.reduce((s: number, i: any) => s + i.d_price, 0) - (companyCoupons.value[company.id]?.discount || 0),
+        grandTotal: Math.max(
+          0,
+          keptItems.reduce((s: number, i: any) => s + i.d_price, 0)
+            - companyCouponDiscount
+            - companyMarkitDiscount
+        ),
         discount: keptItems.reduce((s: number, i: any) => s + (i.s_price - i.d_price), 0),
         deliveryFees: order.value.shipping || 0,
-        waitingFees: order.value.waiting_fee || 0,
+        waitingFee: order.value.waiting_fee || 0,
         waitingTime: order.value.waiting_time || 0,
         keptItems,
         returnedItems,
+        couponId: companyCoupons.value[company.id]?.couponId || null,
         appliedCoupon: companyCoupons.value[company.id]?.code || null,
-        couponDiscount: companyCoupons.value[company.id]?.discount || 0
+        couponDiscount: companyCouponDiscount,
+        markitCouponId: companyMarkitDiscount > 0 ? MarkitCoupon.value?.couponId || null : null,
+        markitCouponCode: companyMarkitDiscount > 0 ? MarkitCoupon.value?.code || null : null,
+        markitCouponDiscount: companyMarkitDiscount
       }
 
       try {
