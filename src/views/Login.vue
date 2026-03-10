@@ -136,6 +136,12 @@ const handlePhoneSubmitClicked = async ({ phone }: { phone: string }) => {
     console.error(error)
 
     let message = 'Something went wrong. Please try again.'
+      await login(phoneNumber.value)
+    await addressStore.clear()
+    await addressStore.fetchFromApi()
+    await profileStore.fetchFromApi()
+
+    router.replace('/')
 
     if (error?.code === 'auth/too-many-requests') {
       message = 'Too many attempts. Please try again after some time.'

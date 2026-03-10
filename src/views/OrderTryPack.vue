@@ -162,6 +162,18 @@
     <ion-toast :is-open="toast.isOpen" :message="toast.message" :duration="toast.duration" :position="toast.position"
       :color="toast.color" :icon="toast.icon" :css-class="toast.cssClass"
       @didDismiss="toast.isOpen = false"></ion-toast>
+
+    <!-- Payment Method Sheet -->
+    <ion-action-sheet
+      :is-open="showPaymentSheet"
+      header="How will the customer pay?"
+      :buttons="[
+        { text: 'Cash', icon: 'cash-outline', handler: () => submitBills('CASH') },
+        { text: 'UPI', icon: 'qr-code-outline', handler: () => submitBills('UPI') },
+        { text: 'Cancel', role: 'cancel' },
+      ]"
+      @didDismiss="showPaymentSheet = false"
+    />
     <!-- Footer -->
     <ion-footer class="pack-footer">
       <div class="pack-footer-bg">
@@ -186,13 +198,14 @@ import { ref, computed, watch } from 'vue'
 import { onIonViewWillEnter } from '@ionic/vue'
 import { useIonRouter } from '@ionic/vue'
 import { useRoute } from 'vue-router'
-import { IonPage, IonContent, IonButton, IonFooter, IonIcon, IonToast } from '@ionic/vue'
+import { IonPage, IonContent, IonButton, IonFooter, IonIcon, IonToast, IonActionSheet } from '@ionic/vue'
 import { pricetagOutline, checkmarkCircleOutline, closeOutline } from 'ionicons/icons'
 import Topbar from '@/components/Topbar.vue'
 import CouponModal from '@/components/CouponModal.vue'
 import { usePackStore } from '@/store/usePackStore'
-import { createTrynBuyBill, initiatePayment, verifyPayment, fetchCoupons, validateCoupon } from '@/api/api'
+import { createTrynBuyBill, fetchCoupons, validateCoupon } from '@/api/api'
 import { Preferences } from '@capacitor/preferences'
+import socket from '@/services/socket'
 
 const route = useRoute()
 const router = useIonRouter()
@@ -200,7 +213,7 @@ const id = route.params.id as string
 const packStore = usePackStore()
 const order = ref<any | null>(null)
 const decisions = ref<Record<string, 'keep' | 'return' | null>>({})
-const RAZORPAY_KEY_ID = 'rzp_test_RYuGLP5Z8RaUqo'
+const showPaymentSheet = ref(false)
 
 const toast = ref({
   isOpen: false,
@@ -779,113 +792,85 @@ function toggleDecision(itemId: string, decision: 'keep' | 'return') {
 }
 
 async function proceed() {
+  const amount = summary.value.total
+  if (amount <= 0) {
+    // All returned — no payment needed, submit bills directly
+    await submitBills('NONE')
+    return
+  }
+  // Show Cash / UPI choice
+  showPaymentSheet.value = true
+}
+
+async function submitBills(paymentMethod: 'CASH' | 'UPI' | 'NONE') {
   try {
     const amount = summary.value.total
-    if (amount <= 0) {
-      showToast({
-        message: 'Please select items to keep before proceeding',
-        color: 'warning',
-        icon: 'warning-outline'
-      })
-      return
-    }
 
-    const res = await initiatePayment({ amount, currency: 'INR' })
-    const orderData = res.data
+    // Collect all returned items across all companies for the delivery partner
+    const allReturnedItems = order.value.companies.flatMap((company: any) =>
+      company.cartitems
+        .filter((i: any) => decisions.value[i.id] === 'return')
+        .map((i: any) => ({ id: i.id, name: i.name, size: i.size, quantity: i.quantity }))
+    )
 
-    const options = {
-      key: RAZORPAY_KEY_ID,
-      amount: orderData.amount,
-      currency: orderData.currency,
-      name: 'Markit Try & Buy',
-      description: 'Payment for Try & Buy order',
-      order_id: orderData.id,
-
-      handler: async (response: any) => {
-        const verify = await verifyPayment(response)
-        const result = verify.data
-
-        if (!result.success) {
-          showToast({
-            message: 'Payment verification failed',
-            color: 'danger',
-            icon: 'close-circle-outline'
-          })
-          return
-        }
-
-        // Create bills per company with coupon info
-        const billPromises = order.value.companies.map(async (company: any) => {
-          const keptItems = company.cartitems.filter(
-            (i: any) => decisions.value[i.id] === 'keep'
-          )
-          const returnedItems = company.cartitems.filter(
-            (i: any) => decisions.value[i.id] === 'return'
-          )
-
-          const payload = {
-            trynbuyId: order.value.trynbuy_id,
-            companyId: company.id,
-            paymentMethod: 'UPI',
-            transactionId: response.razorpay_payment_id,
-            subtotal: keptItems.reduce((s, i) => s + i.d_price, 0),
-            grandTotal: keptItems.reduce((s, i) => s + i.d_price, 0) - (companyCoupons.value[company.id]?.discount || 0),
-            discount: keptItems.reduce((s, i) => s + (i.s_price - i.d_price), 0),
-            deliveryFees: order.value.shipping || 0,
-            waitingFees: order.value.waiting_fee || 0,
-            waitingTime: order.value.waiting_time || 0,
-            keptItems,
-            returnedItems,
-            appliedCoupon: companyCoupons.value[company.id]?.code || null,
-            couponDiscount: companyCoupons.value[company.id]?.discount || 0
-          }
-
-          try {
-            const billRes = await createTrynBuyBill(payload)
-            return { company: company.name, success: billRes.data.success }
-          } catch (err) {
-            console.error(`❌ Failed bill for ${company.name}:`, err)
-            return { company: company.name, success: false, error: err }
-          }
-        })
-
-        const results = await Promise.allSettled(billPromises)
-
-        const successful = results.filter(r => r.value?.success).length
-        const failed = results.length - successful
-
-        if (successful > 0) {
-          showToast({
-            message: `Checkout completed successfully!`,
-            color: 'success',
-            icon: 'checkmark-circle-outline',
-            duration: 3000
-          })
-        }
-        if (failed > 0) {
-          showToast({
-            message: `Some items checkout failed. Please retry later.`,
-            color: 'warning',
-            icon: 'warning-outline',
-            duration: 4000
-          })
-        }
-
-        // Remove the order locally
-        packStore.remove(order.value.trynbuy_id)
-        router.push({ name: 'shops' })
-      },
-    }
-
-    const rzp = new (window as any).Razorpay(options)
-    rzp.open()
-  } catch (error) {
-    console.error('Payment Error:', error)
-    showToast({
-      message: 'Something went wrong while processing payment',
-      color: 'danger',
-      icon: 'close-circle-outline'
+    // Notify delivery partner before creating bills
+    socket.emit('customerProceed', {
+      trynbuyId: order.value.trynbuy_id,
+      paymentMethod,
+      amount,
+      returnedItems: allReturnedItems,
     })
+
+    const billPromises = order.value.companies.map(async (company: any) => {
+      const keptItems = company.cartitems.filter(
+        (i: any) => decisions.value[i.id] === 'keep'
+      )
+      const returnedItems = company.cartitems.filter(
+        (i: any) => decisions.value[i.id] === 'return'
+      )
+
+      const payload = {
+        trynbuyId: order.value.trynbuy_id,
+        companyId: company.id,
+        paymentMethod,
+        transactionId: null,
+        subtotal: keptItems.reduce((s: number, i: any) => s + i.d_price, 0),
+        grandTotal: keptItems.reduce((s: number, i: any) => s + i.d_price, 0) - (companyCoupons.value[company.id]?.discount || 0),
+        discount: keptItems.reduce((s: number, i: any) => s + (i.s_price - i.d_price), 0),
+        deliveryFees: order.value.shipping || 0,
+        waitingFees: order.value.waiting_fee || 0,
+        waitingTime: order.value.waiting_time || 0,
+        keptItems,
+        returnedItems,
+        appliedCoupon: companyCoupons.value[company.id]?.code || null,
+        couponDiscount: companyCoupons.value[company.id]?.discount || 0
+      }
+
+      try {
+        const billRes = await createTrynBuyBill(payload)
+        return { company: company.name, success: billRes.data.success }
+      } catch (err) {
+        console.error(`❌ Failed bill for ${company.name}:`, err)
+        return { company: company.name, success: false }
+      }
+    })
+
+    const results = await Promise.allSettled(billPromises)
+    const successful = (results as any[]).filter(r => r.value?.success).length
+    const failed = results.length - successful
+
+    if (successful > 0) {
+      showToast({ message: 'Checkout completed!', color: 'success', icon: 'checkmark-circle-outline', duration: 3000 })
+    }
+    if (failed > 0) {
+      showToast({ message: 'Some items checkout failed. Retry later.', color: 'warning', icon: 'warning-outline', duration: 4000 })
+    }
+
+    packStore.remove(order.value.trynbuy_id)
+    router.push({ name: 'shops' })
+  } catch (error) {
+    console.error('Checkout error:', error)
+    showToast({ message: 'Something went wrong', color: 'danger', icon: 'close-circle-outline' })
   }
 }
 
