@@ -202,9 +202,14 @@ function onSplashPlaying() {
 
 onIonViewWillEnter(async () => {
   await profileStore.loadFromStorage()
-   await profileStore.fetchFromApi()
-   await nearbyStore.loadNearby()
-   await cartStore.loadCart()
+  await profileStore.fetchFromApi()
+  await nearbyStore.loadNearby()
+  await cartStore.loadCart()
+})
+
+onMounted(async () => {
+  await packStore.loadFromStorage()
+  await packStore.fetchFromApi()
 })
 
 onIonViewWillEnter(async () => {

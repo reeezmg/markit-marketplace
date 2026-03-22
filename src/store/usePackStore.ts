@@ -1,8 +1,8 @@
 import { defineStore } from 'pinia'
 import localforage from 'localforage'
 import axios from 'axios'
-import { updateTryNBuyPackingStatus } from '@/api/api'
-import { useTryHistoryStore } from './useTryHistoryStore'
+import { updateTryNBuyPackingStatus, getTryHistory } from '@/api/api'
+import { useTryHistoryStore, type TryHistory, type TryItem } from './useTryHistoryStore'
 
 // 🔹 Types
 export interface CartItem {
@@ -151,6 +151,104 @@ export const usePackStore = defineStore('pack', {
     async clearStorage() {
       this.packList = []
       await packStorage.clear()
+    },
+
+    // ---------------- API Recovery ----------------
+    async fetchFromApi() {
+      try {
+        const res = await getTryHistory()
+        if (!res?.data) return
+
+        const histories: TryHistory[] = res.data
+
+        const packs: Pack[] = histories.map((h) => {
+          // Build a company map from the companies array
+          const companyMap = new Map<string, Company>()
+          for (const co of h.companies) {
+            companyMap.set(co.id, {
+              id: co.id,
+              name: co.name,
+              logo: co.logo ?? null,
+              cartitems: [],
+              returneditems: [],
+            })
+          }
+
+          // Group cartitems under their company
+          for (const item of h.cartitems) {
+            const co = companyMap.get(item.company.id)
+            if (co) {
+              co.cartitems.push({
+                id: item.id,
+                name: item.name,
+                s_price: item.s_price,
+                d_price: item.d_price,
+                discount: item.discount,
+                images: item.images,
+                size: item.size ?? '',
+                quantity: item.quantity,
+                itemId: item.id,
+                barcode: '',
+                status: 'PENDING',
+              })
+            }
+          }
+
+          // Group returneditems under their company
+          for (const item of h.returneditems) {
+            const co = companyMap.get(item.company.id)
+            if (co) {
+              co.returneditems.push({
+                id: item.id,
+                name: item.name,
+                s_price: item.s_price,
+                d_price: item.d_price,
+                discount: item.discount,
+                images: item.images,
+                size: item.size ?? '',
+                quantity: item.quantity,
+                itemId: item.id,
+                barcode: '',
+              })
+            }
+          }
+
+          return {
+            trynbuy_id: h.trynbuy_id,
+            order_number: h.order_number,
+            created_at: h.created_at,
+            checkout_method: h.checkout_method,
+            subtotal: h.subtotal,
+            product_discount: h.product_discount,
+            total_discount: h.total_discount,
+            shipping: h.shipping,
+            delivery_type: h.delivery_type,
+            delivery_time: h.delivery_time,
+            waiting_time: null,
+            waiting_fee: '',
+            order_status: h.order_status ?? '',
+            packing_status: h.packing_status ?? null,
+            companies: Array.from(companyMap.values()),
+          }
+        })
+
+        if (this.packList.length === 0) {
+          // Local data lost — replace entirely from API
+          this.packList = packs
+        } else {
+          // Merge: add only packs not already stored locally
+          const existingIds = new Set(this.packList.map(p => p.trynbuy_id))
+          const newPacks = packs.filter(p => !existingIds.has(p.trynbuy_id))
+          if (newPacks.length > 0) {
+            this.packList.unshift(...newPacks)
+          }
+        }
+        await this.saveToStorage()
+      } catch (err) {
+        console.error('❌ Failed to fetch packs from API:', err)
+        // fallback to whatever is cached locally
+        await this.loadFromStorage()
+      }
     },
   },
 })
