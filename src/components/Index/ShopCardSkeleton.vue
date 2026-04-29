@@ -23,6 +23,7 @@
   </div>
 </template>
 
+
 <script setup lang="ts">
 // No props or logic needed — purely visual skeleton placeholder
 </script>

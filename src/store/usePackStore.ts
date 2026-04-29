@@ -55,6 +55,7 @@ export interface Pack {
   waiting_fee: string
   order_status: string
   packing_status: string | null
+  delivery_otp?: string | null
   companies: Company[]
 }
 
@@ -187,9 +188,9 @@ export const usePackStore = defineStore('pack', {
                 images: item.images,
                 size: item.size ?? '',
                 quantity: item.quantity,
-                itemId: item.id,
-                barcode: '',
-                status: 'PENDING',
+                itemId: item.itemId ?? item.id,
+                barcode: item.barcode ?? '',
+                status: item.status ?? 'PENDING',
               })
             }
           }
@@ -207,8 +208,8 @@ export const usePackStore = defineStore('pack', {
                 images: item.images,
                 size: item.size ?? '',
                 quantity: item.quantity,
-                itemId: item.id,
-                barcode: '',
+                itemId: item.itemId ?? item.id,
+                barcode: item.barcode ?? '',
               })
             }
           }

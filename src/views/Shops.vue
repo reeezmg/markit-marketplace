@@ -153,7 +153,7 @@
         </div>
 
         <!-- ✅ Floating Try & Pay Banner (Swipe + Drag) -->
-        <div v-if="packStore.packList.length"
+        <div v-if="activePackList.length"
           class=" fixed bottom-[65px] left-0 right-0 bg-black text-white z-50 m-2 rounded-2xl select-none">
           <div class="flex items-center justify-center pt-3 overflow-hidden relative" @touchstart="startTouch"
             @touchend="endTouch" @mousedown="startMouseDrag" @mouseup="endMouseDrag">
@@ -163,9 +163,12 @@
                 <!-- Left Column -->
                 <div class="flex flex-col justify-center">
                   <div class="text-green-400 font-semibold text-sm">
-                    Order #{{ activePack.order_number }} {{ formatStatus(activePack.order_status) }}
+                    Order #{{ activePack.order_number }} {{ bannerStatusLabel(activePack) }}
                   </div>
                   <div class="text-white text-xs">Pay after your trial</div>
+                  <div v-if="activePack.delivery_otp" class="text-yellow-400 text-xs font-mono font-bold mt-0.5">
+                    OTP: {{ activePack.delivery_otp }}
+                  </div>
                 </div>
 
                 <!-- Right Column -->
@@ -179,7 +182,7 @@
 
           <!-- Dots -->
           <div class="flex justify-center items-center gap-1 pb-2 mt-1">
-            <div v-for="(pack, i) in packStore.packList" :key="pack.trynbuy_id"
+            <div v-for="(pack, i) in activePackList" :key="pack.trynbuy_id"
               class="w-1.5 h-1.5 rounded-full transition-all duration-300"
               :class="i === activeIndex ? 'bg-white' : 'bg-gray-500'"></div>
           </div>
@@ -193,6 +196,7 @@
     <KnowMoreModal :is-open="isKnowMoreModalOpen" @close="closeKnowMoreModal" />
   </ion-page>
 </template>
+
 
 <script setup lang="ts">
 import {
@@ -212,6 +216,8 @@ import Category from '@/components/Store/Category.vue'
 import { categories as allSubCategories } from '@/components/Store/utils/category'
 import TabsPage from './TabsPage.vue'
 import { usePackStore } from '@/store/usePackStore'
+import { fetchDeliveryStepEvents } from '@/api/api'
+import socket from '@/services/socket'
 import { useLocationStore } from '@/composables/useLocationStore'
 import { useNearbyStore } from '@/store/useNearbyStore'
 import { getAllShop } from '@/api/api'
@@ -223,7 +229,6 @@ import api from '@/api/client'
 import { toastController } from '@ionic/vue'
 import { alertCircleOutline } from 'ionicons/icons';
 import { getDeviceLocation } from '@/utils/geolocation'
-
 const debug = ref(true) // Set to false in production
 const scrollContainerRef = ref<HTMLElement | null>(null)
 const trackWidth = ref(0)
@@ -234,17 +239,13 @@ const updateTrackWidth = (productsCount: number) => {
   const gap = 10
   trackWidth.value = (productsCount * tileWidth) + ((productsCount - 1) * gap)
 }
-
-
 const profileStore = useProfileStore()
 const isLoggedIn = computed(() => !!profileStore.profile)
-
 const router = useIonRouter()
 const packStore = usePackStore()
 const nearbyStore = useNearbyStore()
 const addressStore = useAddressStore()
 const { setLocation } = useLocationStore()
-
 const shops = ref<any[]>([])
 const loading = ref(true)
 const searchTerm = ref('')
@@ -258,13 +259,11 @@ type SubcategoryProduct = {
   dprice?: number
   discount?: number
 }
-
 type SubcategoryShopGroup = {
   id: string
   name: string
   products: SubcategoryProduct[]
 }
-
 const subCategoryFilter = ref('')
 const filteredBySubcategoryShops = ref<any[]>([])
 const subcategoryShopGroups = ref<SubcategoryShopGroup[]>([])
@@ -272,10 +271,13 @@ const subcategoryLoading = ref(false)
 const isCollapsed = ref(false)
 const isKnowMoreModalOpen = ref(false)
 let subcategoryRequestSeq = 0
-
-
 const activeIndex = ref(0)
-const activePack = computed(() => packStore.packList[activeIndex.value] || null)
+const activePackList = computed(() =>
+  packStore.packList.filter((p: any) => !['PAID', 'COMPLETED', 'CANCELLED', 'cancelled'].includes(p.order_status))
+)
+const activePack = computed(() => activePackList.value[activeIndex.value] || null)
+// Step events per trynbuy for the banner delivery tracker
+const bannerStepEvents = ref<Record<string, Array<{ step: string; action: string; meta?: any; created_at: string }>>>({})
 const slideDirection = ref<'left' | 'right'>('left')
 const viewEnterStartedAt = ref(0)
 const isLocationAlertOpen = ref(false)
@@ -285,16 +287,13 @@ const openKnowMoreModal = () => {
 const closeKnowMoreModal = () => {
   isKnowMoreModalOpen.value = false
 }
-
 const isCurrentLocationData = (loc: any) => {
   if (!loc) return false
   const name = String(loc.name || '').trim().toLowerCase()
   return name === 'current location'
 }
-
 const refreshCurrentLocationAndPersist = async () => {
   const gps = await getCurrentLocation()
-
   location.value = {
     name: 'Current Location',
     formattedAddress: 'Near you',
@@ -302,7 +301,6 @@ const refreshCurrentLocationAndPersist = async () => {
     lng: gps.lng,
     active: true,
   } as any
-
   await setLocation({
     name: location.value.name,
     formattedAddress: location.value.formattedAddress,
@@ -311,7 +309,6 @@ const refreshCurrentLocationAndPersist = async () => {
     active: true
   })
 }
-
 const waitForInitialVideoWindow = async () => {
   if (!viewEnterStartedAt.value) return
   const elapsed = Date.now() - viewEnterStartedAt.value
@@ -319,7 +316,6 @@ const waitForInitialVideoWindow = async () => {
   if (elapsed >= minDelay) return
   await new Promise((resolve) => setTimeout(resolve, minDelay - elapsed))
 }
-
 const getLocationErrorDetails = (error: any) => {
   if (typeof error === 'string' && error.toLowerCase().includes('not supported')) {
     return {
@@ -327,7 +323,6 @@ const getLocationErrorDetails = (error: any) => {
       message: 'Your device/browser does not support location. Please add location manually.',
     }
   }
-
   if (error && typeof error === 'object' && 'code' in error) {
     switch (error.code) {
       case 1:
@@ -349,13 +344,11 @@ const getLocationErrorDetails = (error: any) => {
         break
     }
   }
-
   return {
     header: 'Location Required',
     message: 'Turn on location to find nearby shops, or add your location manually.',
   }
 }
-
 const showLocationFailureToast = async (error: any) => {
   const details = getLocationErrorDetails(error)
   const toast = await toastController.create({
@@ -368,7 +361,6 @@ const showLocationFailureToast = async (error: any) => {
   })
   await toast.present()
 }
-
 const showLocationPermissionAlert = async (error?: any) => {
   if (isLocationAlertOpen.value) return
   await waitForInitialVideoWindow()
@@ -406,17 +398,14 @@ const showLocationPermissionAlert = async (error?: any) => {
       }
     ]
   })
-
   alert.onDidDismiss().then(() => {
     isLocationAlertOpen.value = false
   })
   await alert.present()
 }
-
 /* ---- Swipe + Mouse Drag Support ---- */
 let startX = 0
 let isDragging = false
-
 function startTouch(e: TouchEvent) {
   startX = e.changedTouches[0].screenX
 }
@@ -438,19 +427,17 @@ function handleSwipe(diff: number) {
   if (diff > 60) prevPack()
   else if (diff < -60) nextPack()
 }
-
 /* ---- Pack Navigation ---- */
 function nextPack() {
-  if (packStore.packList.length === 0) return
+  if (activePackList.value.length === 0) return
   slideDirection.value = 'left'
-  activeIndex.value = (activeIndex.value + 1) % packStore.packList.length
+  activeIndex.value = (activeIndex.value + 1) % activePackList.value.length
 }
 function prevPack() {
-  if (packStore.packList.length === 0) return
+  if (activePackList.value.length === 0) return
   slideDirection.value = 'right'
-  activeIndex.value = (activeIndex.value - 1 + packStore.packList.length) % packStore.packList.length
+  activeIndex.value = (activeIndex.value - 1 + activePackList.value.length) % activePackList.value.length
 }
-
 /* ---- Helpers ---- */
 function formatStatus(status: string | null): string {
   if (!status) return ''
@@ -460,30 +447,56 @@ function formatStatus(status: string | null): string {
     .map((word) => word.charAt(0).toUpperCase() + word.slice(1))
     .join(' ')
 }
-
+const STEP_LABELS: Record<string, string> = {
+  Packed: 'Packed',
+  GoToPickup: 'Heading to Store',
+  CollectOrder: 'Collecting Items',
+  GoToDrop: 'On the Way',
+  Delivered: 'Delivered',
+  TrynbuyWaiting: 'Waiting for You',
+}
+function bannerStatusLabel(pack: any): string {
+  const events = bannerStepEvents.value[pack.trynbuy_id]
+  if (events?.length) {
+    // Find the latest meaningful event
+    for (let i = events.length - 1; i >= 0; i--) {
+      const label = STEP_LABELS[events[i].step]
+      if (label) return label
+    }
+  }
+  // Fall back to order_status
+  return formatStatus(pack.order_status)
+}
 /* ---- Location + Categories ---- */
 const { getLocation } = useLocationStore()
 const location = ref({ name: '', formattedAddress: '', lat: 0, lng: 0 })
-
 const categoryButtons = ['Men', 'Women', 'Girls', 'Boys']
 const activeCategory = ref<number | null>(null)
 const selectedCategory = computed(() => {
   if (activeCategory.value == null) return null
   return categoryButtons[activeCategory.value].toLowerCase()
 })
-
 onIonViewWillEnter(async () => {
   viewEnterStartedAt.value = Date.now()
   await packStore.loadFromStorage()
-
+  packStore.fetchFromApi().catch(() => {})
+  // Fetch delivery step events for each active pack
+  for (const pack of activePackList.value) {
+    fetchDeliveryStepEvents(pack.trynbuy_id)
+      .then((res) => {
+        bannerStepEvents.value = {
+          ...bannerStepEvents.value,
+          [pack.trynbuy_id]: res.data?.events || [],
+        }
+      })
+      .catch(() => {})
+  }
   // 1️⃣ Logged-in user → use saved address
   if (isLoggedIn.value) {
     if (addressStore.addresses.length === 0) {
       await addressStore.fetchFromApi()
     }
-
     const saved = await getLocation()
-
     if (saved && !isCurrentLocationData(saved)) {
       location.value = saved
     } else if (saved && isCurrentLocationData(saved)) {
@@ -509,11 +522,9 @@ onIonViewWillEnter(async () => {
       return
     }
   }
-
   // 2️⃣ Logged-out user → GPS fallback
   else {
     const cached = await getLocation()
-
     if (cached && !isCurrentLocationData(cached)) {
       location.value = cached
     } else {
@@ -527,26 +538,20 @@ onIonViewWillEnter(async () => {
       }
     }
   }
-
-
   // 3) Fetch nearby shops (common for both)
   await loadShopsByLocation(location.value.lat, location.value.lng)
 })
-
 /* ✅ FINAL LIST WITH NEARBY FIRST */
 const shopsList = computed(() => {
   const list = subCategoryFilter?.value
     ? filteredBySubcategoryShops.value
     : filteredShops.value
-
   return [...list].sort((a, b) => {
     const aNearby = nearbyStore.isNearbyCompany(a.id) ? 1 : 0
     const bNearby = nearbyStore.isNearbyCompany(b.id) ? 1 : 0
     return bNearby - aNearby
   })
 })
-
-
 const loadShopsByLocation = async (lat: number, lng: number) => {
   try {
     const response = await getAllShop(lat, lng)
@@ -562,7 +567,6 @@ const loadShopsByLocation = async (lat: number, lng: number) => {
     loading.value = false
   }
 }
-
 const onLocationChange = async (newLocation: any) => {
   location.value = newLocation
   loading.value = true
@@ -573,31 +577,24 @@ const onLocationChange = async (newLocation: any) => {
   await nearbyStore.fetchNearbyShops()
   await loadShopsByLocation(newLocation.lat, newLocation.lng)
 }
-
 const getCurrentLocation = (): Promise<{ lat: number; lng: number }> => {
   return getDeviceLocation()
 }
-
 function onSearch(value: string) {
   searchTerm.value = (value || '').toLowerCase().trim()
 }
-
 const hasShopImage = (shop: any) => {
   return !!String(shop?.logo || '').trim()
 }
-
 const filteredShops = computed(() => {
   // For now , filter on FE for search, Backend api is available but not integrated yet
   const q = searchTerm.value.toLowerCase().trim()
   const genderCategory = selectedCategory.value?.toLowerCase()
-
   return shops.value.filter((shop) => {
     if (!hasShopImage(shop)) return false
-
     // ---- Search (FE) ----
     const name = (shop.name || '').toLowerCase()
     const matchesSearch = q ? name.includes(q) : true
-
     // ---- Gender Category (FE) ----
     const shopCategories = Array.isArray(shop.category)
       ? shop.category.map((c: string) => c.toLowerCase())
@@ -606,21 +603,16 @@ const filteredShops = computed(() => {
       !genderCategory || genderCategory === 'all'
         ? true
         : shopCategories.includes(genderCategory)
-
     return matchesSearch && matchesGender
   })
 })
-
-
 async function fetchShopsBySubCategory() {
   const subCategory = subCategoryFilter.value
   if (!subCategory) return
-
   const { lat, lng } = location.value
   const requestId = ++subcategoryRequestSeq
   subcategoryLoading.value = true
   subcategoryShopGroups.value = []
-
   try {
     const res = await api.get('/shops/by-category', {
       params: {
@@ -629,7 +621,6 @@ async function fetchShopsBySubCategory() {
         category: subCategory // 👈 casual_shirt, sports_shoes
       }
     })
-
     if (requestId !== subcategoryRequestSeq) return
     const filteredShopsData = Array.isArray(res.data)
       ? res.data
@@ -641,7 +632,6 @@ async function fetchShopsBySubCategory() {
         }))
       : []
     filteredBySubcategoryShops.value = filteredShopsData
-
     let groups = normalizeSubcategoryData(res.data)
     if (!groups.length && filteredShopsData.length) {
       groups = await fetchProductsForMatchedShops(
@@ -662,7 +652,6 @@ async function fetchShopsBySubCategory() {
     }
   }
 }
-
 watch(subCategoryFilter, (newVal) => {
   if (!newVal) {
     subcategoryRequestSeq++
@@ -672,7 +661,6 @@ watch(subCategoryFilter, (newVal) => {
   }
   fetchShopsBySubCategory()
 })
-
 watch(selectedCategory, () => {
   subcategoryRequestSeq++
   subcategoryLoading.value = false
@@ -680,17 +668,14 @@ watch(selectedCategory, () => {
   filteredBySubcategoryShops.value = []
   subcategoryShopGroups.value = []
 })
-
 const imageUrl = (imgPath?: string) => {
   if (!imgPath) return ''
   return imgPath.startsWith('http') ? imgPath : `https://images.markit.co.in/${imgPath}`
 }
-
 const formatPrice = (price?: number) => {
   if (price == null) return ''
   return `₹${Number(price).toLocaleString('en-IN', { minimumFractionDigits: 2, maximumFractionDigits: 2 })}`
 }
-
 const formatLabel = (value?: string | null) => {
   if (!value) return ''
   return value
@@ -705,7 +690,6 @@ const formatLabel = (value?: string | null) => {
     )
     .join(' ')
 }
-
 const formatShopName = (value?: string | null) => {
   if (!value) return ''
   return String(value)
@@ -720,12 +704,10 @@ const formatShopName = (value?: string | null) => {
     )
     .join(' ')
 }
-
 const normalizeToken = (value?: string | null) => {
   if (!value) return ''
   return String(value).toLowerCase().replace(/[^a-z0-9]/g, '')
 }
-
 const selectedSubCategoryLabel = computed(() => {
   const value = subCategoryFilter.value
   if (!value) return ''
@@ -739,7 +721,6 @@ const matchBySubCategory = (raw: any, subCategory: string, subCategoryLabel: str
   const targetLabel = normalizeToken(subCategoryLabel)
   const tokens = [targetValue, targetLabel].filter(Boolean)
   if (!tokens.length) return false
-
   const fromArray = (arr: any[]) =>
     arr
       .map((item) => {
@@ -748,7 +729,6 @@ const matchBySubCategory = (raw: any, subCategory: string, subCategoryLabel: str
         return item.name || item.label || item.slug || item.value || ''
       })
       .filter(Boolean)
-
   const candidates: string[] = [
     raw?.name,
     raw?.productName,
@@ -768,13 +748,11 @@ const matchBySubCategory = (raw: any, subCategory: string, subCategoryLabel: str
     ...fromArray(Array.isArray(raw?.subcategories) ? raw.subcategories : []),
     ...fromArray(Array.isArray(raw?.tags) ? raw.tags : []),
   ].filter(Boolean)
-
   const normalizedCandidates = candidates.map((candidate) => normalizeToken(candidate))
   return normalizedCandidates.some((candidate) =>
     tokens.some((token) => candidate.includes(token) || token.includes(candidate))
   )
 }
-
 const fetchProductsForMatchedShops = async (
   shopsData: any[],
   subCategory: string,
@@ -788,25 +766,20 @@ const fetchProductsForMatchedShops = async (
       const query = queryParams?.toString() ? `?${queryParams.toString()}` : ''
       const res = await fetch(`${apiUrl}/products/company/${shopId}${query}`)
       if (!res.ok) return []
-
       const reader = res.body?.getReader()
       if (!reader) {
         const payload = await res.json().catch(() => [])
         return Array.isArray(payload) ? payload : []
       }
-
       const decoder = new TextDecoder()
       let buffer = ''
       const products: any[] = []
-
       while (true) {
         const { done, value } = await reader.read()
         if (done) break
-
         buffer += decoder.decode(value, { stream: true })
         const lines = buffer.split('\n')
         buffer = lines.pop() || ''
-
         for (const line of lines) {
           const trimmed = line.trim()
           if (!trimmed) continue
@@ -817,7 +790,6 @@ const fetchProductsForMatchedShops = async (
           }
         }
       }
-
       const finalChunk = buffer.trim()
       if (finalChunk) {
         try {
@@ -826,14 +798,12 @@ const fetchProductsForMatchedShops = async (
           // Ignore final malformed chunk.
         }
       }
-
       return products
     } catch (error) {
       console.error(`Failed streaming products for shop ${shopId}`, error)
       return []
     }
   }
-
   const findCategoryIdForShop = async (shopId: string): Promise<string | null> => {
     try {
       const response = await api.get(`/products/categories/${shopId}`)
@@ -845,7 +815,6 @@ const fetchProductsForMatchedShops = async (
           : []
       const targetTokens = [normalizeToken(subCategory), normalizeToken(subCategoryLabel)].filter(Boolean)
       if (!targetTokens.length) return null
-
       const matched = categories.find((cat: any) => {
         const candidates = [
           cat?.name,
@@ -855,24 +824,20 @@ const fetchProductsForMatchedShops = async (
         ]
           .filter(Boolean)
           .map((value) => normalizeToken(String(value)))
-
         return candidates.some((candidate) =>
           targetTokens.some((token) => candidate.includes(token) || token.includes(candidate))
         )
       })
-
       return matched?.id ? String(matched.id) : null
     } catch (error) {
       console.error(`Failed to fetch categories for shop ${shopId}`, error)
       return null
     }
   }
-
   const groups = await Promise.all(
     shopsData.map(async (shop: any) => {
       const shopId = String(shop?.id || shop?.companyId || shop?.company_id || '')
       if (!shopId) return null
-
       try {
         const categoryId = await findCategoryIdForShop(shopId)
         const query = new URLSearchParams()
@@ -885,7 +850,6 @@ const fetchProductsForMatchedShops = async (
           : variants.filter((variant: any) => matchBySubCategory(variant, subCategory, subCategoryLabel)))
           .map(toProduct)
           .filter(Boolean) as SubcategoryProduct[]
-
         if (!matched.length) return null
         return {
           id: shopId,
@@ -898,14 +862,11 @@ const fetchProductsForMatchedShops = async (
       }
     })
   )
-
   return groups.filter(Boolean) as SubcategoryShopGroup[]
 }
-
 const toProduct = (raw: any): SubcategoryProduct | null => {
   const id = raw?.id || raw?.variantId || raw?.variant_id
   if (!id) return null
-
   return {
     id: String(id),
     name: raw?.name || raw?.variantName || raw?.variant_name || '',
@@ -917,7 +878,6 @@ const toProduct = (raw: any): SubcategoryProduct | null => {
     discount: Number(raw?.discount ?? 0),
   }
 }
-
 const extractProducts = (shopOrGroup: any): SubcategoryProduct[] => {
   const sources = [
     shopOrGroup?.products,
@@ -926,20 +886,15 @@ const extractProducts = (shopOrGroup: any): SubcategoryProduct[] => {
     shopOrGroup?.productVariants,
     shopOrGroup?.product_variants,
   ]
-
   for (const source of sources) {
     if (!Array.isArray(source)) continue
     return source.map(toProduct).filter(Boolean) as SubcategoryProduct[]
   }
-
   return []
 }
-
 const normalizeSubcategoryData = (data: any): SubcategoryShopGroup[] => {
   if (!Array.isArray(data)) return []
-
   const grouped = new Map<string, SubcategoryShopGroup>()
-
   const upsertShopProduct = (shopId: string, shopName: string, product: SubcategoryProduct) => {
     if (!grouped.has(shopId)) {
       grouped.set(shopId, {
@@ -950,7 +905,6 @@ const normalizeSubcategoryData = (data: any): SubcategoryShopGroup[] => {
     }
     grouped.get(shopId)!.products.push(product)
   }
-
   data.forEach((entry: any) => {
     const entryProducts = extractProducts(entry)
     if (entryProducts.length) {
@@ -960,7 +914,6 @@ const normalizeSubcategoryData = (data: any): SubcategoryShopGroup[] => {
       entryProducts.forEach((product) => upsertShopProduct(shopId, shopName, product))
       return
     }
-
     const product = toProduct(entry)
     if (!product) return
     const shopId = String(entry?.companyId || entry?.company_id || entry?.company?.id || '')
@@ -972,7 +925,6 @@ const normalizeSubcategoryData = (data: any): SubcategoryShopGroup[] => {
       'Store'
     upsertShopProduct(shopId, shopName, product)
   })
-
   return [...grouped.values()]
     .filter((group) => group.products.length > 0)
     .sort((a, b) => {
@@ -981,44 +933,47 @@ const normalizeSubcategoryData = (data: any): SubcategoryShopGroup[] => {
       return bNearby - aNearby
     })
 }
-
 /* ---- Collapsible Header ---- */
 const scrollY = ref(0)
 const showFixedSearch = ref(false)
 const showFixedFilters = ref(false)
 const hideGender = ref(false)
 const hideCategory = ref(false)
-
 let scrollRaf: number | null = null
 let latestScrollTop = 0
-
 const applyScrollState = (top: number) => {
   scrollY.value = top
-
   const nextCollapsed = top > 80
   const nextShowFixedSearch = top > 80
   const nextShowFixedFilters = top > 260
   const nextHideGender = top > 200
   const nextHideCategory = top > 300
-
   if (isCollapsed.value !== nextCollapsed) isCollapsed.value = nextCollapsed
   if (showFixedSearch.value !== nextShowFixedSearch) showFixedSearch.value = nextShowFixedSearch
   if (showFixedFilters.value !== nextShowFixedFilters) showFixedFilters.value = nextShowFixedFilters
   if (hideGender.value !== nextHideGender) hideGender.value = nextHideGender
   if (hideCategory.value !== nextHideCategory) hideCategory.value = nextHideCategory
 }
-
 function onScroll(ev: CustomEvent) {
   latestScrollTop = Number(ev.detail?.scrollTop || 0)
-
   if (scrollRaf !== null) return
   scrollRaf = requestAnimationFrame(() => {
     scrollRaf = null
     applyScrollState(latestScrollTop)
   })
 }
-
+// Real-time delivery step updates for the banner tracker
+const onBannerDeliveryStep = (data: { trynbuy_id: string; step: string; action: string; meta?: any }) => {
+  const id = data.trynbuy_id
+  const existing = bannerStepEvents.value[id] || []
+  bannerStepEvents.value = {
+    ...bannerStepEvents.value,
+    [id]: [...existing, { step: data.step, action: data.action, meta: data.meta, created_at: new Date().toISOString() }],
+  }
+}
+socket.on('deliveryStepUpdate', onBannerDeliveryStep)
 onUnmounted(() => {
+  socket.off('deliveryStepUpdate', onBannerDeliveryStep)
   if (scrollRaf !== null) cancelAnimationFrame(scrollRaf)
 })
 </script>

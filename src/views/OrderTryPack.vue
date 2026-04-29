@@ -4,6 +4,20 @@
 
     <ion-content class="ion-padding" :fullscreen="true">
       <div v-if="order">
+        <!-- Delivery step tracker -->
+        <DeliveryTracker
+          :events="stepEvents"
+          :storeCount="order.companies?.length ?? 1"
+          :packed="['PACKED', 'DELIVERED', 'PAID', 'COMPLETED'].includes(String(order.order_status || '').toUpperCase())"
+        />
+
+        <!-- Delivery OTP card -->
+        <div v-if="order.delivery_otp" class="otp-card mb-4">
+          <div class="otp-card-label">Your Delivery OTP</div>
+          <div class="otp-card-code">{{ order.delivery_otp }}</div>
+          <div class="otp-card-hint">Share this with the delivery person to confirm delivery</div>
+        </div>
+
         <!-- ================= PER COMPANY CARDS ================= -->
         <div v-for="(company, index) in order.companies" :key="company.id" class="company-card mb-4">
           <!-- Company Header -->
@@ -183,10 +197,15 @@
             <div class="text-lg font-semibold text-gray-900">&#8377; {{ summary.total }}</div>
           </div>
 
-          <ion-button expand="block" shape="round" :color="allDecided ? 'primary' : 'medium'" :disabled="!allDecided"
+          <ion-button expand="block" shape="round"
+            :color="allDecided && canPay ? 'primary' : 'medium'"
+            :disabled="!allDecided || !canPay"
             @click="proceed">
             Proceed to Payment
           </ion-button>
+        </div>
+        <div v-if="allDecided && !canPay" class="px-4 pb-2 text-xs text-gray-500">
+          Waiting for delivery confirmation
         </div>
       </div>
     </ion-footer>
@@ -194,7 +213,7 @@
 </template>
 
 <script setup lang="ts">
-import { ref, computed, watch } from 'vue'
+import { ref, computed, watch, onUnmounted } from 'vue'
 import { onIonViewWillEnter } from '@ionic/vue'
 import { useIonRouter } from '@ionic/vue'
 import { useRoute } from 'vue-router'
@@ -202,8 +221,9 @@ import { IonPage, IonContent, IonButton, IonFooter, IonIcon, IonToast, IonAction
 import { pricetagOutline, checkmarkCircleOutline, closeOutline } from 'ionicons/icons'
 import Topbar from '@/components/Topbar.vue'
 import CouponModal from '@/components/CouponModal.vue'
+import DeliveryTracker from '@/components/DeliveryTracker.vue'
 import { usePackStore } from '@/store/usePackStore'
-import { createTrynBuyBill, fetchCoupons, validateCoupon } from '@/api/api'
+import { createTrynBuyBill, fetchCoupons, validateCoupon, fetchDeliveryStepEvents } from '@/api/api'
 import { Preferences } from '@capacitor/preferences'
 import socket from '@/services/socket'
 
@@ -267,6 +287,35 @@ const MarkitCoupon = ref<{
 } | null>(null)
 const clientId = ref<string>('')
 
+const deliveryConfirmed = ref(false)
+const stepEvents = ref<Array<{ step: string; action: string; created_at: string }>>([])
+const canPay = computed(() => deliveryConfirmed.value)
+
+const roundMoney = (value: number) => Math.round((Number(value) || 0) * 100) / 100
+
+const calculateDiscountAmount = (
+  coupon: {
+    type: string
+    discount_value: number
+    max_discount_amount?: number
+  } | null | undefined,
+  subtotal: number
+) => {
+  if (!coupon || subtotal <= 0) return 0
+
+  let discount = 0
+  if (coupon.type === 'PERCENTAGE') {
+    discount = (subtotal * coupon.discount_value) / 100
+    if (coupon.max_discount_amount) {
+      discount = Math.min(discount, coupon.max_discount_amount)
+    }
+  } else if (coupon.type === 'FLAT') {
+    discount = coupon.discount_value
+  }
+
+  return roundMoney(Math.min(discount, subtotal))
+}
+
 const calculateCompanyDiscount = (companyId: string) => {
   const coupon = companyCoupons.value[companyId]
   if (!coupon) return 0
@@ -284,19 +333,7 @@ const calculateCompanyDiscount = (companyId: string) => {
 
   if (keptSubtotal <= 0) return 0
 
-  // Calculate discount based on coupon type
-  let discount = 0
-  if (coupon.type === 'PERCENTAGE') {
-    discount = (keptSubtotal * coupon.discount_value) / 100
-    if (coupon.max_discount_amount) {
-      discount = Math.min(discount, coupon.max_discount_amount)
-    }
-  } else if (coupon.type === 'FLAT') {
-    discount = coupon.discount_value
-  }
-
-  // Cap at kept subtotal
-  return Math.min(discount, keptSubtotal)
+  return calculateDiscountAmount(coupon, keptSubtotal)
 }
 
 // Function to calculate dynamic Markit discount
@@ -316,19 +353,30 @@ const calculateMarkitDiscount = () => {
 
   if (totalKeptSubtotal <= 0) return 0
 
-  // Calculate discount based on coupon type
-  let discount = 0
-  if (coupon.type === 'PERCENTAGE') {
-    discount = (totalKeptSubtotal * coupon.discount_value) / 100
-    if (coupon.max_discount_amount) {
-      discount = Math.min(discount, coupon.max_discount_amount)
-    }
-  } else if (coupon.type === 'FLAT') {
-    discount = coupon.discount_value
-  }
+  return calculateDiscountAmount(coupon, totalKeptSubtotal)
+}
 
-  // Cap at total kept subtotal
-  return Math.min(discount, totalKeptSubtotal)
+const getCompanyKeptSubtotal = (companyId: string) => {
+  const company = order.value?.companies.find((c: any) => c.id === companyId)
+  if (!company) return 0
+
+  return company.cartitems.reduce((sum: number, i: any) => {
+    if (decisions.value[i.id] === 'keep') {
+      return sum + i.d_price
+    }
+    return sum
+  }, 0)
+}
+
+const getOverallKeptSubtotal = () => {
+  return order.value?.companies.reduce((total: number, company: any) => {
+    return total + company.cartitems.reduce((sum: number, i: any) => {
+      if (decisions.value[i.id] === 'keep') {
+        return sum + i.d_price
+      }
+      return sum
+    }, 0)
+  }, 0) || 0
 }
 // ------------------- Computed -------------------
 const allItems = computed(() => {
@@ -402,9 +450,9 @@ const companySummary = (companyId: string) => {
   const couponDiscount = calculateCompanyDiscount(companyId)
 
   return {
-    subtotal,
+    subtotal: roundMoney(subtotal),
     discount: couponDiscount,
-    total: Math.max(0, subtotal - couponDiscount) // Ensure non-negative
+    total: roundMoney(Math.max(0, subtotal - couponDiscount))
   }
 }
 
@@ -426,13 +474,13 @@ const summary = computed(() => {
   const MarkitDiscount = calculateMarkitDiscount()
 
   // Ensure total doesn't go negative
-  const total = Math.max(0, subtotal + delivery + waitingFees - MarkitDiscount - companyDiscounts)
+  const total = roundMoney(Math.max(0, subtotal + delivery + waitingFees - MarkitDiscount - companyDiscounts))
 
   return {
-    subtotal,
-    delivery,
+    subtotal: roundMoney(subtotal),
+    delivery: roundMoney(delivery),
     discount: MarkitDiscount,
-    companyDiscounts,
+    companyDiscounts: roundMoney(companyDiscounts),
     total
   }
 })
@@ -440,6 +488,7 @@ const summary = computed(() => {
 // ------------------- Lifecycle -------------------
 onIonViewWillEnter(async () => {
   await packStore.loadFromStorage()
+  await packStore.fetchFromApi()
   order.value = packStore.getById(id)
 
   // Get client ID from storage
@@ -457,39 +506,81 @@ onIonViewWillEnter(async () => {
     })
   }
 
+  // Ensure this page is in the client socket room for real-time updates
+  if (clientId.value) {
+    socket.emit('joinClient', clientId.value)
+  }
+
+  // Fetch delivery step events (also determines if delivery is confirmed)
+  fetchDeliveryStepEvents(id)
+    .then((res) => {
+      const events = res.data?.events || []
+      stepEvents.value = events
+      // Check if "Delivered complete" exists in the events
+      deliveryConfirmed.value = events.some(
+        (e: any) => e.step === 'Delivered' && e.action === 'complete'
+      )
+    })
+    .catch(() => {})
+
   // Fetch available coupons
   await loadCoupons()
+})
+
+watch(
+  () => packStore.packList,
+  () => {
+    order.value = packStore.getById(id)
+  },
+  { deep: true }
+)
+
+// Real-time: delivery step updates from delivery partner
+const onDeliveryStep = (data: { trynbuy_id: string; step: string; action: string; meta?: any }) => {
+  if (data.trynbuy_id === id) {
+    stepEvents.value = [...stepEvents.value, {
+      step: data.step,
+      action: data.action,
+      meta: data.meta,
+      created_at: new Date().toISOString(),
+    }]
+    if (data.step === 'Delivered' && data.action === 'complete') {
+      deliveryConfirmed.value = true
+    }
+  }
+}
+// Real-time: trynbuyUpdate from /delivered endpoint (backup for deliveryConfirmed)
+const onTrynbuyUpdate = (data: { trynbuy_id: string; order_status: string }) => {
+  if (data.trynbuy_id === id) {
+    deliveryConfirmed.value = true
+  }
+}
+socket.on('deliveryStepUpdate', onDeliveryStep)
+socket.on('trynbuyUpdate', onTrynbuyUpdate)
+onUnmounted(() => {
+  socket.off('deliveryStepUpdate', onDeliveryStep)
+  socket.off('trynbuyUpdate', onTrynbuyUpdate)
 })
 
 // ------------------- Coupon Functions -------------------
 async function loadCoupons() {
   try {
     if (!order.value || !order.value.companies) {
-      console.log('No order or companies found');
       return;
     }
 
-    console.log('Loading coupons for order:', order.value);
     availableCoupons.value = [];
 
-    const companies = order.value.companies;
-
     // First, fetch company-specific coupons for each company
-    for (const company of companies) {
+    for (const company of order.value.companies) {
       const companyIdForApi = company.id;
 
       if (!companyIdForApi) {
-        console.log('Company missing id:', company);
         continue;
       }
 
-      console.log(`Fetching coupons for company: ${company.name} (ID: ${companyIdForApi})`);
-
       try {
-        // Don't pass type parameter for company coupons, or pass 'company'
         const response = await fetchCoupons(companyIdForApi, clientId.value);
-
-        console.log(`Response for company ${company.name}:`, response.data);
 
         if (response.data && Array.isArray(response.data) && response.data.length > 0) {
           const transformedCoupons = response.data.map((coupon: any) => {
@@ -520,7 +611,6 @@ async function loadCoupons() {
           });
 
           availableCoupons.value = [...availableCoupons.value, ...transformedCoupons];
-          console.log(`Added ${transformedCoupons.length} company coupons for ${company.name}`);
         }
       } catch (error) {
         console.error(`Error fetching coupons for company ${company.name}:`, error);
@@ -529,13 +619,7 @@ async function loadCoupons() {
 
     // Now fetch Markit coupons (app-wide coupons)
     try {
-      console.log('Fetching Markit coupons...');
-
-      // For Markit coupons, pass 'markit' as the type and a special companyId
-      // The server will handle this appropriately
       const markitResponse = await fetchCoupons('markit', clientId.value, 'markit');
-
-      console.log('Markit coupons response:', markitResponse.data);
 
       if (markitResponse.data && Array.isArray(markitResponse.data) && markitResponse.data.length > 0) {
         const markitCoupons = markitResponse.data.map((coupon: any) => {
@@ -568,29 +652,16 @@ async function loadCoupons() {
         });
 
         availableCoupons.value = [...availableCoupons.value, ...markitCoupons];
-        console.log(`Added ${markitCoupons.length} Markit coupons`);
-      } else {
-        console.log('No Markit coupons found');
       }
     } catch (error) {
       console.error('Error fetching Markit coupons:', error);
     }
-
-    console.log('Final available coupons:', availableCoupons.value);
   } catch (error) {
     console.error('Error in loadCoupons:', error);
   }
 }
 
 function openCompanyCouponModal(company: any) {
-  console.log('Opening coupon modal for company:', company);
-
-  const companySpecificCoupons = availableCoupons.value.filter(
-    (coupon: any) => coupon.companyId === company.id && !coupon.isMarkit
-  );
-
-  console.log(`Company coupons for ${company.name}:`, companySpecificCoupons);
-
   selectedCompanyId.value = company.id;
   couponModalType.value = 'company';
   showCouponModal.value = true;
@@ -621,7 +692,6 @@ async function handleApplyCoupon(data: {
       return
     }
 
-    // For company coupons, we need a companyId
     const companyId = data.companyId
 
     if (data.companyId && !companyId) {
@@ -633,32 +703,9 @@ async function handleApplyCoupon(data: {
       return
     }
 
-    // Calculate kept items value for validation
-    let keptItemsValue = 0
-    let companyForValidation = null
-
-    if (data.companyId) {
-      // For company coupon - sum only KEPT items in that company
-      companyForValidation = order.value?.companies.find((c: any) => c.id === data.companyId)
-      keptItemsValue = companyForValidation?.cartitems.reduce((sum: number, i: any) => {
-        if (decisions.value[i.id] === 'keep') {
-          return sum + i.d_price
-        }
-        return sum
-      }, 0) || 0
-    } else {
-      // For Markit coupon - sum KEPT items across all companies
-      keptItemsValue = order.value?.companies.reduce((total: number, company: any) => {
-        return total + company.cartitems.reduce((sum: number, i: any) => {
-          if (decisions.value[i.id] === 'keep') {
-            return sum + i.d_price
-          }
-          return sum
-        }, 0)
-      }, 0) || 0
-    }
-
-    console.log('Kept items value for validation:', keptItemsValue)
+    const keptItemsValue = data.companyId
+      ? getCompanyKeptSubtotal(data.companyId)
+      : getOverallKeptSubtotal()
 
     if (keptItemsValue <= 0) {
       showToast({
@@ -693,18 +740,15 @@ async function handleApplyCoupon(data: {
     // Prepare request data with keptItemsValue instead of original order value
     const requestData = {
       code: data.code,
-      companyId: companyId,
+      companyId: companyId || '',
       clientId: clientId.value,
-      orderValue: keptItemsValue, // Use kept items value for validation
+      orderValue: keptItemsValue,
       isMarkit: !data.companyId,
     }
-
-    console.log('Sending request with kept items value:', requestData)
 
     const response = await validateCoupon(requestData)
     if (response.data.valid) {
       if (data.companyId) {
-        // Find the original coupon to get all details
         const originalCoupon = availableCoupons.value.find(
           c => c.code.toUpperCase() === data.code.toUpperCase()
         )
@@ -725,19 +769,6 @@ async function handleApplyCoupon(data: {
           c => c.code.toUpperCase() === data.code.toUpperCase() && c.isMarkit
         )
 
-        // Calculate the actual discount amount
-        let discountAmount = 0
-        if (response.data.coupon.type === 'PERCENTAGE') {
-          discountAmount = (keptItemsValue * (originalCoupon?.discount_value || parseFloat(response.data.coupon.originalDiscount))) / 100
-          if (originalCoupon?.max_discount_amount) {
-            discountAmount = Math.min(discountAmount, originalCoupon.max_discount_amount)
-          }
-        } else if (response.data.coupon.type === 'FLAT') {
-          discountAmount = originalCoupon?.discount_value || response.data.coupon.discount
-        }
-
-        discountAmount = Math.min(discountAmount, keptItemsValue)
-
         MarkitCoupon.value = {
           code: response.data.coupon.code,
           couponId: response.data.coupon.id,
@@ -748,7 +779,7 @@ async function handleApplyCoupon(data: {
               : response.data.coupon.discount),
           max_discount_amount: originalCoupon?.max_discount_amount,
           min_order_value: originalCoupon?.min_order_value,
-          discount: discountAmount,
+          discount: calculateDiscountAmount(originalCoupon, keptItemsValue),
         }
       }
 
@@ -792,6 +823,10 @@ function toggleDecision(itemId: string, decision: 'keep' | 'return') {
 }
 
 async function proceed() {
+  if (!canPay.value) {
+    showToast({ message: 'Please wait until the delivery is completed.', color: 'warning' })
+    return
+  }
   const amount = summary.value.total
   if (amount <= 0) {
     // All returned — no payment needed, submit bills directly
@@ -806,12 +841,11 @@ async function submitBills(paymentMethod: 'CASH' | 'UPI' | 'NONE') {
   try {
     const amount = summary.value.total
     const allocatedMarkitDiscount = calculateMarkitDiscount()
-
     // Collect all returned items across all companies for the delivery partner
     const allReturnedItems = order.value.companies.flatMap((company: any) =>
       company.cartitems
         .filter((i: any) => decisions.value[i.id] === 'return')
-        .map((i: any) => ({ id: i.id, name: i.name, size: i.size, quantity: i.quantity }))
+        .map((i: any) => ({ id: i.id, name: i.name, size: i.size, quantity: i.quantity, companyId: company.id, companyName: company.name }))
     )
 
     // Notify delivery partner before creating bills
@@ -822,6 +856,10 @@ async function submitBills(paymentMethod: 'CASH' | 'UPI' | 'NONE') {
       returnedItems: allReturnedItems,
     })
 
+    const totalKeptSubtotal = order.value.companies.reduce((total: number, company: any) =>
+      total + company.cartitems.reduce((sum: number, i: any) =>
+        decisions.value[i.id] === 'keep' ? sum + i.d_price : sum, 0), 0)
+
     const firstKeptCompanyId = order.value.companies.find((company: any) =>
       company.cartitems.some((i: any) => decisions.value[i.id] === 'keep')
     )?.id
@@ -830,37 +868,35 @@ async function submitBills(paymentMethod: 'CASH' | 'UPI' | 'NONE') {
       const keptItems = company.cartitems.filter(
         (i: any) => decisions.value[i.id] === 'keep'
       )
-      const returnedItems = company.cartitems.filter(
-        (i: any) => decisions.value[i.id] === 'return'
-      )
       const companyCouponDiscount = calculateCompanyDiscount(company.id)
-      const companyMarkitDiscount =
-        firstKeptCompanyId === company.id ? allocatedMarkitDiscount : 0
+      const companyKeptSubtotal = keptItems.reduce((s: number, i: any) => s + i.d_price, 0)
+      const share = totalKeptSubtotal > 0 ? companyKeptSubtotal / totalKeptSubtotal : 0
+      const companyWaitingFee = Math.round(share * (order.value.waiting_fee || 0) * 100) / 100
+      const companyMarkitDiscount = Math.round(share * allocatedMarkitDiscount * 100) / 100
 
       const payload = {
         trynbuyId: order.value.trynbuy_id,
         companyId: company.id,
+        companyName: company.name,
         paymentMethod,
         transactionId: null,
-        subtotal: keptItems.reduce((s: number, i: any) => s + i.d_price, 0),
-        grandTotal: Math.max(
-          0,
-          keptItems.reduce((s: number, i: any) => s + i.d_price, 0)
-            - companyCouponDiscount
-            - companyMarkitDiscount
-        ),
+        subtotal: companyKeptSubtotal,
+        grandTotal: Math.max(0, companyKeptSubtotal - companyCouponDiscount - companyMarkitDiscount),
         discount: keptItems.reduce((s: number, i: any) => s + (i.s_price - i.d_price), 0),
-        deliveryFees: order.value.shipping || 0,
-        waitingFee: order.value.waiting_fee || 0,
-        waitingTime: order.value.waiting_time || 0,
+        deliveryFees: 0,
+        waitingFee: companyWaitingFee,
         keptItems,
-        returnedItems,
+        returnedItems: company.cartitems
+          .filter((i: any) => decisions.value[i.id] === 'return')
+          .map((i: any) => ({ id: i.id, itemId: i.itemId, quantity: i.quantity, name: i.name })),
         couponId: companyCoupons.value[company.id]?.couponId || null,
         appliedCoupon: companyCoupons.value[company.id]?.code || null,
         couponDiscount: companyCouponDiscount,
-        markitCouponId: companyMarkitDiscount > 0 ? MarkitCoupon.value?.couponId || null : null,
-        markitCouponCode: companyMarkitDiscount > 0 ? MarkitCoupon.value?.code || null : null,
-        markitCouponDiscount: companyMarkitDiscount
+        markitCouponId: (company.id === firstKeptCompanyId && companyMarkitDiscount > 0)
+          ? MarkitCoupon.value?.couponId || null : null,
+        markitCouponCode: (company.id === firstKeptCompanyId && companyMarkitDiscount > 0)
+          ? MarkitCoupon.value?.code || null : null,
+        markitCouponDiscount: companyMarkitDiscount,
       }
 
       try {
@@ -902,6 +938,32 @@ function formatCompanyName(name: string) {
 </script>
 
 <style scoped>
+.otp-card {
+  background: #fffbeb;
+  border: 2px solid #f59e0b;
+  border-radius: 16px;
+  padding: 16px;
+  text-align: center;
+}
+.otp-card-label {
+  font-size: 13px;
+  font-weight: 600;
+  color: #92400e;
+  margin-bottom: 6px;
+}
+.otp-card-code {
+  font-size: 36px;
+  font-weight: 800;
+  letter-spacing: 8px;
+  color: #78350f;
+  font-family: monospace;
+}
+.otp-card-hint {
+  font-size: 11px;
+  color: #b45309;
+  margin-top: 4px;
+}
+
 .company-card {
   background: #ffffff;
   border-radius: 18px;

@@ -27,6 +27,8 @@ export const getTryHistory = () => api.get('/history/trynbuy');
 export const verifyPayment = (data) => api.post('/razorpay/verify', data);
 export const initiatePayment = (data) => api.post('/razorpay/initiate', data);
 export const createTrynBuyBill = (data) => api.post('/checkout/trynbuy/bill', data);
+export const checkDeliveryConfirmed = (trynbuyId: string) => api.get(`/checkout/trynbuy/${trynbuyId}/delivery-confirmed`);
+export const fetchDeliveryStepEvents = (trynbuyId: string) => api.get(`/checkout/trynbuy/${trynbuyId}/step-events`);
 
 export const updateTryNBuyPackingStatus = (id, status) => api.put(`/pack/trynbuy/${id}/packing-status`, { status });
 
@@ -37,8 +39,6 @@ export const deleteProfile = () => api.delete('/client')
 // In api.ts - Update fetchCoupons function
 export const fetchCoupons = async (companyId: string, clientId?: string, type?: string) => {
   try {
-    console.log('Fetching coupons with params:', { companyId, clientId, type });
-    
     const response = await api.get('/coupon/findManyCoupon', {
       params: { 
         companyId,
@@ -46,8 +46,6 @@ export const fetchCoupons = async (companyId: string, clientId?: string, type?: 
         type 
       }
     });
-    
-    console.log('FetchCoupons response data:', response.data);
     return response;
   } catch (error: any) {
     console.error('Error fetching coupons:', error);

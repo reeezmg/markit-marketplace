@@ -30,7 +30,6 @@
   </div>
 </template>
 
-
 <script setup lang="ts">
 import { useNearbyStore } from '@/store/useNearbyStore'
 import { computed } from 'vue'
