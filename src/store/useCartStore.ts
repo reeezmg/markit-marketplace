@@ -12,6 +12,7 @@ const cartStorage = localforage.createInstance({
 /* ========= TYPES ========= */
 
 export interface CartItem {
+  cartLineId?: string
   id: string
   name: string
   productName: string
@@ -60,6 +61,21 @@ export const useCartStore = defineStore('cart', {
       return n
     },
 
+    createCartLineId() {
+      if (typeof crypto !== 'undefined' && 'randomUUID' in crypto) {
+        return crypto.randomUUID()
+      }
+      return `cart_${Date.now()}_${Math.random().toString(36).slice(2)}`
+    },
+
+    normalizeCartItem(item: CartItem): CartItem {
+      return {
+        ...item,
+        cartLineId: item.cartLineId || this.createCartLineId(),
+        quantity: 1,
+      }
+    },
+
     async loadCart() {
       const value = await cartStorage.getItem<string>(STORAGE_KEY)
       if (!value) return
@@ -76,7 +92,7 @@ export const useCartStore = defineStore('cart', {
             companyLat: item.companyLat,
             companyLng: item.companyLng,
             companyLocationId: item.companyLocationId,
-            items: [item],
+            items: [this.normalizeCartItem(item)],
           })),
         }))
         await this.saveCart()
@@ -94,7 +110,10 @@ export const useCartStore = defineStore('cart', {
               companyLat: old.items[0]?.companyLat,
               companyLng: old.items[0]?.companyLng,
               companyLocationId: old.items[0]?.companyLocationId,
-              items: old.items,
+              items: (old.items || []).flatMap((item: CartItem) => {
+                const qty = Math.max(1, Number(item.quantity || 1))
+                return Array.from({ length: qty }, () => this.normalizeCartItem(item))
+              }),
             },
           ],
         }))
@@ -102,7 +121,17 @@ export const useCartStore = defineStore('cart', {
         return
       }
 
-      this.groups = parsed ?? []
+      this.groups = (parsed ?? []).map((group: CartGroup) => ({
+        ...group,
+        companies: (group.companies || []).map(company => ({
+          ...company,
+          items: (company.items || []).flatMap((item: CartItem) => {
+            const qty = Math.max(1, Number(item.quantity || 1))
+            return Array.from({ length: qty }, () => this.normalizeCartItem(item))
+          }),
+        })),
+      }))
+      await this.saveCart()
     },
 
     async saveCart() {
@@ -137,14 +166,13 @@ export const useCartStore = defineStore('cart', {
     async removeItem(variantId: string, size: string | null = null) {
       for (const group of this.groups) {
         for (const company of group.companies) {
-          const idx = company.items.findIndex(
-            i => i.id === variantId && i.selectedSize === size
+          const idx = company.items.findIndex(i =>
+            i.cartLineId === variantId ||
+            (i.id === variantId && i.selectedSize === size)
           )
 
           if (idx !== -1) {
-            const item = company.items[idx]
-            if (item.quantity > 1) item.quantity--
-            else company.items.splice(idx, 1)
+            company.items.splice(idx, 1)
           }
         }
 
@@ -165,17 +193,62 @@ export const useCartStore = defineStore('cart', {
       quantity: number = 1
     ) {
       const nearbyStore = useNearbyStore()
+      const existingCompanyIds = new Set(
+        this.groups
+          .flatMap(group => group.companies)
+          .filter(company => company.items && company.items.length > 0)
+          .map(company => company.companyId)
+      )
+      const isNewCompany = !existingCompanyIds.has(variant.companyId)
+
+      if (isNewCompany && existingCompanyIds.size >= 3) {
+        return {
+          success: false,
+          reason: 'MAX_STORES_REACHED',
+          message: 'You can add items from up to 3 stores in one cart.',
+        }
+      }
+
+      /* CART LIMITS (10 total / 5 per store) — checked before any mutation */
+      const incomingUnits = sizes.length * Math.max(1, Number(quantity || 1))
+      const totalInCart = this.groups
+        .flatMap(g => g.companies)
+        .reduce((sum, c) => sum + (c.items?.length || 0), 0)
+
+      if (totalInCart + incomingUnits > 10) {
+        return {
+          success: false,
+          reason: 'CART_FULL',
+          message: 'Cart limit is 10 items.',
+        }
+      }
+
+      const itemsInThisStore = this.groups
+        .flatMap(g => g.companies)
+        .filter(c => c.companyId === variant.companyId)
+        .reduce((sum, c) => sum + (c.items?.length || 0), 0)
+
+      if (itemsInThisStore + incomingUnits > 5) {
+        return {
+          success: false,
+          reason: 'STORE_LIMIT',
+          message: 'You can add at most 5 items from a single store.',
+        }
+      }
 
       const linkedCartNumber =
         nearbyStore.getCartNumberForCompany(variant.companyId)
 
       let targetGroup: CartGroup | undefined
+      targetGroup = this.groups.find(g =>
+        g.companies.some(c => c.companyId === variant.companyId)
+      )
 
       /* --------------------------------
          CASE 1 — Nearby linked store
          (existing logic unchanged)
       -------------------------------- */
-      if (linkedCartNumber) {
+      if (linkedCartNumber && !targetGroup) {
         targetGroup = this.groups.find(
           g => g.cartNumber === linkedCartNumber
         )
@@ -186,7 +259,7 @@ export const useCartStore = defineStore('cart', {
          NEW RULE:
          If cart already has items → block
       -------------------------------- */
-      if (!linkedCartNumber) {
+      if (!linkedCartNumber && !targetGroup) {
         const cartHasItems = this.groups.some(
           g => g.companies.length > 0
         )
@@ -199,15 +272,6 @@ export const useCartStore = defineStore('cart', {
               'Cart already has products. Can add from nearby store only.',
           }
         }
-      }
-
-      /* --------------------------------
-         FIND EXISTING COMPANY GROUP
-      -------------------------------- */
-      if (!targetGroup) {
-        targetGroup = this.groups.find(g =>
-          g.companies.some(c => c.companyId === variant.companyId)
-        )
       }
 
       /* --------------------------------
@@ -247,23 +311,19 @@ export const useCartStore = defineStore('cart', {
          ITEMS
       -------------------------------- */
       sizes.forEach(size => {
-        const existing = targetCompany!.items.find(
-          i => i.id === variant.id && i.selectedSize === size
-        )
-
-        if (existing) {
-          existing.quantity += quantity
-        } else {
+        const units = Math.max(1, Number(quantity || 1))
+        for (let index = 0; index < units; index++) {
           targetCompany!.items.push({
             ...variant,
+            cartLineId: this.createCartLineId(),
             selectedSize: size,
-            quantity,
+            quantity: 1,
           })
         }
       })
 
       await this.saveCart()
-      nearbyStore.fetchNearbyShops()
+      await nearbyStore.fetchNearbyShops()
 
       return { success: true }
     },

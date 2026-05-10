@@ -3,18 +3,32 @@
     class="address-details-modal"
     :is-open="isOpen"
     @didDismiss="close"
-    :breakpoints="[0, 0.75, 0.9]"
-    :initial-breakpoint="0.9"
+    breakpoints="[0, 1]"
+    initialBreakpoint="1"
     :handle-behavior="'cycle'"
     :can-dismiss="true"
     :backdrop-dismiss="true"
     show-backdrop
     swipe-to-close
   >
-    <ion-content class="details-content">
+    <div class="details-shell">
+      <header class="details-header">
+        <div class="details-title-row">
+          <span class="details-title-icon">
+            <IonIcon :icon="locationOutline" />
+          </span>
+          <h2 class="details-title">Save Address</h2>
+        </div>
+        <p class="details-subtitle">Add house &amp; landmark for accurate delivery</p>
+      </header>
+
       <div class="details-note">Note: Orders cannot be delivered to public spaces</div>
 
-      <section class="details-address glass-card">
+      <section class="details-address">
+        <div class="details-addr-header">
+          
+          <span class="details-addr-label">Selected Location</span>
+        </div>
         <div class="details-name">{{ name }}</div>
         <div class="details-line">{{ formattedAddress }}</div>
       </section>
@@ -55,10 +69,10 @@
         </ion-item>
       </section>
 
-      <div class="details-save-wrap">
+      <div class="details-action">
         <ion-button expand="block" class="details-save-btn" @click="submitForm">Save Address</ion-button>
       </div>
-    </ion-content>
+    </div>
   </ion-modal>
 </template>
 
@@ -66,11 +80,12 @@
 import { ref, watch, toRef } from 'vue'
 import {
   IonItem,
-  IonContent,
   IonInput,
   IonButton,
   IonModal,
+  IonIcon,
 } from '@ionic/vue'
+import { locationOutline } from 'ionicons/icons'
 import { useAddressStore } from '@/store/useAddressStore'
 
 const addressStore = useAddressStore()
@@ -130,11 +145,87 @@ function submitForm() {
 </script>
 
 <style scoped>
-.details-content {
-  --padding-top: 12px;
-  --padding-start: 14px;
-  --padding-end: 14px;
-  --padding-bottom: calc(18px + var(--markit-bottom-inset));
+ion-modal {
+  --height: auto;
+  --backdrop-opacity: 0.28;
+}
+
+ion-modal::part(content) {
+  background: transparent;
+  border-bottom-left-radius: 0;
+  border-bottom-right-radius: 0;
+}
+
+ion-modal::part(handle) {
+  width: 42px;
+  height: 5px;
+  border-radius: 999px;
+  background: rgba(100, 116, 139, 0.35);
+}
+
+.details-shell {
+  background: linear-gradient(180deg, rgba(255, 255, 255, 0.98) 0%, rgba(248, 250, 249, 0.96) 100%);
+  border-top-left-radius: var(--markit-radius-xl);
+  border-top-right-radius: var(--markit-radius-xl);
+  border-bottom-left-radius: 0;
+  border-bottom-right-radius: 0;
+  border: 1px solid var(--markit-glass-border);
+  border-bottom: 0;
+  box-shadow:
+    inset 0 1px 0 var(--markit-glass-highlight),
+    0 -10px 32px rgba(15, 23, 42, 0.08);
+  backdrop-filter: blur(22px) saturate(160%);
+  -webkit-backdrop-filter: blur(22px) saturate(160%);
+  color: var(--markit-text);
+  padding: 18px 18px calc(var(--markit-bottom-inset) + 18px);
+  display: flex;
+  flex-direction: column;
+  gap: 14px;
+}
+
+.details-header {
+  display: flex;
+  flex-direction: column;
+  gap: 4px;
+  padding-top: 4px;
+  padding-bottom: 12px;
+  border-bottom: 1px solid var(--markit-border);
+}
+
+.details-title-row {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+}
+
+.details-title-icon {
+  width: 36px;
+  height: 36px;
+  border-radius: 12px;
+  background: color-mix(in srgb, var(--ion-color-primary) 10%, #ffffff);
+  color: var(--ion-color-primary);
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  font-size: 18px;
+}
+
+.details-title {
+  font-size: 1.1rem;
+  font-weight: 800;
+  color: var(--markit-text);
+  letter-spacing: -0.1px;
+  margin: 0;
+}
+
+.details-subtitle {
+  margin: 0;
+  font-size: 0.82rem;
+  color: var(--markit-text-muted);
+}
+
+.details-action {
+  margin-top: 4px;
 }
 
 .details-note {
@@ -149,21 +240,54 @@ function submitForm() {
 
 .details-address {
   margin-top: 12px;
-  padding: 14px;
+  padding: 14px 14px 12px;
+  border-radius: var(--markit-radius-xl);
+  border: 1px solid var(--markit-glass-border);
+  background: var(--markit-glass-surface);
+  box-shadow:
+    inset 0 1px 0 var(--markit-glass-highlight),
+    var(--markit-glass-shadow);
+}
+
+.details-addr-header {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  margin-bottom: 10px;
+}
+
+.details-addr-icon {
+  width: 30px;
+  height: 30px;
+  border-radius: 10px;
+  background: color-mix(in srgb, var(--ion-color-primary) 10%, #ffffff);
+  color: var(--ion-color-primary);
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  font-size: 16px;
+}
+
+.details-addr-label {
+  font-size: 0.78rem;
+  font-weight: 700;
+  letter-spacing: 0.04em;
+  text-transform: uppercase;
+  color: var(--markit-text-muted);
 }
 
 .details-name {
-  font-size: 22px;
-  line-height: 1.2;
+  font-size: 1.05rem;
+  line-height: 1.25;
   font-weight: 800;
   color: var(--markit-text);
+  margin-bottom: 4px;
 }
 
 .details-line {
-  margin-top: 8px;
-  font-size: 15px;
-  color: var(--markit-text);
-  line-height: 1.45;
+  font-size: 0.86rem;
+  line-height: 1.4;
+  color: var(--markit-text-muted);
 }
 
 .details-section {
@@ -230,16 +354,22 @@ function submitForm() {
   --color: var(--markit-text);
 }
 
-.details-save-wrap {
-  padding-top: 4px;
-}
-
 .details-save-btn {
   --background: var(--ion-color-primary);
   --background-hover: var(--ion-color-primary);
   --background-activated: var(--ion-color-primary);
   --color: #ffffff;
-  font-weight: 800;
-  letter-spacing: 0.01em;
+  --border-radius: var(--markit-btn-radius);
+  --box-shadow: none;
+  width: 100%;
+  max-width: none;
+  min-height: 44px;
+  font-weight: 700;
+  letter-spacing: 0.1px;
+  margin: 0;
+}
+
+.details-save-btn::part(native) {
+  width: 100%;
 }
 </style>

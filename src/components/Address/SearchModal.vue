@@ -156,53 +156,81 @@ const select = (place) => {
 
 <style scoped>
 .search-modal::part(content) {
-  border-radius: 24px 24px 0 0;
-  background: var(--markit-glass-surface);
-  backdrop-filter: blur(20px) saturate(145%);
-  -webkit-backdrop-filter: blur(20px) saturate(145%);
+  border-radius: var(--markit-radius-xl) var(--markit-radius-xl) 0 0;
+  border-bottom-left-radius: 0;
+  border-bottom-right-radius: 0;
+  background: linear-gradient(180deg, rgba(255, 255, 255, 0.98) 0%, rgba(248, 250, 249, 0.96) 100%);
+  backdrop-filter: blur(22px) saturate(160%);
+  -webkit-backdrop-filter: blur(22px) saturate(160%);
+  border: 1px solid var(--markit-glass-border);
   border-bottom: 0;
-  box-shadow: 0 -8px 28px rgba(20, 34, 28, 0.12);
+  box-shadow:
+    inset 0 1px 0 var(--markit-glass-highlight),
+    0 -10px 32px rgba(15, 23, 42, 0.08);
+}
+
+.search-modal::part(handle) {
+  width: 42px;
+  height: 5px;
+  border-radius: 999px;
+  background: rgba(100, 116, 139, 0.35);
 }
 
 .search-modal-body {
-  margin: 25px 15px 10px 15px;
+  margin: 20px 15px 10px 15px;
+  padding-bottom: calc(var(--markit-bottom-inset) + 12px);
 }
 
 .search-bar {
-  background-color: transparent;
-  border-radius: 24px;
-  background: var(--markit-glass-surface);
-  backdrop-filter: blur(20px) saturate(145%);
-  -webkit-backdrop-filter: blur(20px) saturate(145%);
-}
-
-ion-searchbar {
-  --background: transparent;
+  --background: var(--markit-surface-muted);
   --box-shadow: none;
   --placeholder-color: var(--markit-text-muted);
   --color: var(--markit-text);
+  --border-radius: var(--markit-radius-lg);
   margin-bottom: 8px;
-  border-radius: 24px;
+  padding: 0;
 }
 
-ion-searchbar::part(container) {
-  min-height: 52px;
-  border-radius: var(--markit-radius-xl);
+.search-bar::part(container) {
+  min-height: 50px;
+  border-radius: var(--markit-radius-lg);
+  background: var(--markit-surface-muted);
+  border: 1px solid var(--markit-border-strong);
+  box-shadow:
+    inset 0 1px 0 rgba(255, 255, 255, 0.6),
+    0 1px 2px rgba(15, 23, 42, 0.04);
+}
+
+.search-bar.searchbar-has-focus::part(container),
+.search-bar:hover::part(container) {
+  border-color: var(--ion-color-primary);
+  box-shadow:
+    inset 0 1px 0 rgba(255, 255, 255, 0.6),
+    0 0 0 3px color-mix(in srgb, var(--ion-color-primary) 14%, transparent);
 }
 
 .search-results-list {
-  background: transparent;
+  background: transparent !important;
+  --background: transparent !important;
+  --ion-background-color: transparent !important;
   padding: 4px 0 2px;
 }
 
 .search-result-item {
-  --background: var(--markit-glass-surface-strong);
+  --background: transparent;
+  --background-hover: transparent;
+  --background-activated: transparent;
+  --background-focused: transparent;
   --border-color: transparent;
-  border: 1px solid var(--markit-glass-border);
+  --inner-border-width: 0;
+  border: 1px solid var(--markit-border);
   border-radius: 16px;
   margin-bottom: 8px;
-  box-shadow: inset 0 1px 0 var(--markit-glass-highlight),
-    var(--markit-glass-shadow);
+  background: transparent;
+}
+
+.search-result-item::part(native) {
+  background: transparent;
 }
 
 .search-loading {

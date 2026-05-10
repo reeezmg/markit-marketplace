@@ -65,11 +65,11 @@
           <div class="p-3 details-sizes-card">
             <div class="flex flex-wrap gap-3">
               <div v-for="item in selectableSizeItems" :key="item.id" class="size-chip-wrap"
-                :class="{ 'size-chip-wrap--oos': item.qty === 0 }">
-                <ion-button class="size-chip-btn" shape="round" size="small"
+                :class="{ 'size-chip-wrap--oos': item.qty <= 0 }">
+                <ion-button class="size-chip-btn" :class="{ 'size-chip-btn--oos': item.qty <= 0 }" shape="round" size="small"
                   :color="selectedSizes.includes(item.size) ? 'primary' : 'medium'"
                   :fill="selectedSizes.includes(item.size) ? 'solid' : 'outline'" @click="toggleSize(item.size)"
-                  :disabled="item.qty === 0">
+                  :disabled="item.qty <= 0">
                   {{ formatSizeLabel(item.size) }}
                 </ion-button>
               </div>
@@ -108,7 +108,7 @@
 
     <ion-footer v-if="!loading" class="details-footer ion-no-border">
       <div class="details-footer-actions markit-glass-footer-shell">
-        <ion-button class="details-action-btn cart-btn" @click="addToCart">
+        <ion-button class="details-action-btn cart-btn" :disabled="selectedVariant?.outOfStock" @click="addToCart">
           <ion-icon class="me-2" slot="start" :icon="cartOutline"></ion-icon>
           Add to Cart
         </ion-button>
@@ -391,6 +391,12 @@
   min-width: 52px;
 }
 
+.size-chip-btn--oos::part(native) {
+  border-color: #ef4444 !important;
+  color: #b91c1c !important;
+  background: #fff5f5 !important;
+}
+
 .size-chip-wrap--oos {
   position: relative;
   opacity: 0.72;
@@ -598,6 +604,7 @@ import { toastController } from "@ionic/vue";
 import { getVariantById } from "@/api/api";
 import { closeOutline } from "ionicons/icons";
 import { checkmarkCircleOutline, alertCircleOutline } from "ionicons/icons";
+import { getCartQuantity, getVariantAvailableQty, reconcileCartStock } from "@/utils/cartStock";
 
 type Item = { id: string; size: string | null; qty: number };
 type Variant = {
@@ -616,6 +623,7 @@ type Variant = {
   categories?: any[];
   subcategory?: any;
   subCategory?: any;
+  outOfStock?: boolean;
 };
 
 const route = useRoute();
@@ -706,6 +714,8 @@ watch(selectedVariant, (v) => {
 });
 
 function toggleSize(size: string | null) {
+  const sizeItem = selectedVariant.value?.items.find(item => item.size === size)
+  if (!sizeItem || Number(sizeItem.qty || 0) <= 0) return
   const idx = selectedSizes.value.indexOf(size);
   if (idx === -1) selectedSizes.value.push(size);
   else selectedSizes.value.splice(idx, 1);
@@ -816,6 +826,7 @@ const fetchRelatedProducts = async (baseVariant: Variant | null) => {
     relatedProducts.value = variants
       .filter((variant) => variant.id !== baseVariant.id)
       .filter((variant) => Array.isArray(variant.images) && variant.images.length > 0)
+      .filter((variant) => (variant.items || []).some((item) => Number(item.qty || 0) > 0))
       .slice(0, 12);
   } catch (error) {
     console.error('Failed to fetch related products', error);
@@ -849,6 +860,18 @@ const loadVariantDetails = async (variantId: string) => {
 
 async function addToCart() {
   if (!selectedVariant.value) return;
+  if (selectedVariant.value.outOfStock) {
+    const toast = await toastController.create({
+      header: "Out of stock",
+      message: "This product is no longer available.",
+      icon: alertCircleOutline,
+      duration: 2000,
+      position: "bottom",
+      cssClass: "markit-toast markit-toast-warning",
+    });
+    toast.present();
+    return;
+  }
 
   const onlyNosize =
     selectedVariant.value.items.length === 1 &&
@@ -865,19 +888,62 @@ async function addToCart() {
     });
     toast.present();
     return;
-  } else {
+  }
+  const requestedSizes = onlyNosize ? [null] : selectedSizes.value
+  const unavailableSize = requestedSizes.find((size) =>
+    getCartQuantity(cartStore, selectedVariant.value!.id, size) + 1 >
+    getVariantAvailableQty(selectedVariant.value, size)
+  )
+
+  if (unavailableSize !== undefined) {
     const toast = await toastController.create({
-      header: "Added",
-      message: "Items added to cart",
-      icon: checkmarkCircleOutline,
-      duration: 1700,
+      header: "Out of stock",
+      message: `${formatSizeLabel(unavailableSize)} is not available anymore.`,
+      icon: alertCircleOutline,
+      duration: 2200,
       position: "bottom",
-      cssClass: "markit-toast markit-toast-success",
+      cssClass: "markit-toast markit-toast-warning",
     });
     toast.present();
+    return;
   }
 
-  cartStore.addItem(product.value, selectedSizes.value);
+  const res = await cartStore.addItem(product.value, requestedSizes);
+
+  if (!res?.success) {
+    const errorToast = await toastController.create({
+      header: "Can’t add item",
+      message: res?.message || "Could not add this item to cart.",
+      icon: alertCircleOutline,
+      duration: 1800,
+      position: "bottom",
+      cssClass: "markit-toast markit-toast-warning",
+    });
+    errorToast.present();
+    return;
+  }
+
+  const toast = await toastController.create({
+    header: "Added",
+    message: "Items added to cart",
+    icon: checkmarkCircleOutline,
+    duration: 1700,
+    position: "bottom",
+    cssClass: "markit-toast markit-toast-success",
+  });
+  toast.present();
+  const removed = await reconcileCartStock(cartStore)
+  if (removed.length) {
+    const stockToast = await toastController.create({
+      header: "Cart updated",
+      message: removed[0],
+      icon: alertCircleOutline,
+      duration: 2600,
+      position: "top",
+      cssClass: "markit-toast markit-toast-warning",
+    });
+    stockToast.present();
+  }
 }
 
 function toggleLike() {

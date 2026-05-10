@@ -269,38 +269,39 @@ async function onApply() {
 }
 
 .filter-header {
-  padding: var(--markit-shell-padding-block) var(--markit-shell-padding-inline);
-  border-bottom: 1px solid rgba(15, 23, 42, 0.1);
+  padding: 18px var(--markit-shell-padding-inline) 12px;
+  border-bottom: 1px solid var(--markit-border);
 }
 
 .filter-title-row {
   display: flex;
   align-items: center;
-  gap: 10px;
+  gap: 12px;
 }
 
 .filter-title-icon {
-  width: 30px;
-  height: 30px;
-  border-radius: 10px;
-  background: rgba(9, 125, 76, 0.12);
+  width: 36px;
+  height: 36px;
+  border-radius: 12px;
+  background: color-mix(in srgb, var(--ion-color-primary) 10%, #ffffff);
   color: var(--ion-color-primary);
   display: inline-flex;
   align-items: center;
   justify-content: center;
-  font-size: 16px;
+  font-size: 18px;
 }
 
 .filter-title {
-  font-size: 21px;
-  font-weight: 700;
+  font-size: 1.1rem;
+  font-weight: 800;
   color: var(--markit-text);
-  letter-spacing: 0.1px;
+  letter-spacing: -0.1px;
+  margin: 0;
 }
 
 .filter-subtitle {
   margin-top: 4px;
-  font-size: 13px;
+  font-size: 0.82rem;
   color: var(--markit-text-muted);
 }
 
@@ -486,10 +487,10 @@ async function onApply() {
 .actions {
   margin-top: auto;
   display: grid;
-  grid-template-columns: 1fr 1fr;
+  grid-template-columns: 1fr 1.4fr;
   align-items: center;
   gap: 10px;
-  padding: 8px 10px calc(var(--markit-bottom-inset) + 8px);
+  padding: 10px 14px calc(var(--markit-bottom-inset) + 10px);
   border-top: 0;
   background: transparent;
   box-shadow: none;
@@ -500,17 +501,20 @@ async function onApply() {
 .clear-btn,
 .apply-btn {
   width: 100%;
-  height: 44px;
+  min-height: 38px;
+  height: 38px;
   border-radius: var(--markit-btn-radius);
   font-weight: 700;
-  font-size: 14px;
+  font-size: 13.5px;
+  letter-spacing: 0.1px;
   box-shadow: none;
+  transition: background 0.2s ease, border-color 0.2s ease;
 }
 
 .clear-btn {
-  border: 1px solid var(--markit-glass-border);
-  background: var(--markit-glass-surface-strong);
-  color: #334155;
+  border: 1px solid var(--markit-border);
+  background: var(--markit-surface-muted);
+  color: var(--markit-text-muted);
 }
 
 .apply-btn {

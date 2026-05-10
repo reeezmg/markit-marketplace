@@ -16,6 +16,7 @@ export interface ItemCompany {
 }
 
 export interface TryItem {
+  cartItemId?: string
   id: string
   name: string
   product_name?: string
@@ -70,7 +71,7 @@ export interface TryHistory {
   delivery_type: string
   delivery_time: string | null
   order_status: string | null
-  packing_status: string | null
+  delivery_otp?: string | null
   waiting_fee?: number
   waiting_time?: number
   companies: CompanyInfo[]

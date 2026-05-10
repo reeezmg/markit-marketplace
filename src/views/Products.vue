@@ -308,7 +308,8 @@ function toProductDetailsPage(variant: CompanyVariant) {
 const validVariants = computed(() => {
   return variants.value.filter(v => {
     const img = v.images?.[0];
-    return img && img.trim() && !invalidImages.value.has(v.id);
+    const hasStock = (v.items || []).some(item => Number(item.qty || 0) > 0);
+    return img && img.trim() && hasStock && !invalidImages.value.has(v.id);
   });
 });
 

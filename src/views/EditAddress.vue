@@ -8,7 +8,7 @@
         <div ref="mapContainer" class="map-container"></div>
       </div>
 
-      <div class="ion-padding bottom-div">
+      <div class="bottom-div">
         <button class="address-search-trigger glass-card" type="button" @click="openSearchModal">
           <ion-icon :icon="searchOutline" class="address-search-icon"></ion-icon>
           <span class="address-search-text">Search place...</span>
@@ -16,10 +16,14 @@
 
         <!-- ADDRESS PREVIEW -->
         <div v-if="name || formattedAddress" class="latlng-display">
-          <div class="flex flex-col">
-            <div class="text-2xl font-bold mb-2">{{ name }}</div>
-            <div class="text-lg">{{ formattedAddress }}</div>
+          <div class="latlng-header">
+            <span class="latlng-icon">
+              <ion-icon :icon="locationOutline" />
+            </span>
+            <span class="latlng-label">Selected Location</span>
           </div>
+          <div class="latlng-name">{{ name }}</div>
+          <div class="latlng-address">{{ formattedAddress }}</div>
         </div>
       </div>
 
@@ -64,7 +68,7 @@ import {
 } from '@ionic/vue'
 import { ref, computed } from 'vue'
 import { onIonViewWillEnter } from '@ionic/vue'
-import { create, searchOutline } from 'ionicons/icons'
+import { create, searchOutline, locationOutline } from 'ionicons/icons'
 import Topbar from '@/components/Topbar.vue'
 import SearchModal from '@/components/Address/SearchModal.vue'
 import EditMoreDetailsModal from '@/components/Address/EditMoreDetailsModal.vue'
@@ -367,7 +371,20 @@ const handleDeleteAddress = async () => {
   // -----------------------------------------
   // LOAD GOOGLE MAP SCRIPT
   // -----------------------------------------
-  onIonViewWillEnter(() => {
+  onIonViewWillEnter(async () => {
+    // Make sure the address being edited is in the store before initMap runs
+    if (addressStore.addresses.length === 0) {
+      await addressStore.fetchFromApi()
+    }
+
+    // Pre-fill the preview card immediately from the saved address
+    if (selectedAddress.value) {
+      name.value = selectedAddress.value.name || ''
+      formattedAddress.value = selectedAddress.value.formattedAddress || ''
+      lat.value = selectedAddress.value.lat
+      lng.value = selectedAddress.value.lng
+    }
+
     const script = document.createElement('script')
     script.src = `https://maps.googleapis.com/maps/api/js?key=${googleApiKey}&libraries=places,marker`
     script.async = true
@@ -396,9 +413,9 @@ const handleDeleteAddress = async () => {
 
 .address-content {
   --padding-top: 10px;
-  --padding-start: 12px;
-  --padding-end: 12px;
-  --padding-bottom: calc(106px + var(--markit-bottom-inset));
+  --padding-start: 16px;
+  --padding-end: 16px;
+  --padding-bottom: calc(72px + var(--markit-bottom-inset));
 }
 
 .map-container-wrapper {
@@ -413,6 +430,13 @@ const handleDeleteAddress = async () => {
 
 .bottom-div {
   min-height: 38vh;
+  padding: 14px 0 0;
+}
+
+.bottom-div > * {
+  margin-left: 0;
+  margin-right: 0;
+  width: 100%;
 }
 
 .map-container {
@@ -423,11 +447,52 @@ const handleDeleteAddress = async () => {
 
 .latlng-display {
   margin-top: 12px;
-  padding: 16px;
+  padding: 14px 14px 12px;
   border-radius: var(--markit-radius-xl);
   border: 1px solid var(--markit-glass-border);
   background: var(--markit-glass-surface);
   box-shadow: inset 0 1px 0 var(--markit-glass-highlight), var(--markit-glass-shadow);
+}
+
+.latlng-header {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  margin-bottom: 10px;
+}
+
+.latlng-icon {
+  width: 30px;
+  height: 30px;
+  border-radius: 10px;
+  background: color-mix(in srgb, var(--ion-color-primary) 10%, #ffffff);
+  color: var(--ion-color-primary);
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  font-size: 16px;
+}
+
+.latlng-label {
+  font-size: 0.78rem;
+  font-weight: 700;
+  letter-spacing: 0.04em;
+  text-transform: uppercase;
+  color: var(--markit-text-muted);
+}
+
+.latlng-name {
+  font-size: 1.05rem;
+  line-height: 1.25;
+  font-weight: 800;
+  color: var(--markit-text);
+  margin-bottom: 4px;
+}
+
+.latlng-address {
+  font-size: 0.86rem;
+  line-height: 1.4;
+  color: var(--markit-text-muted);
 }
 
 .address-search-trigger {
@@ -507,19 +572,22 @@ const handleDeleteAddress = async () => {
 
 .modal-actions {
   display: flex;
-  gap: 12px;
-  margin-top: 20px;
+  gap: 10px;
+  margin-top: 0;
 }
 
 .modal-btn {
   flex: 1;
-  height: 52px;
-  font-size: 16px;
-  font-weight: 600;
+  min-height: 38px;
+  height: 38px;
+  font-size: 13.5px;
+  font-weight: 700;
+  letter-spacing: 0.1px;
 }
 
 .modal-btn::part(native) {
   margin: 0;
+  min-height: 38px;
 }
 
 .footer-btn {
@@ -529,7 +597,8 @@ const handleDeleteAddress = async () => {
   bottom: 0;
   padding-right: 10px;
   padding-left: 10px;
-  padding-bottom: calc(16px + var(--markit-bottom-inset));
+  padding-bottom: calc(10px + var(--markit-bottom-inset));
+  padding-top: 8px;
   background: transparent;
 }
 </style>

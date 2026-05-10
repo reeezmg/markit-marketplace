@@ -5,7 +5,7 @@
         v-for="company in renderCompanies"
         :key="company.companyId"
         :class="[
-          'cart-company-card bg-white p-3 mb-3',
+          'cart-company-card glass-card p-3 mb-3',
           !isNearbyLoaded
             ? ''
             : !isCompanyDeliverable(company.companyId)
@@ -19,7 +19,7 @@
               v-if="hasCompanyLogo(company.companyLogo) && !failedCompanyLogos[company.companyId]"
               :src="`https://images.markit.co.in/${company.companyLogo}`"
               alt=""
-              class="w-full h-full object-fill"
+              class="w-full h-full object-fill block"
               @error="onCompanyLogoError(company.companyId)"
             />
             <div v-else class="cart-company-logo-fallback">
@@ -33,7 +33,7 @@
             <!-- 🟡 Loading state -->
             <p
               v-if="!isNearbyLoaded"
-              class="text-gray-400 text-xs font-semibold mt-1"
+              class="cart-company-status cart-company-status--loading"
             >
               Checking availability...
             </p>
@@ -41,7 +41,7 @@
             <!-- 🔴 Not deliverable (only AFTER load) -->
             <p
               v-else-if="!isCompanyDeliverable(company.companyId)"
-              class="text-red-500 text-xs font-semibold mt-1"
+              class="cart-company-status cart-company-status--closed"
             >
               Not deliverable to your location
             </p>
@@ -49,7 +49,7 @@
             <!-- 🟢 Deliverable -->
             <p
               v-else
-              class="text-green-600 text-xs font-semibold mt-1"
+              class="cart-company-status cart-company-status--open"
             >
               Deliverable
             </p>
@@ -59,7 +59,7 @@
         <ul role="list" class="divide-y divide-[var(--markit-border)]">
           <li
             v-for="cartItem in company.items"
-            :key="`${cartItem.id}-${cartItem.selectedSize || 'nosize'}`"
+            :key="cartItem.uiKey"
             class="flex py-6"
           >
             <div class="cart-item-row flex justify-between w-full gap-x-5">
@@ -142,7 +142,7 @@
       </div>
     </template>
 
-    <p v-else class="text-center text-gray-500">
+    <p v-else class="cart-empty-group">
       No items in this group.
     </p>
   </div>
@@ -150,12 +150,12 @@
 
 <script setup lang="ts">
 import { trash, chevronBackOutline, chevronForwardOutline } from 'ionicons/icons'
-import { IonIcon, createGesture } from '@ionic/vue'
+import { IonIcon, createGesture, toastController, useIonRouter } from '@ionic/vue'
 import Badge from '../Badge.vue'
 import { useCartStore } from '@/store/useCartStore'
 import { useNearbyStore } from '@/store/useNearbyStore'
 import { computed, ref, watch, onMounted } from 'vue'
-import { useIonRouter } from '@ionic/vue'
+import { reconcileCartStock } from '@/utils/cartStock'
 
 const emit = defineEmits<{
   (e: 'groupedCart', payload: {
@@ -184,7 +184,37 @@ const groupCount = computed(() => cart.groups.length)
 const activeGroup = computed(() => cart.groups[activeGroupIndex.value] || { companies: [] })
 
 /* --- UI bindings --- */
-const renderCompanies = computed(() => activeGroup.value?.companies || [])
+const itemGroupKey = (item: any) =>
+  `${item.id || 'variant'}::${item.selectedSize ?? 'nosize'}`
+
+const renderCompanies = computed(() =>
+  (activeGroup.value?.companies || []).map(company => {
+    const groupedItems = new Map<string, any>()
+
+    for (const item of company.items || []) {
+      const key = itemGroupKey(item)
+      const existing = groupedItems.get(key)
+
+      if (existing) {
+        existing.quantity += Math.max(1, Number(item.quantity || 1))
+        existing.unitItems.push(item)
+        continue
+      }
+
+      groupedItems.set(key, {
+        ...item,
+        uiKey: `${company.companyId}-${key}`,
+        quantity: Math.max(1, Number(item.quantity || 1)),
+        unitItems: [item],
+      })
+    }
+
+    return {
+      ...company,
+      items: Array.from(groupedItems.values()),
+    }
+  })
+)
 
 /* ✅ NEW: track loading */
 const isNearbyLoaded = computed(() => {
@@ -297,25 +327,74 @@ watch(() => cart.groups, (groups) => {
 }, { deep: true })
 
 /* --- Cart actions --- */
-function increment(item: any) {
-  item.quantity += 1
+async function increment(item: any) {
+  const unit = item.unitItems?.[0] || item
+  const group = cart.groups.find(g =>
+    g.companies.some(c => c.items.some((i: any) => i.cartLineId === unit.cartLineId))
+  )
+  const company = group?.companies.find(c =>
+    c.items.some((i: any) => i.cartLineId === unit.cartLineId)
+  )
+  if (!company) return
+
+  // Cart limits: 10 total / 5 per store (mirrors useCartStore.addItem)
+  const totalInCart = cart.groups
+    .flatMap(g => g.companies)
+    .reduce((sum, c) => sum + (c.items?.length || 0), 0)
+  if (totalInCart >= 10) {
+    const t = await toastController.create({
+      message: 'Cart limit is 10 items.',
+      duration: 2000,
+      color: 'warning',
+      position: 'bottom',
+    })
+    await t.present()
+    return
+  }
+
+  const itemsInThisStore = cart.groups
+    .flatMap(g => g.companies)
+    .filter(c => c.companyId === company.companyId)
+    .reduce((sum, c) => sum + (c.items?.length || 0), 0)
+  if (itemsInThisStore >= 5) {
+    const t = await toastController.create({
+      message: 'Max 5 items from a single store.',
+      duration: 2000,
+      color: 'warning',
+      position: 'bottom',
+    })
+    await t.present()
+    return
+  }
+
+  company.items.push({
+    ...unit,
+    cartLineId: cart.createCartLineId(),
+    quantity: 1,
+  })
   cart.saveCart()
+  validateAfterCartChange()
 }
 
 function decrement(item: any) {
-  if (item.quantity > 1) item.quantity -= 1
-  else removeAll(item)
+  removeAll(item, true)
   cart.saveCart()
 }
 
-function removeAll(item: any) {
+function removeAll(item: any, single = false) {
+  const units = item.unitItems || [item]
+  const unitIds = new Set(units.map((unit: any) => unit.cartLineId).filter(Boolean))
+  const firstUnitId = units[0]?.cartLineId
+
   for (const group of cart.groups) {
     for (const company of group.companies) {
-      const idx = company.items.findIndex(
-        (i: any) => i.id === item.id && i.selectedSize === item.selectedSize
-      )
-      if (idx !== -1) {
-        company.items.splice(idx, 1)
+      if (single && firstUnitId) {
+        const idx = company.items.findIndex((i: any) => i.cartLineId === firstUnitId)
+        if (idx !== -1) company.items.splice(idx, 1)
+      } else {
+        company.items = company.items.filter(
+          (i: any) => !(unitIds.has(i.cartLineId) || (i.id === item.id && i.selectedSize === item.selectedSize))
+        )
       }
     }
     group.companies = group.companies.filter(c => c.items.length > 0)
@@ -323,6 +402,23 @@ function removeAll(item: any) {
 
   cart.groups = cart.groups.filter(g => g.companies.length > 0)
   cart.saveCart()
+}
+
+async function validateAfterCartChange() {
+  try {
+    const messages = await reconcileCartStock(cart)
+    if (!messages.length) return
+    const toast = await toastController.create({
+      message: messages[0],
+      duration: 3000,
+      color: 'warning',
+      position: 'top',
+      cssClass: 'markit-toast markit-toast-warning',
+    })
+    await toast.present()
+  } catch (error) {
+    console.error('Failed to validate cart stock', error)
+  }
 }
 
 /* --- Lifecycle --- */
@@ -339,7 +435,7 @@ onMounted(async () => {
   }
 
   if (groupCount.value > 1) {
-    const el = document.querySelector('.bg-white') as HTMLElement
+    const el = document.querySelector('.cart-company-card') as HTMLElement
     if (!el) return
 
     const gesture = createGesture({
@@ -413,7 +509,9 @@ onMounted(async () => {
 .cart-company-logo {
   border: 1px solid var(--markit-border);
   border-radius: 10px;
-  background: var(--markit-surface-muted);
+  background: var(--markit-surface);
+  position: relative;
+  z-index: 1;
 }
 
 .cart-company-logo-fallback {
@@ -423,16 +521,9 @@ onMounted(async () => {
   align-items: center;
   justify-content: center;
   font-size: 1rem;
-  font-weight: 700;
+  font-weight: 800;
   color: var(--ion-color-primary);
   background: color-mix(in srgb, var(--ion-color-primary) 12%, #ffffff);
-}
-
-.cart-company-name {
-  font-size: 0.98rem;
-  line-height: 1.15;
-  font-weight: 700;
-  color: var(--markit-text);
 }
 
 .cart-company-link {
@@ -443,13 +534,18 @@ onMounted(async () => {
 }
 
 .cart-company-card {
-  background: var(--markit-surface);
-  border: 1px solid var(--markit-border);
   border-radius: var(--markit-radius-xl);
+  background: var(--markit-glass-surface);
+  border: 1px solid var(--markit-glass-border);
+  box-shadow:
+    inset 0 1px 0 var(--markit-glass-highlight),
+    var(--markit-glass-shadow);
 }
 
 .cart-company-heading {
   border-bottom: 1px solid var(--markit-border);
+  position: relative;
+  z-index: 1;
 }
 
 .cart-company-heading-icon {
@@ -461,6 +557,25 @@ onMounted(async () => {
   line-height: 1.25;
   font-weight: 700;
   color: var(--markit-text);
+}
+
+.cart-company-status {
+  margin-top: 4px;
+  font-size: 0.74rem;
+  line-height: 1.2;
+  font-weight: 700;
+}
+
+.cart-company-status--loading {
+  color: var(--markit-text-muted);
+}
+
+.cart-company-status--closed {
+  color: #dc2626;
+}
+
+.cart-company-status--open {
+  color: var(--ion-color-primary);
 }
 
 .cart-item-media {
@@ -524,6 +639,14 @@ onMounted(async () => {
 
 .cart-item-delete :deep(ion-icon) {
   font-size: 22px;
+}
+
+.cart-empty-group {
+  text-align: center;
+  color: var(--markit-text-muted);
+  font-size: 0.9rem;
+  line-height: 1.35;
+  padding: 8px 0 2px;
 }
 
 @media (max-width: 420px) {

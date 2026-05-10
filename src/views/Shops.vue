@@ -163,9 +163,9 @@
                 <!-- Left Column -->
                 <div class="flex flex-col justify-center">
                   <div class="text-green-400 font-semibold text-sm">
-                    Order #{{ activePack.order_number }} {{ bannerStatusLabel(activePack) }}
+                    Order #{{ activePack.order_number }}
                   </div>
-                  <div class="text-white text-xs">Pay after your trial</div>
+                  <div class="text-white text-xs">{{ bannerStatusLabel(activePack) }}</div>
                   <div v-if="activePack.delivery_otp" class="text-yellow-400 text-xs font-mono font-bold mt-0.5">
                     OTP: {{ activePack.delivery_otp }}
                   </div>
@@ -229,6 +229,7 @@ import api from '@/api/client'
 import { toastController } from '@ionic/vue'
 import { alertCircleOutline } from 'ionicons/icons';
 import { getDeviceLocation } from '@/utils/geolocation'
+import { getDeliveryStatusText } from '@/utils/deliveryProgress'
 const debug = ref(true) // Set to false in production
 const scrollContainerRef = ref<HTMLElement | null>(null)
 const trackWidth = ref(0)
@@ -273,7 +274,7 @@ const isKnowMoreModalOpen = ref(false)
 let subcategoryRequestSeq = 0
 const activeIndex = ref(0)
 const activePackList = computed(() =>
-  packStore.packList.filter((p: any) => !['PAID', 'COMPLETED', 'CANCELLED', 'cancelled'].includes(p.order_status))
+  packStore.packList.filter((p: any) => !['COMPLETED', 'CANCELLED', 'cancelled', 'DECISION_DONE'].includes(p.order_status))
 )
 const activePack = computed(() => activePackList.value[activeIndex.value] || null)
 // Step events per trynbuy for the banner delivery tracker
@@ -439,33 +440,15 @@ function prevPack() {
   activeIndex.value = (activeIndex.value - 1 + activePackList.value.length) % activePackList.value.length
 }
 /* ---- Helpers ---- */
-function formatStatus(status: string | null): string {
-  if (!status) return ''
-  return status
-    .toLowerCase()
-    .split('_')
-    .map((word) => word.charAt(0).toUpperCase() + word.slice(1))
-    .join(' ')
-}
-const STEP_LABELS: Record<string, string> = {
-  Packed: 'Packed',
-  GoToPickup: 'Heading to Store',
-  CollectOrder: 'Collecting Items',
-  GoToDrop: 'On the Way',
-  Delivered: 'Delivered',
-  TrynbuyWaiting: 'Waiting for You',
-}
 function bannerStatusLabel(pack: any): string {
   const events = bannerStepEvents.value[pack.trynbuy_id]
-  if (events?.length) {
-    // Find the latest meaningful event
-    for (let i = events.length - 1; i >= 0; i--) {
-      const label = STEP_LABELS[events[i].step]
-      if (label) return label
-    }
-  }
-  // Fall back to order_status
-  return formatStatus(pack.order_status)
+  return getDeliveryStatusText(
+    events ?? [],
+    Array.isArray(pack?.companies)
+      ? pack.companies.map((company: any) => ({ id: company.id, name: company.name }))
+      : [],
+    pack.order_status
+  )
 }
 /* ---- Location + Categories ---- */
 const { getLocation } = useLocationStore()

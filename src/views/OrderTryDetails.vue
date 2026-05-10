@@ -124,9 +124,9 @@
             Status:
             <span
               :class="{
-                'status-pending': order.packing_status === 'pending',
+                'status-pending': !['DECISION_DONE', 'RETURNED', 'COMPLETED', 'CANCELLED', 'cancelled'].includes(order.order_status),
                 'status-cancelled': order.order_status === 'cancelled',
-                'status-complete': order.order_status !== 'cancelled'
+                'status-complete': ['DECISION_DONE', 'RETURNED', 'COMPLETED'].includes(order.order_status)
               }"
             >
               {{ formatStatus(order.order_status) }}
@@ -265,10 +265,12 @@ function formatAmount(amount: number | string | null | undefined) {
   gap: 14px;
   margin-bottom: 10px;
   padding: 10px 8px 12px;
-  border: 1px solid var(--markit-border);
+  border: 1px solid var(--markit-glass-border);
   border-radius: var(--markit-radius-xl);
-  background: var(--markit-surface);
-  box-shadow: var(--markit-shadow-soft);
+  background: var(--markit-glass-surface);
+  box-shadow:
+    inset 0 1px 0 var(--markit-glass-highlight),
+    var(--markit-glass-shadow);
 }
 
 .order-line-item-returned {
@@ -346,10 +348,12 @@ function formatAmount(amount: number | string | null | undefined) {
 
 .order-summary-card {
   margin-top: 8px;
-  border: 1px solid var(--markit-border);
+  border: 1px solid var(--markit-glass-border);
   border-radius: var(--markit-radius-xl);
-  background: var(--markit-surface);
-  box-shadow: var(--markit-shadow-soft);
+  background: var(--markit-glass-surface);
+  box-shadow:
+    inset 0 1px 0 var(--markit-glass-highlight),
+    var(--markit-glass-shadow);
   padding: 12px 12px 10px;
 }
 

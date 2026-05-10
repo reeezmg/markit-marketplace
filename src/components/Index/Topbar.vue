@@ -1,6 +1,6 @@
 <template>
   <div ref="rootRef" class="topbar-shell">
-    <div class="address-wrap transition-all duration-300 ease-in-out" :class="collapsed ? 'address-wrap--hidden' : ''">
+    <div v-if="showAddressSelector" class="address-wrap transition-all duration-300 ease-in-out" :class="collapsed ? 'address-wrap--hidden' : ''">
       <button type="button" class="address-inline" @click.stop="toggleAddressMenu">
         <ion-icon :icon="navigate" class="address-pin"></ion-icon>
         <span class="address-inline-text truncate">
@@ -10,6 +10,11 @@
       </button>
 
       <div v-if="showAddressMenu" class="address-menu" @click.stop>
+        <button type="button" class="address-menu-item address-menu-item--manage" @click="openAddressSettings">
+          <span class="address-menu-title">{{ addresses.length ? 'Manage Addresses' : 'Add Delivery Address' }}</span>
+          <span class="address-menu-sub">{{ addresses.length ? 'Open address settings' : 'Add your first address' }}</span>
+        </button>
+
         <button
           v-for="addr in addresses"
           :key="addr.id || addr.formattedAddress"
@@ -20,11 +25,6 @@
         >
           <span class="address-menu-title">{{ addr.houseDetails || addr.name || 'Saved Address' }}</span>
           <span class="address-menu-sub">{{ addr.formattedAddress || '' }}</span>
-        </button>
-
-        <button type="button" class="address-menu-item address-menu-item--manage" @click="openAddressSettings">
-          <span class="address-menu-title">{{ addresses.length ? 'Manage Addresses' : 'Add Delivery Address' }}</span>
-          <span class="address-menu-sub">{{ addresses.length ? 'Open address settings' : 'Add your first address' }}</span>
         </button>
       </div>
     </div>
@@ -85,7 +85,14 @@ import { useLocationStore } from '@/composables/useLocationStore'
 import { Preferences } from '@capacitor/preferences'
 import { useSearchStore } from '@/store/useSearchStore' // Import search store
 
-const props = defineProps<{ location: Partial<Address>; collapsed?: boolean }>()
+const props = withDefaults(defineProps<{
+  location: Partial<Address>
+  collapsed?: boolean
+  showAddressSelector?: boolean
+}>(), {
+  collapsed: false,
+  showAddressSelector: true,
+})
 
 const router = useIonRouter()
 const route = useRoute()
@@ -437,12 +444,31 @@ function clear() {
 }
 
 .address-menu-item--active {
-  border-color: color-mix(in srgb, var(--ion-color-primary) 45%, var(--markit-glass-border));
-  background: color-mix(in srgb, var(--ion-color-primary) 14%, #ffffff);
+  border-color: var(--ion-color-primary);
+  background: var(--ion-color-primary);
+}
+
+.address-menu-item--active .address-menu-title,
+.address-menu-item--active .address-menu-sub {
+  color: var(--ion-color-primary-contrast);
+}
+
+.address-menu-item--active .address-menu-sub {
+  opacity: 0.85;
 }
 
 .address-menu-item--manage {
   border-style: dashed;
+  border-color: color-mix(in srgb, var(--ion-color-primary) 55%, var(--markit-glass-border));
+  background: color-mix(in srgb, var(--ion-color-primary) 10%, #ffffff);
+}
+
+.address-menu-item--manage .address-menu-title {
+  color: var(--ion-color-primary);
+}
+
+.address-menu-item--manage .address-menu-sub {
+  color: color-mix(in srgb, var(--ion-color-primary) 65%, var(--markit-text-muted));
 }
 
 .address-menu-title {

@@ -31,7 +31,7 @@
         <div
           :class="[
             'order-status-text',
-            trynbuy.packing_status === 'pending'
+            !terminalStatuses.includes(trynbuy.order_status)
               ? 'status-pending'
               : trynbuy.order_status === 'cancelled'
               ? 'status-cancelled'
@@ -71,7 +71,7 @@ const props = defineProps<{
 const router = useIonRouter()
 const packStore = usePackStore()
 
-const terminalStatuses = ['PAID', 'COMPLETED', 'CANCELLED', 'cancelled']
+const terminalStatuses = ['DECISION_DONE', 'RETURNED', 'COMPLETED', 'CANCELLED', 'cancelled']
 
 const keptCount = computed(() => {
   const cartItems = Array.isArray(props.trynbuy?.cartitems) ? props.trynbuy.cartitems : []
@@ -177,7 +177,6 @@ function buildPackFromHistory(trynbuy: any) {
     waiting_time: trynbuy.waiting_time,
     waiting_fee: trynbuy.waiting_fee,
     order_status: trynbuy.order_status,
-    packing_status: trynbuy.packing_status,
     companies: Array.from(companiesMap.values()),
   }
 }
@@ -221,15 +220,20 @@ function formatStatus(status: string | null): string {
 
 <style scoped>
 .order-card {
-  border: 1px solid var(--markit-border);
+  border: 1px solid var(--markit-glass-border);
   border-radius: var(--markit-radius-xl);
-  background: var(--markit-surface);
-  box-shadow: var(--markit-shadow-soft);
+  background: var(--markit-glass-surface);
+  box-shadow:
+    inset 0 1px 0 var(--markit-glass-highlight),
+    var(--markit-glass-shadow);
   transition: border-color 0.2s ease, box-shadow 0.2s ease;
 }
 
 .order-card:hover {
-  border-color: color-mix(in srgb, var(--ion-color-primary) 28%, var(--markit-border));
+  border-color: var(--markit-glass-border-hover);
+  box-shadow:
+    inset 0 1px 0 var(--markit-glass-highlight),
+    var(--markit-glass-shadow-lg);
 }
 
 .order-card-head {

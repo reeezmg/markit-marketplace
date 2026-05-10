@@ -44,6 +44,7 @@ export const useNearbyStore = defineStore('nearby', {
     loading: false,
     error: null as string | null,
     updatedAt: null as string | null, // cache tracking
+    requestSeq: 0,
   }),
 
   actions: {
@@ -68,7 +69,10 @@ export const useNearbyStore = defineStore('nearby', {
     },
 
     async clearNearby() {
+      this.requestSeq++
       this.nearbyShops = []
+      this.loading = false
+      this.error = null
       this.updatedAt = null
       await nearbyStorage.removeItem(NEARBY_STORAGE_KEY)
     },
@@ -93,9 +97,15 @@ export const useNearbyStore = defineStore('nearby', {
      * - Response shops are tagged with that group's cartNumber.
      */
     async fetchNearbyShops() {
+      const requestSeq = ++this.requestSeq
       const cartStore = useCartStore()
       const locationStore = useLocationStore()
       const home = locationStore.location // ref({ lat, lng })
+
+      if (!cartStore.groups.length) {
+        await this.clearNearby()
+        return
+      }
       
       if (!home.value?.lat || !home.value?.lng) {
         console.warn('⚠️ No home location found.')
@@ -104,7 +114,6 @@ export const useNearbyStore = defineStore('nearby', {
 
       this.loading = true
       this.error = null
-      this.nearbyShops = []
 
       const uniqueByLatLng = (arr: { lat: number; lng: number }[]) =>
         arr.filter(
@@ -121,7 +130,36 @@ export const useNearbyStore = defineStore('nearby', {
             companies.map(c => ({ lat: c.companyLat, lng: c.companyLng }))
           )
 
-          if (!shops.length) return [] as NearbyShop[]
+          const originShops = companies
+            .filter(company => company.companyId)
+            .map(company => ({
+              id: company.companyId,
+              name: company.companyName,
+              logo: company.companyLogo,
+              category: [],
+              description: null,
+              storecode: 0,
+              storeUniqueName: '',
+              currency: '',
+              plan: '',
+              gstin: null,
+              upiId: null,
+              addressId: company.companyLocationId,
+              addressName: '',
+              street: '',
+              locality: '',
+              city: '',
+              state: '',
+              pincode: '',
+              lat: company.companyLat,
+              lng: company.companyLng,
+              air_distance: 0,
+              road_distance: 0,
+              duration: 0,
+              cartNumber,
+            })) as NearbyShop[]
+
+          if (!shops.length) return originShops
 
           const resp = await getNearbyShop(home.value, shops)
           const list = (resp?.data ?? []).map((shop: any) => ({
@@ -129,18 +167,31 @@ export const useNearbyStore = defineStore('nearby', {
             cartNumber, // ✅ associate with same group number
           })) as NearbyShop[]
 
-          return list
+          const byCompany = new Map<string, NearbyShop>()
+          for (const shop of [...originShops, ...list]) {
+            if (!shop.id) continue
+            const existing = byCompany.get(shop.id)
+            if (!existing || Number(shop.road_distance || 0) < Number(existing.road_distance || 0)) {
+              byCompany.set(shop.id, shop)
+            }
+          }
+
+          return Array.from(byCompany.values())
         })
 
         const results = await Promise.all(requests)
+        if (requestSeq !== this.requestSeq) return
         this.nearbyShops = results.flat()
 
         await this.saveNearby()
       } catch (err: any) {
+        if (requestSeq !== this.requestSeq) return
         console.error('Error fetching nearby shops:', err)
         this.error = err?.message || 'Failed to fetch nearby shops'
       } finally {
-        this.loading = false
+        if (requestSeq === this.requestSeq) {
+          this.loading = false
+        }
       }
     },
   },

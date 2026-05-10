@@ -1,18 +1,19 @@
 import { useProfileStore } from './useProfileStore'
-import { useCartStore } from './useCartStore'
 import { useAddressStore } from './useAddressStore'
-import { useLikeStore } from './useLikeStore'
+import { useNearbyStore } from './useNearbyStore'
 import { usePackStore } from './usePackStore'
+import { useTryHistoryStore } from './useTryHistoryStore'
+import { useLocationStore } from '@/composables/useLocationStore'
 
 export const clearMarkitIndexedDB = async () => {
-    // Clear default
+  const { clearLocation } = useLocationStore()
 
-    // Clear known instances
-    await Promise.all([
-        useProfileStore().clearStorage(),
-        useCartStore().clearStorage(),
-        useAddressStore().clearStorage(),
-        useLikeStore().clearStorage(),
-        usePackStore().clearStorage(),
-    ])
+  await Promise.all([
+    useProfileStore().clearStorage(),
+    useAddressStore().clearStorage(),
+    useNearbyStore().clearNearby(),
+    usePackStore().clearStorage(),
+    useTryHistoryStore().clear(),
+    clearLocation(),
+  ])
 }

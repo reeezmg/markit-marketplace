@@ -4,14 +4,28 @@
     <ion-content :fullscreen="true" class="ion-padding cart-page">
       <!-- Show cart when we have any groups -->
       <div v-if="hasCart">
+        <div v-if="stockAlerts.length" class="stock-alert-card">
+          <p class="stock-alert-title">Cart updated</p>
+          <p v-for="message in stockAlerts" :key="message" class="stock-alert-message">
+            {{ message }}
+          </p>
+        </div>
+
         <!-- Item component emits nearby company clusters -->
         <Item @groupedCart="updateGroupedCart" />
 
         <!-- Add products from nearby store -->
-        <div class="nearby-add-card my-3 p-6 flex flex-col items-center justify-center text-center cursor-pointer"
+        <div class="nearby-add-card my-3 p-5 flex items-center gap-4 cursor-pointer"
           @click="goToNearbyShops">
-          <IonIcon :icon="addOutline" class="nearby-add-icon w-10 h-10 mb-2" />
-          <p class="nearby-add-text">Add products from nearby stores</p>
+          <div class="nearby-add-icon-wrap">
+            <IonIcon :icon="addOutline" class="nearby-add-icon" />
+          </div>
+          <div class="min-w-0 flex-1 text-left">
+            <p class="nearby-add-title">Add more from nearby stores</p>
+            <p class="nearby-add-text">
+              Browse nearby shops and top up your cart with matching items.
+            </p>
+          </div>
         </div>
 
         <!-- Checkout Section -->
@@ -26,10 +40,10 @@
       <!-- Empty Cart -->
       <div v-else class="flex flex-col items-center justify-center min-h-full text-center empty-panel">
         <div class="empty-icon">
-          <IonIcon :icon="bagHandleOutline" class="text-[#53816C] text-3xl" />
+          <IonIcon :icon="bagHandleOutline" class="empty-icon-mark" />
         </div>
         <h2 class="empty-title mt-4">Your cart is empty</h2>
-        <p class="text-gray-600 mt-2 max-w-[16rem]">
+        <p class="empty-copy mt-2 max-w-[16rem]">
           Add products you love and they'll show up here.
         </p>
         <ion-button fill="solid" color="primary" class="markit-cta mt-5" @click="router.push({ name: 'shops' })">
@@ -47,7 +61,7 @@
           </p>
         </div>
 
-        <div class="p-2">
+        <div class="cart-footer-action p-3">
           <ion-button class="cart-pick-btn" expand="block" :disabled="loading"
             @click="deliveryType ? checkout() : openPickTimeModal()">
             <template v-if="loading">
@@ -66,7 +80,6 @@
 </template>
 
 <script setup lang="ts">
-import CheckoutMethod from '@/components/Cart/CheckoutMethod.vue'
 import Item from '@/components/Cart/Item.vue'
 import Pricing from '@/components/Cart/Pricing.vue'
 import Topbar from '@/components/Topbar.vue'
@@ -94,6 +107,14 @@ import { usePackStore } from '@/store/usePackStore'
 import { useTryHistoryStore } from '@/store/useTryHistoryStore'
 import { Preferences } from '@capacitor/preferences';
 import { useNearbyStore } from '@/store/useNearbyStore'
+import { reconcileCartStock } from '@/utils/cartStock'
+import {
+  calculateMaxWaitingMinutes,
+  calculateMaxWaitingFee,
+  calculateDeliveryFee,
+  CART_MAX_ITEMS,
+  CART_MAX_PER_STORE,
+} from '@/utils/feeCalc'
 
 
 // store instance
@@ -111,6 +132,8 @@ console.log(cart)
 const loading = ref(false)
 const location = ref<any>(null)
 const checkoutMethod = ref<'trynbuy' | 'standard' | string>('trynbuy')
+const isFinalizingCheckout = ref(false)
+const stockAlerts = ref<string[]>([])
 
 /* ========= ACTIVE GROUPS ========= */
 const activeGroups = ref<
@@ -154,14 +177,13 @@ const hasActiveItems = computed(() =>
 watch(
   () => cart.groups,
   async (newGroups) => {
+    if (isFinalizingCheckout.value) return
+
     if(!newGroups || newGroups.length === 0) {
-      nearbyStore.$reset()
+      await nearbyStore.clearNearby()
       return
-    }else {
-        await nearbyStore.$reset()
-    await nearbyStore.fetchNearbyShops()
     }
-   
+    await nearbyStore.fetchNearbyShops()
     
   },
   { deep: true, immediate: true }
@@ -194,8 +216,7 @@ const totalDiscount = computed(() => productDiscount.value + couponDiscount.valu
 const distance = ref<{ forwardKm: number; backwardKm: number } | null>(null)
 const shipping = computed(() => {
   if (!distance.value) return 0
-  const total = distance.value.forwardKm * 10 + distance.value.backwardKm * 5
-  return Math.max(30, Math.round(total))
+  return calculateDeliveryFee(distance.value)
 })
 
 /* ✅ Total Item Count */
@@ -206,14 +227,18 @@ const totalItem = computed(() =>
     .reduce((sum, item) => sum + (item.quantity || 0), 0)
 )
 
+const uniqueStoreCount = computed(() =>
+  new Set(
+    activeGroups.value
+      .flatMap(g => g.companies)
+      .map(company => company.companyId)
+      .filter(Boolean)
+  ).size
+)
+
 /* ✅ Waiting Time & Fees */
-const waitingTime = computed(() => {
-  if (totalItem.value <= 0) return 0
-  return totalItem.value <= 5
-    ? 20
-    : 20 + (totalItem.value - 5) * 4
-})
-const waitingFee = computed(() => waitingTime.value * 0.5)
+const waitingTime = computed(() => calculateMaxWaitingMinutes(totalItem.value))
+const waitingFee = computed(() => calculateMaxWaitingFee(waitingTime.value))
 
 /* ========== PICK TIME MODAL ========== */
 const isPickTimeModalOpen = ref(false)
@@ -265,15 +290,35 @@ onIonViewWillEnter(async () => {
   try {
     location.value = await getLocation()
     await cart.loadCart()
+    await validateCartStock()
   } catch (err) {
     console.error('Init error:', err)
   }
 })
 
+async function validateCartStock() {
+  const messages = await reconcileCartStock(cart)
+  if (messages.length) {
+    stockAlerts.value = messages
+    const stockToast = await toastController.create({
+      message: messages[0],
+      duration: 3500,
+      color: 'warning',
+      position: 'top',
+      cssClass: 'markit-toast markit-toast-warning'
+    })
+    await stockToast.present()
+  }
+  activeGroups.value = cart.groups || []
+  return messages
+}
+
 /* ========== CHECKOUT ========== */
 const checkout = async () => {
   loading.value = true
   await cart.loadCart()
+  const savedLocation = await getLocation()
+  location.value = savedLocation
 
   const locationToast = await toastController.create({
     message: 'Please select a saved delivery address',
@@ -288,13 +333,58 @@ const checkout = async () => {
     position: 'bottom'
   })
 
-  if (!location.value?.id) {
+  if (!savedLocation?.id) {
     await locationToast.present()
     loading.value = false
     return
   }
 
+  if (uniqueStoreCount.value > 3) {
+    const storeLimitToast = await toastController.create({
+      message: 'You can checkout items from up to 3 stores only.',
+      duration: 2500,
+      color: 'danger',
+      position: 'bottom'
+    })
+    await storeLimitToast.present()
+    loading.value = false
+    return
+  }
+
+  if (totalItem.value > CART_MAX_ITEMS) {
+    const itemLimitToast = await toastController.create({
+      message: `Cart limit is ${CART_MAX_ITEMS} items.`,
+      duration: 2500,
+      color: 'danger',
+      position: 'bottom'
+    })
+    await itemLimitToast.present()
+    loading.value = false
+    return
+  }
+
+  const overStore = activeGroups.value
+    .flatMap(g => g.companies)
+    .find(c => (c.items?.length || 0) > CART_MAX_PER_STORE)
+  if (overStore) {
+    const perStoreToast = await toastController.create({
+      message: `Max ${CART_MAX_PER_STORE} items from a single store (${overStore.companyName}).`,
+      duration: 2500,
+      color: 'danger',
+      position: 'bottom'
+    })
+    await perStoreToast.present()
+    loading.value = false
+    return
+  }
+
   try {
+    const stockMessages = await validateCartStock()
+    if (stockMessages.length) {
+      loading.value = false
+      return
+    }
+
     const payloadGroups = activeGroups.value.map(group => ({
       cartNumber: group.cartNumber,
       companies: group.companies.map(company => ({
@@ -312,7 +402,7 @@ const checkout = async () => {
 
     const Orderres = await postOrder({
       groups: payloadGroups,
-      locationId: location.value.id,
+      locationId: savedLocation.id,
       checkoutMethod: checkoutMethod.value,
       subtotal: subtotal.value,
       productDiscount: productDiscount.value,
@@ -347,11 +437,15 @@ const checkout = async () => {
 
     await tryHistory.fetchFromApi()
 
+    isFinalizingCheckout.value = true
+
     for (const group of activeGroups.value) {
       for (const company of group.companies) {
         await cart.removeByCompanyId(company.companyId)
       }
     }
+
+    await nearbyStore.clearNearby()
 
     deliveryTime.value = null
     deliveryType.value = null
@@ -374,6 +468,7 @@ const checkout = async () => {
       await stockToast.present()
     }
   } finally {
+    isFinalizingCheckout.value = false
     loading.value = false
   }
 }
@@ -410,6 +505,11 @@ const goToNearbyShops = () => {
   box-shadow: var(--markit-shadow-soft);
 }
 
+.empty-icon-mark {
+  font-size: 1.85rem;
+  color: var(--ion-color-primary);
+}
+
 .empty-panel {
   width: 100%;
   background: var(--markit-bg);
@@ -426,27 +526,78 @@ const goToNearbyShops = () => {
   color: var(--markit-text);
 }
 
+.empty-copy {
+  color: var(--markit-text-muted);
+  font-size: 0.92rem;
+  line-height: 1.45;
+}
+
 
 .nearby-add-card {
   border: 1px dashed var(--markit-glass-border-hover);
   border-radius: var(--markit-radius-xl);
   background: var(--markit-glass-surface-strong);
   box-shadow: inset 0 1px 0 var(--markit-glass-highlight), var(--markit-glass-shadow);
-  transition: border-color 0.2s ease, box-shadow 0.2s ease;
+  transition: border-color 0.2s ease, box-shadow 0.2s ease, transform 0.2s ease;
+}
+
+.stock-alert-card {
+  border: 1px solid rgba(245, 158, 11, 0.38);
+  border-radius: var(--markit-radius-lg);
+  background: #fff7ed;
+  padding: 12px 14px;
+  margin: 0 0 12px;
+  box-shadow: var(--markit-glass-shadow);
+}
+
+.stock-alert-title {
+  font-size: 0.86rem;
+  line-height: 1.25;
+  font-weight: 800;
+  color: #92400e;
+}
+
+.stock-alert-message {
+  margin-top: 3px;
+  font-size: 0.78rem;
+  line-height: 1.35;
+  color: #9a3412;
 }
 
 .nearby-add-card:hover {
   border-color: var(--markit-glass-border-hover);
   box-shadow: inset 0 1px 0 var(--markit-glass-highlight), var(--markit-glass-shadow-lg);
+  transform: translateY(-1px);
+}
+
+.nearby-add-icon-wrap {
+  width: 44px;
+  height: 44px;
+  border-radius: 14px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  flex: 0 0 44px;
+  background: color-mix(in srgb, var(--ion-color-primary) 12%, #ffffff);
+  border: 1px solid color-mix(in srgb, var(--ion-color-primary) 22%, var(--markit-border));
 }
 
 .nearby-add-icon {
-  color: var(--markit-text-muted);
+  font-size: 1.4rem;
+  color: var(--ion-color-primary);
+}
+
+.nearby-add-title {
+  font-size: 0.98rem;
+  line-height: 1.25;
+  font-weight: 700;
+  color: var(--markit-text);
 }
 
 .nearby-add-text {
-  font-size: 0.9rem;
-  line-height: 1.3;
+  margin-top: 2px;
+  font-size: 0.84rem;
+  line-height: 1.4;
   color: var(--markit-text-muted);
 }
 
@@ -489,6 +640,8 @@ ion-footer.cart-footer-glass::part(container) {
   --border-radius: 14px;
   --box-shadow: none;
   --color: #ffffff;
+  width: 100%;
+  max-width: none;
   min-height: 46px;
   font-weight: 700;
   letter-spacing: 0.01em;
@@ -496,5 +649,14 @@ ion-footer.cart-footer-glass::part(container) {
 
 .cart-pick-btn::part(native) {
   border: 1px solid color-mix(in srgb, var(--ion-color-primary) 70%, #ffffff);
+  width: 100%;
+}
+
+.cart-footer-action {
+  width: 100%;
+}
+
+.cart-footer-action .cart-pick-btn {
+  max-width: none;
 }
 </style>

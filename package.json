@@ -38,7 +38,6 @@
     "npm": "^11.5.2",
     "pinia": "^3.0.3",
     "radix-ui": "^1.4.3",
-    "razorpay": "^2.9.6",
     "socket.io-client": "^4.8.1",
     "swiper": "^11.2.10",
     "tailwind-merge": "^3.5.0",

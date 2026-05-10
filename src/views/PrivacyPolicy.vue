@@ -44,7 +44,7 @@
             <ul>
               <li>We collect personal data required to provide our services.</li>
               <li>We do not process sensitive personal data.</li>
-              <li>Payments are securely processed by Razorpay.</li>
+              <li>Payments are securely processed by our payment partners.</li>
               <li>We use industry-standard security practices.</li>
               <li>You retain full rights over your data under Indian law.</li>
             </ul>
@@ -70,8 +70,8 @@
 
             <p><strong>Payment Data</strong></p>
             <p>
-              Payment details are processed securely by our payment partner
-              <strong>Razorpay</strong>. We do not store card details.
+              Payment details are processed securely by our payment partner.
+              We do not store card details.
             </p>
 
             <p><strong>Automatically Collected Data</strong></p>

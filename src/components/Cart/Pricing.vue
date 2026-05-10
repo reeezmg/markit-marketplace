@@ -22,36 +22,30 @@
         <div class="text-sm font-medium">{{ waitingTime }} min</div>
       </div>
       <div class="summary-note text-xs ml-1">
-        20 min for 1-5 items, +4 min for each extra item
+        15 min for 1-3 items, +4 min for each extra item
       </div>
     </div>
 
     <div v-if="shipping > 0" class="flex flex-col">
       <div class="summary-row flex items-center justify-between">
         <div class="text-sm">Delivery</div>
-        <div class="text-sm font-medium">
-          <span class="line-through">&#8377;{{ shipping.toFixed(2) }}</span>
-          <span class="summary-free ml-1">&#8377;0</span>
-        </div>
+        <div class="text-sm font-medium">&#8377;{{ shipping.toFixed(2) }}</div>
       </div>
       <div class="summary-benefit text-xs ml-1">
-        &#8377;15 deductible on purchase of every &#8377;500
+        &#8377;4 deductible on purchase of every &#8377;100
       </div>
     </div>
 
     <div v-if="waitingFee > 0" class="flex flex-col">
       <div class="summary-row flex items-center justify-between">
-        <div class="text-sm">Waiting Fee</div>
-        <div class="text-sm font-medium">
-          <span class="line-through">&#8377;{{ waitingFee.toFixed(2) }}</span>
-          <span class="summary-free ml-1">&#8377;0</span>
-        </div>
+        <div class="text-sm">Max Waiting Fee</div>
+        <div class="text-sm font-medium">&#8377;{{ waitingFee.toFixed(2) }}</div>
       </div>
       <div class="summary-note text-xs ml-1">
-        &#8377;0.50 per minute of waiting time
+        &#8377;1 per minute of waiting time
       </div>
       <div class="summary-benefit text-xs ml-1">
-        &#8377;20 deducted for each purchased item after trial
+        &#8377;15 deductible for each purchased item
       </div>
     </div>
 
@@ -92,8 +86,13 @@ const total = computed(() =>
 <style scoped>
 .cart-summary-card {
   border-radius: var(--markit-radius-xl);
-  background: var(--markit-surface);
-  border: 1px solid var(--markit-border);
+  background: var(--markit-glass-surface);
+  border: 1px solid var(--markit-glass-border);
+  box-shadow:
+    inset 0 1px 0 var(--markit-glass-highlight),
+    var(--markit-glass-shadow);
+  backdrop-filter: blur(18px) saturate(145%);
+  -webkit-backdrop-filter: blur(18px) saturate(145%);
 }
 
 .cart-summary-title {

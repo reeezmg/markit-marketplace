@@ -149,7 +149,6 @@ ion-modal {
 <script setup lang="ts">
 import { IonApp, IonRouterOutlet } from '@ionic/vue'
 import { nextTick, onMounted, onUnmounted, ref } from 'vue'
-import { onIonViewWillEnter } from '@ionic/vue'
 import { Preferences } from '@capacitor/preferences'
 import socket from '@/services/socket'
 import { usePackStore } from '@/store/usePackStore'
@@ -157,39 +156,97 @@ import { useTryHistoryStore } from '@/store/useTryHistoryStore'
 import { useProfileStore } from './store/useProfileStore'
 import { useNearbyStore } from './store/useNearbyStore'
 import { useCartStore } from './store/useCartStore'
+import { useLikeStore } from './store/useLikeStore'
+import { useAddressStore } from './store/useAddressStore'
 import splashVideo from '@/assets/splash.mp4'
 
-// store instance
 const packStore = usePackStore()
 const nearbyStore = useNearbyStore()
 const tryHistoryStore = useTryHistoryStore()
 const cartStore = useCartStore()
+const profileStore = useProfileStore()
+const likeStore = useLikeStore()
+const addressStore = useAddressStore()
 
-// reactive refs
 const token = ref<string | null>(null)
 const client = ref<Record<string, any> | null>(null)
-const profileStore = useProfileStore()
 const showLaunchSplash = ref(true)
 const splashVideoRef = ref<HTMLVideoElement | null>(null)
 const splashVideoReady = ref(false)
 
 onMounted(() => {
+  // Safety net only — kicks in if the video silently fails to start or end
+  // (broken file, exotic autoplay block). Normal completion goes through @ended.
   const fallbackTimer = window.setTimeout(() => {
     hideSplash()
-  }, 5000)
+  }, 15000)
 
   nextTick(async () => {
     try {
       await splashVideoRef.value?.play()
     } catch {
+      // autoplay denied — let the page through immediately
+      window.clearTimeout(fallbackTimer)
       hideSplash()
-    } finally {
-      if (!showLaunchSplash.value) {
-        window.clearTimeout(fallbackTimer)
-      }
     }
   })
+
+  // Fire all bootstrap work in parallel right now so it loads behind the splash
+  void bootstrap()
 })
+
+async function bootstrap() {
+  const storedToken = await Preferences.get({ key: 'token' })
+  const storedClient = await Preferences.get({ key: 'client' })
+  token.value = storedToken.value
+  client.value = storedClient.value ? JSON.parse(storedClient.value) : null
+
+  const isAuthed = !!(token.value && client.value)
+
+  const fetchOrFallback = (
+    fetchFn: () => Promise<unknown>,
+    loadFn: () => Promise<unknown>,
+  ) => fetchFn().catch(() => loadFn())
+
+  const tasks: Promise<unknown>[] = [
+    nearbyStore.loadNearby(),
+    cartStore.loadCart(),
+    likeStore.loadLikes(),
+  ]
+
+  if (isAuthed) {
+    tasks.push(
+      fetchOrFallback(() => profileStore.fetchFromApi(), () => profileStore.loadFromStorage()),
+      fetchOrFallback(() => packStore.fetchFromApi(), () => packStore.loadFromStorage()),
+      fetchOrFallback(() => tryHistoryStore.fetchFromApi(), () => tryHistoryStore.loadFromStorage()),
+      fetchOrFallback(() => addressStore.fetchFromApi(), () => addressStore.loadFromStorage()),
+      fetchOrFallback(() => nearbyStore.fetchNearbyShops(), () => nearbyStore.loadNearby()),
+    )
+  } else {
+    tasks.push(
+      profileStore.loadFromStorage(),
+      packStore.loadFromStorage(),
+      tryHistoryStore.loadFromStorage(),
+      addressStore.loadFromStorage(),
+      nearbyStore.loadNearby(),
+    )
+  }
+
+  await Promise.allSettled(tasks)
+
+  if (!isAuthed) return
+
+  socket.emit('joinClient', client.value!.id)
+  socket.on('trynbuyUpdate', (data) => {
+    const existing = packStore.getById(data.trynbuy_id)
+    if (existing) {
+      packStore.update(data.trynbuy_id, data)
+    } else {
+      packStore.add(data)
+    }
+    packStore.updateCartItemStatus(data.trynbuy_id)
+  })
+}
 
 function hideSplash() {
   if (!showLaunchSplash.value) return
@@ -199,48 +256,6 @@ function hideSplash() {
 function onSplashPlaying() {
   splashVideoReady.value = true
 }
-
-onIonViewWillEnter(async () => {
-  await profileStore.loadFromStorage()
-  await profileStore.fetchFromApi()
-  await nearbyStore.loadNearby()
-  await cartStore.loadCart()
-})
-
-onMounted(async () => {
-  await packStore.loadFromStorage()
-  await packStore.fetchFromApi()
-})
-
-onIonViewWillEnter(async () => {
-
-  // load from Preferences
-  const storedToken = await Preferences.get({ key: 'token' })
-  const storedClient = await Preferences.get({ key: 'client' })
-  token.value = storedToken.value
-  client.value = storedClient.value ? JSON.parse(storedClient.value) : null
-
- 
-
-  if (token.value && client.value) {
-    // join client room
-    socket.emit('joinClient', client.value.id)
-
-    socket.on('trynbuyUpdate', (data) => {
-      const existing = packStore.getById(data.trynbuy_id)
-      if (existing) {
-        packStore.update(data.trynbuy_id, data)
-      } else {
-        packStore.add(data)
-      }
-      packStore.updateCartItemStatus(data.trynbuy_id)
-     
-    })
-
-  } else {
-    console.log('No token/client found, redirect to login maybe')
-  }
-})
 
 onUnmounted(() => {
   socket.off('trynbuyUpdate')

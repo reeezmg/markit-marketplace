@@ -2,25 +2,33 @@
   <ion-page class="no-topbar-bg">
     <Topbar title="Add Address" />
 
-    <ion-content class="address-content">
+    <ion-content class="address-content" fullscreen="true">
       <div class="map-container-wrapper">
         <div ref="mapContainer" class="map-container"></div>
-        <ion-button class="use-location-btn" @click="useCurrentLocation">Use Current
-          Location</ion-button>
+        <ion-button class="use-location-btn" @click="useCurrentLocation">Use Current Location</ion-button>
       </div>
 
-      <div class="mt-5 bottom-div">
+      <div class="bottom-div">
         <button class="address-search-trigger glass-card" type="button" @click="openSearchModal">
           <ion-icon :icon="searchOutline" class="address-search-icon"></ion-icon>
-          <span class="address-search-text">Search place...</span>
+          <span class="address-search-text">Search for a place</span>
         </button>
 
-        <div v-if="name || formattedAddress" class="latlng-display">
-          <div class="flex flex-col">
-            <div class="text-xl font-bold mb-2">{{ name }}</div>
-            <div class="text-md">{{ formattedAddress }}</div>
+        <section class="address-summary glass-card">
+          <div class="address-summary-header">
+            <span class="address-summary-icon">
+              <ion-icon :icon="locationOutline" />
+            </span>
+            <span class="address-summary-label">Selected Location</span>
           </div>
-        </div>
+          <div v-if="name || formattedAddress" class="address-summary-body">
+            <div class="address-summary-name">{{ name }}</div>
+            <div class="address-summary-line">{{ formattedAddress }}</div>
+          </div>
+          <div v-else class="address-summary-empty">
+            Pick a place from the map or search to continue.
+          </div>
+        </section>
       </div>
 
       <SearchModal :is-open="isSearchModalOpen" :map="map" :placesService="placesService" @close="closeSearchModal"
@@ -31,7 +39,11 @@
     </ion-content>
 
     <ion-footer class="footer-btn">
-      <div expand="block" class="add-details-btn" @click="confirmProceed">Confirm & Proceed</div>
+      <div class="markit-glass-footer-shell">
+        <ion-button expand="block" class="confirm-btn" :disabled="!hasSelectedLocation" @click="confirmProceed">
+          Confirm & Proceed
+        </ion-button>
+      </div>
     </ion-footer>
   </ion-page>
 </template>
@@ -44,9 +56,9 @@ import {
   IonIcon,
   IonFooter,
 } from '@ionic/vue'
-import { ref } from 'vue'
+import { computed, ref } from 'vue'
 import { onIonViewWillEnter } from '@ionic/vue'
-import { create, searchOutline } from 'ionicons/icons'
+import { searchOutline, locationOutline } from 'ionicons/icons'
 import Topbar from '@/components/Topbar.vue'
 import SearchModal from '@/components/Address/SearchModal.vue'
 import MoreDetailsModal from '@/components/Address/MoreDetailsModal.vue'
@@ -72,6 +84,7 @@ const lng = ref(null)
 const name = ref('')
 const formattedAddress = ref('')
 let placesService = null
+const hasSelectedLocation = computed(() => Boolean(lat.value && lng.value && name.value && formattedAddress.value))
 
 let map, marker, autocomplete
 let geocoder = null
@@ -209,12 +222,11 @@ onIonViewWillEnter(() => {
   document.head.appendChild(script)
 })
 
-const uuid = uuidv4()
-
 const confirmLocation = async (data) => {
   if (lat.value && lng.value && name.value && formattedAddress.value) {
+    const addressId = uuidv4()
     const location = {
-      id: uuid,
+      id: addressId,
       lat: lat.value,
       lng: lng.value,
       name: name.value,
@@ -227,7 +239,7 @@ const confirmLocation = async (data) => {
     await setLocation(location)
 
     await addressStore.add({
-      id: uuid,
+      id: addressId,
       name: data.name,
       formattedAddress: formattedAddress.value,
       houseDetails: data.houseDetails,
@@ -246,7 +258,7 @@ const confirmLocation = async (data) => {
     }
 
     await createAddress({
-      id: uuid,
+      id: addressId,
       name: data.name,
       formattedAddress: formattedAddress.value,
       houseDetails: data.houseDetails,
@@ -276,34 +288,20 @@ const confirmProceed = () => {
   right: 0;
   bottom: 0;
   z-index: 100;
-  padding-bottom: var(--markit-bottom-inset);
-}
-
-.add-details-btn {
-  width: 100%;
-  text-align: center;
-  font-size: 1rem;
-  font-weight: 600;
-  letter-spacing: 0.2px;
-  margin: 0;
-  background-color: var(--ion-color-primary);
-  color: white;
-  padding: 12px 0;
-  font-weight: 600;
-  font-size: 1.1rem;
-
+  background: transparent;
+  padding: 8px 10px calc(10px + var(--markit-bottom-inset));
 }
 
 .address-content {
   --padding-top: 10px;
-  --padding-start: 12px;
-  --padding-end: 12px;
-  --padding-bottom: calc(106px + var(--markit-bottom-inset));
+  --padding-start: 16px;
+  --padding-end: 16px;
+  --padding-bottom: calc(72px + var(--markit-bottom-inset));
 }
 
 .map-container-wrapper {
   position: relative;
-  height: 44vh;
+  height: 42vh;
   border-radius: var(--markit-radius-xl);
   border: 1px solid var(--markit-glass-border);
   background: var(--markit-glass-surface-strong);
@@ -312,7 +310,14 @@ const confirmProceed = () => {
 }
 
 .bottom-div {
-  min-height: 38vh;
+  min-height: 40vh;
+  padding: 14px 0 0;
+}
+
+.bottom-div > * {
+  margin-left: 0;
+  margin-right: 0;
+  width: 100%;
 }
 
 .use-location-btn {
@@ -351,13 +356,60 @@ const confirmProceed = () => {
   position: relative;
 }
 
-.latlng-display {
+.address-summary {
   margin-top: 12px;
-  padding: 16px;
+  padding: 14px 14px 12px;
   border-radius: var(--markit-radius-xl);
   border: 1px solid var(--markit-glass-border);
   background: var(--markit-glass-surface);
   box-shadow: inset 0 1px 0 var(--markit-glass-highlight), var(--markit-glass-shadow);
+}
+
+.address-summary-header {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  margin-bottom: 10px;
+}
+
+.address-summary-icon {
+  width: 30px;
+  height: 30px;
+  border-radius: 10px;
+  background: color-mix(in srgb, var(--ion-color-primary) 10%, #ffffff);
+  color: var(--ion-color-primary);
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  font-size: 16px;
+}
+
+.address-summary-label {
+  font-size: 0.78rem;
+  font-weight: 700;
+  letter-spacing: 0.04em;
+  text-transform: uppercase;
+  color: var(--markit-text-muted);
+}
+
+.address-summary-body {
+  display: flex;
+  flex-direction: column;
+  gap: 4px;
+}
+
+.address-summary-name {
+  font-size: 1.05rem;
+  line-height: 1.25;
+  font-weight: 800;
+  color: var(--markit-text);
+}
+
+.address-summary-line,
+.address-summary-empty {
+  font-size: 0.86rem;
+  line-height: 1.4;
+  color: var(--markit-text-muted);
 }
 
 .address-search-trigger {
@@ -378,8 +430,31 @@ const confirmProceed = () => {
 }
 
 .address-search-text {
-  font-size: 18px;
+  font-size: 0.98rem;
+  font-weight: 700;
   line-height: 1;
+}
+
+.confirm-btn {
+  --background: var(--ion-color-primary);
+  --background-hover: var(--ion-color-primary);
+  --background-activated: var(--ion-color-primary);
+  --color: #ffffff;
+  --border-radius: var(--markit-btn-radius);
+  --box-shadow: none;
+  width: 100%;
+  max-width: none;
+  min-height: 38px;
+  height: 38px;
+  font-size: 13.5px;
+  font-weight: 700;
+  letter-spacing: 0.1px;
+  margin: 0;
+}
+
+.confirm-btn::part(native) {
+  width: 100%;
+  min-height: 38px;
 }
 
 @media (max-height: 780px) {
@@ -420,7 +495,11 @@ const confirmProceed = () => {
   }
 
   .address-search-text {
-    font-size: 16px;
+    font-size: 0.92rem;
+  }
+
+  .address-summary {
+    padding: 14px;
   }
 }
 

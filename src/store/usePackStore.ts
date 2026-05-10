@@ -1,11 +1,11 @@
 import { defineStore } from 'pinia'
 import localforage from 'localforage'
-import axios from 'axios'
-import { updateTryNBuyPackingStatus, getTryHistory } from '@/api/api'
-import { useTryHistoryStore, type TryHistory, type TryItem } from './useTryHistoryStore'
+import { getTryHistory } from '@/api/api'
+import { type TryHistory } from './useTryHistoryStore'
 
 // 🔹 Types
 export interface CartItem {
+  cartItemId?: string
   id: string
   name: string
   s_price: number
@@ -20,6 +20,7 @@ export interface CartItem {
 }
 
 export interface ReturnItem {
+  cartItemId?: string
   id: string
   name: string
   s_price: number
@@ -54,8 +55,9 @@ export interface Pack {
   waiting_time: string | null
   waiting_fee: string
   order_status: string
-  packing_status: string | null
+  delivery_partner_id?: string | null
   delivery_otp?: string | null
+  store_statuses?: Record<string, any> | null
   companies: Company[]
 }
 
@@ -63,6 +65,21 @@ export interface Pack {
 const packStorage = localforage.createInstance({
   name: 'markit',
   storeName: 'packs',
+})
+
+const HIDDEN_CART_STATUSES = new Set(['OUTOFSTOCK', 'CANCELLED'])
+
+const normalizeCompanies = (companies: Company[] = []) =>
+  companies
+    .map((company) => ({
+      ...company,
+      cartitems: (company.cartitems || []).filter((item) => !HIDDEN_CART_STATUSES.has(String(item.status || '').toUpperCase())),
+    }))
+    .filter((company) => company.cartitems.length > 0 || company.returneditems.length > 0)
+
+const normalizePack = (pack: Pack): Pack => ({
+  ...pack,
+  companies: normalizeCompanies(pack.companies || []),
 })
 
 // 🔹 API base (adjust for your setup)
@@ -86,13 +103,13 @@ export const usePackStore = defineStore('pack', {
 
     // ---------------- CRUD ----------------
     async add(pack: Pack) {
-      this.packList.unshift(pack)
+      this.packList.unshift(normalizePack(pack))
       await this.saveToStorage()
     },
 
     async update(id: string, updated: Partial<Pack>) {
       this.packList = this.packList.map(p =>
-        p.trynbuy_id === id ? { ...p, ...updated } : p
+        p.trynbuy_id === id ? normalizePack({ ...p, ...updated } as Pack) : p
       )
       await this.saveToStorage()
     },
@@ -120,33 +137,12 @@ export const usePackStore = defineStore('pack', {
       await this.saveToStorage()
     },
 
-    // ✅ Update status of a specific cart item
+    // Store-level packing is now tracked on the order, not inferred from item rows.
     async updateCartItemStatus(trynbuyId: string) {
-       const tryHistoryStore = useTryHistoryStore()
       const pack = this.packList.find(p => p.trynbuy_id === trynbuyId)
       console.log('Pack found:', pack)
       if (!pack) return
-
-
-
-      // ✅ Check if all items across all companies are PACKED
-      const allPacked = pack.companies.every(company =>
-        company.cartitems.every(item => item.status === 'PACKED')
-      )
-
-      // If yes, mark trynbuy as PACKED in API + local
-      if (allPacked && pack.packing_status !== 'PACKED' && pack.order_status !== 'PACKED') {
-        try {
-          console.log(`🟢 All items packed. Updating Trynbuy ${trynbuyId} to PACKED...`)
-          await updateTryNBuyPackingStatus(trynbuyId, 'PACKED')
-          pack.packing_status = 'PACKED'
-          pack.order_status = 'PACKED'
-           tryHistoryStore.updateOrderStatus(trynbuyId, 'PACKED')
-          await this.saveToStorage()
-        } catch (err) {
-          console.error('❌ Failed to update packing status:', err)
-        }
-      }
+      await this.saveToStorage()
     },
 
     async clearStorage() {
@@ -177,10 +173,14 @@ export const usePackStore = defineStore('pack', {
 
           // Group cartitems under their company
           for (const item of h.cartitems) {
+            if (HIDDEN_CART_STATUSES.has(String(item.status || '').toUpperCase())) {
+              continue
+            }
             const co = companyMap.get(item.company.id)
             if (co) {
               co.cartitems.push({
                 id: item.id,
+                cartItemId: item.cartItemId,
                 name: item.name,
                 s_price: item.s_price,
                 d_price: item.d_price,
@@ -214,7 +214,7 @@ export const usePackStore = defineStore('pack', {
             }
           }
 
-          return {
+          return normalizePack({
             trynbuy_id: h.trynbuy_id,
             order_number: h.order_number,
             created_at: h.created_at,
@@ -225,19 +225,22 @@ export const usePackStore = defineStore('pack', {
             shipping: h.shipping,
             delivery_type: h.delivery_type,
             delivery_time: h.delivery_time,
-            waiting_time: null,
-            waiting_fee: '',
+            waiting_time: h.waiting_time ?? null,
+            waiting_fee: String(h.waiting_fee ?? 0),
+            delivery_partner_id: (h as any).delivery_partner_id ?? null,
+            delivery_otp: h.delivery_otp ?? null,
+            store_statuses: (h as any).store_statuses ?? null,
             order_status: h.order_status ?? '',
-            packing_status: h.packing_status ?? null,
             companies: Array.from(companyMap.values()),
-          }
+          })
         })
 
         if (this.packList.length === 0) {
           // Local data lost — replace entirely from API
           this.packList = packs
         } else {
-          // Merge: add only packs not already stored locally
+          const fetchedById = new Map(packs.map((pack) => [pack.trynbuy_id, pack]))
+          this.packList = this.packList.map((pack) => fetchedById.get(pack.trynbuy_id) || pack)
           const existingIds = new Set(this.packList.map(p => p.trynbuy_id))
           const newPacks = packs.filter(p => !existingIds.has(p.trynbuy_id))
           if (newPacks.length > 0) {

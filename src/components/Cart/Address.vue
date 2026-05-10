@@ -42,9 +42,14 @@ function setLocationPage() {
 
 <style scoped>
 .cart-address-card {
-  border: 1px solid var(--markit-border);
-  background: var(--markit-surface);
+  border: 1px solid var(--markit-glass-border);
+  background: var(--markit-glass-surface);
   border-radius: var(--markit-radius-xl);
+  box-shadow:
+    inset 0 1px 0 var(--markit-glass-highlight),
+    var(--markit-glass-shadow);
+  backdrop-filter: blur(18px) saturate(145%);
+  -webkit-backdrop-filter: blur(18px) saturate(145%);
 }
 
 .cart-address-label {
@@ -69,16 +74,29 @@ function setLocationPage() {
 }
 
 .address-change-btn {
-  --background: #53816c;
-  --color: #ffffff;
-  --border-color: #53816c;
+  --background: color-mix(in srgb, var(--ion-color-primary) 12%, #ffffff);
+  --color: var(--ion-color-primary);
+  --background-hover: color-mix(in srgb, var(--ion-color-primary) 18%, #ffffff);
+  --background-activated: color-mix(in srgb, var(--ion-color-primary) 22%, #ffffff);
+  --border-color: color-mix(in srgb, var(--ion-color-primary) 24%, var(--markit-border));
   --border-radius: var(--markit-btn-radius);
-  --padding-start: 10px;
-  --padding-end: 10px;
-  --padding-top: 6px;
-  --padding-bottom: 6px;
-  font-weight: 600;
-  min-width: 92px;
+  --padding-start: 12px;
+  --padding-end: 12px;
+  --padding-top: 7px;
+  --padding-bottom: 7px;
+  font-weight: 700;
+  min-width: 88px;
+  --box-shadow: none;
   text-transform: none;
+}
+
+.address-change-btn::part(native) {
+  border: 1px solid color-mix(in srgb, var(--ion-color-primary) 32%, var(--markit-border));
+  font-size: 0.82rem;
+  letter-spacing: 0.01em;
+}
+
+.address-change-btn ion-icon {
+  font-size: 0.9rem;
 }
 </style>

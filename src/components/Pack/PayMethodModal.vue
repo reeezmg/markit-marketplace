@@ -1,52 +1,37 @@
 <script setup lang="ts">
-import { ref, computed } from 'vue'
+import { ref, computed, watch } from 'vue'
 import { IonModal, IonButton, IonIcon } from '@ionic/vue'
-import { flashOutline, calendarOutline, checkmark } from 'ionicons/icons'
-import SelectSlot from '@/components/Cart/SelectSlot.vue'
+import { cashOutline, qrCodeOutline, checkmark } from 'ionicons/icons'
 
-defineProps({
-  isOpen: Boolean,
-})
+const props = defineProps<{
+  isOpen: boolean
+  amount?: number
+}>()
 
-const emit = defineEmits(['close', 'proceed'])
+const emit = defineEmits<{
+  (e: 'close'): void
+  (e: 'select', method: 'CASH' | 'UPI'): void
+}>()
 
-const selectedOption = ref('')
-const selectedSlot = ref<Date | null>(null)
-const isSelectSlotOpen = ref(false)
+const selected = ref<'CASH' | 'UPI' | ''>('')
 
-const closeSelectSlot = () => {
-  isSelectSlotOpen.value = false
-  close()
-}
-
-const openSelectSlot = () => {
-  isSelectSlotOpen.value = true
-}
-
-const getSelectedSlot = (slot: Date) => {
-  selectedSlot.value = slot
-  emit('proceed', { type: 'later', slot })
-}
-
-const close = () => {
-  emit('close')
-}
-
-const buttonText = computed(() => {
-  if (!selectedOption.value) return 'Select an option'
-  if (selectedOption.value === 'later') return 'Pick a slot'
-  return 'Continue'
-})
-
-const buttonDisabled = computed(() => selectedOption.value === '')
-
-function onAction() {
-  if (selectedOption.value === 'instant') {
-    emit('proceed', { type: 'instant', slot: new Date() })
-    close()
-  } else if (selectedOption.value === 'later') {
-    openSelectSlot()
+watch(
+  () => props.isOpen,
+  (open) => {
+    if (open) selected.value = ''
   }
+)
+
+const buttonDisabled = computed(() => selected.value === '')
+const buttonText = computed(() =>
+  !selected.value ? 'Choose a method' : `Confirm ${selected.value === 'CASH' ? 'Cash' : 'UPI'}`
+)
+
+const close = () => emit('close')
+
+const onConfirm = () => {
+  if (!selected.value) return
+  emit('select', selected.value)
 }
 </script>
 
@@ -62,74 +47,72 @@ function onAction() {
     show-backdrop
     swipe-to-close
   >
-    <template v-if="!isSelectSlotOpen">
-      <div class="pick-time-shell">
-        <header class="pick-time-header">
-          <h2 class="pick-time-title">When should we deliver?</h2>
-          <p class="pick-time-subtitle">Choose how you'd like to receive your trial bag</p>
-        </header>
+    <div class="pay-shell">
+      <header class="pay-header">
+        <h2 class="pay-title">How will the customer pay?</h2>
+        <p class="pay-subtitle">
+          <template v-if="amount && amount > 0">
+            Collecting &#8377; {{ amount }} for the kept items
+          </template>
+          <template v-else>
+            Pick a method to record this payment
+          </template>
+        </p>
+      </header>
 
-        <div class="pick-time-options">
-          <button
-            type="button"
-            class="pick-time-option"
-            :class="{ 'is-active': selectedOption === 'instant' }"
-            @click="selectedOption = 'instant'"
-          >
-            <span class="pick-time-icon">
-              <IonIcon :icon="flashOutline" />
-            </span>
+      <div class="pay-options">
+        <button
+          type="button"
+          class="pay-option"
+          :class="{ 'is-active': selected === 'CASH' }"
+          @click="selected = 'CASH'"
+        >
+          <span class="pay-icon">
+            <IonIcon :icon="cashOutline" />
+          </span>
 
-            <span class="pick-time-body">
-              <span class="pick-time-option-title">Instant delivery</span>
-              <span class="pick-time-option-subtitle">Arrives in about 60 minutes</span>
-              <span class="pick-time-meta">Available 9:30 AM – 8:00 PM</span>
-            </span>
+          <span class="pay-body">
+            <span class="pay-option-title">Cash</span>
+            <span class="pay-option-subtitle">Collect physical cash on hand</span>
+          </span>
 
-            <span class="pick-time-check" aria-hidden="true">
-              <IonIcon :icon="checkmark" class="pick-time-check-icon" />
-            </span>
-          </button>
+          <span class="pay-check" aria-hidden="true">
+            <IonIcon :icon="checkmark" class="pay-check-icon" />
+          </span>
+        </button>
 
-          <button
-            type="button"
-            class="pick-time-option"
-            :class="{ 'is-active': selectedOption === 'later' }"
-            @click="selectedOption = 'later'"
-          >
-            <span class="pick-time-icon">
-              <IonIcon :icon="calendarOutline" />
-            </span>
+        <button
+          type="button"
+          class="pay-option"
+          :class="{ 'is-active': selected === 'UPI' }"
+          @click="selected = 'UPI'"
+        >
+          <span class="pay-icon">
+            <IonIcon :icon="qrCodeOutline" />
+          </span>
 
-            <span class="pick-time-body">
-              <span class="pick-time-option-title">Schedule for later</span>
-              <span class="pick-time-option-subtitle">Pick your preferred day &amp; time</span>
-            </span>
+          <span class="pay-body">
+            <span class="pay-option-title">UPI</span>
+            <span class="pay-option-subtitle">Show the QR / UPI ID and confirm</span>
+          </span>
 
-            <span class="pick-time-check" aria-hidden="true">
-              <IonIcon :icon="checkmark" class="pick-time-check-icon" />
-            </span>
-          </button>
-        </div>
-
-        <div class="pick-time-action">
-          <IonButton
-            :disabled="buttonDisabled"
-            expand="block"
-            class="pick-time-button"
-            @click="onAction"
-          >
-            {{ buttonText }}
-          </IonButton>
-        </div>
+          <span class="pay-check" aria-hidden="true">
+            <IonIcon :icon="checkmark" class="pay-check-icon" />
+          </span>
+        </button>
       </div>
-    </template>
 
-    <SelectSlot
-      :is-open="isSelectSlotOpen"
-      @close="closeSelectSlot"
-      @confirm="getSelectedSlot"
-    />
+      <div class="pay-action">
+        <IonButton
+          :disabled="buttonDisabled"
+          expand="block"
+          class="pay-button"
+          @click="onConfirm"
+        >
+          {{ buttonText }}
+        </IonButton>
+      </div>
+    </div>
   </IonModal>
 </template>
 
@@ -152,12 +135,10 @@ ion-modal::part(handle) {
   background: rgba(100, 116, 139, 0.35);
 }
 
-.pick-time-shell {
+.pay-shell {
   background: linear-gradient(180deg, rgba(255, 255, 255, 0.98) 0%, rgba(248, 250, 249, 0.96) 100%);
   border-top-left-radius: var(--markit-radius-xl);
   border-top-right-radius: var(--markit-radius-xl);
-  border-bottom-left-radius: 0;
-  border-bottom-right-radius: 0;
   border: 1px solid var(--markit-glass-border);
   border-bottom: 0;
   box-shadow:
@@ -172,14 +153,14 @@ ion-modal::part(handle) {
   gap: 18px;
 }
 
-.pick-time-header {
+.pay-header {
   display: flex;
   flex-direction: column;
   gap: 4px;
   padding-top: 4px;
 }
 
-.pick-time-title {
+.pay-title {
   font-size: 1.15rem;
   line-height: 1.3;
   font-weight: 800;
@@ -188,20 +169,20 @@ ion-modal::part(handle) {
   letter-spacing: -0.1px;
 }
 
-.pick-time-subtitle {
+.pay-subtitle {
   font-size: 0.86rem;
   line-height: 1.4;
   color: var(--markit-text-muted);
   margin: 0;
 }
 
-.pick-time-options {
+.pay-options {
   display: flex;
   flex-direction: column;
   gap: 10px;
 }
 
-.pick-time-option {
+.pay-option {
   display: flex;
   align-items: center;
   gap: 14px;
@@ -225,11 +206,11 @@ ion-modal::part(handle) {
   color: inherit;
 }
 
-.pick-time-option:active {
+.pay-option:active {
   transform: scale(0.995);
 }
 
-.pick-time-option.is-active {
+.pay-option.is-active {
   border-color: var(--ion-color-primary);
   background: linear-gradient(180deg, color-mix(in srgb, var(--ion-color-primary) 8%, #ffffff) 0%, #ffffff 100%);
   box-shadow:
@@ -237,7 +218,7 @@ ion-modal::part(handle) {
     0 8px 20px rgba(83, 129, 108, 0.14);
 }
 
-.pick-time-icon {
+.pay-icon {
   flex: 0 0 auto;
   width: 42px;
   height: 42px;
@@ -251,11 +232,11 @@ ion-modal::part(handle) {
   transition: background 0.2s ease, color 0.2s ease;
 }
 
-.pick-time-option.is-active .pick-time-icon {
+.pay-option.is-active .pay-icon {
   background: color-mix(in srgb, var(--ion-color-primary) 18%, #ffffff);
 }
 
-.pick-time-body {
+.pay-body {
   display: flex;
   flex-direction: column;
   gap: 2px;
@@ -263,28 +244,20 @@ ion-modal::part(handle) {
   flex: 1;
 }
 
-.pick-time-option-title {
+.pay-option-title {
   font-size: 0.98rem;
   font-weight: 700;
   color: var(--markit-text);
   line-height: 1.25;
 }
 
-.pick-time-option-subtitle {
+.pay-option-subtitle {
   font-size: 0.84rem;
   line-height: 1.35;
   color: var(--markit-text-muted);
 }
 
-.pick-time-meta {
-  font-size: 0.76rem;
-  line-height: 1.3;
-  color: var(--markit-text-muted);
-  margin-top: 4px;
-  opacity: 0.85;
-}
-
-.pick-time-check {
+.pay-check {
   flex: 0 0 auto;
   width: 22px;
   height: 22px;
@@ -297,27 +270,27 @@ ion-modal::part(handle) {
   transition: background 0.2s ease, border-color 0.2s ease;
 }
 
-.pick-time-check-icon {
+.pay-check-icon {
   font-size: 14px;
   color: #ffffff;
   opacity: 0;
   transition: opacity 0.15s ease;
 }
 
-.pick-time-option.is-active .pick-time-check {
+.pay-option.is-active .pay-check {
   background: var(--ion-color-primary);
   border-color: var(--ion-color-primary);
 }
 
-.pick-time-option.is-active .pick-time-check-icon {
+.pay-option.is-active .pay-check-icon {
   opacity: 1;
 }
 
-.pick-time-action {
+.pay-action {
   margin-top: 6px;
 }
 
-.pick-time-button {
+.pay-button {
   --background: var(--ion-color-primary);
   --background-hover: var(--ion-color-primary);
   --background-activated: var(--ion-color-primary);
@@ -331,11 +304,11 @@ ion-modal::part(handle) {
   letter-spacing: 0.1px;
 }
 
-.pick-time-button::part(native) {
+.pay-button::part(native) {
   width: 100%;
 }
 
-.pick-time-button[disabled] {
+.pay-button[disabled] {
   --background: var(--markit-surface-muted);
   --color: var(--markit-text-muted);
   opacity: 1 !important;

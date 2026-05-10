@@ -1,9 +1,10 @@
 <template>
   <li
+    v-if="hasAnyStock"
     class="variant-card col-span-1 bg-white flex flex-col rounded-lg overflow-hidden border border-gray-200 hover:shadow-[0_6px_20px_rgba(10,10,10,0.08)] transition-transform duration-200 transform hover:-translate-y-1 relative cursor-pointer group"
-    @click="navigateToProduct" :class="{ 'opacity-60 pointer-events-none': variant.outOfStock }">
+    @click="navigateToProduct" :class="{ 'opacity-60 pointer-events-none': isOutOfStock }">
     <!-- Out of Stock overlay -->
-    <div v-if="variant.outOfStock" class="absolute inset-0 z-30 flex items-center justify-center bg-white/85">
+    <div v-if="isOutOfStock" class="absolute inset-0 z-30 flex items-center justify-center bg-white/85">
       <span class="bg-red-600 text-white text-xs font-semibold px-3 py-1 rounded-full">
         Out of Stock
       </span>
@@ -114,6 +115,7 @@ import { useCartStore } from '@/store/useCartStore';
 import { useLikeStore } from '@/store/useLikeStore';
 import { IonIcon } from '@ionic/vue';
 import { heart, heartOutline, cartOutline } from 'ionicons/icons';
+import { getCartQuantity, getVariantAvailableQty, reconcileCartStock } from '@/utils/cartStock';
 
 type Variant = {
   id: string;
@@ -145,6 +147,16 @@ likeStore.loadLikes();
 const isLiked = computed(() => likeStore.isLiked(props.variant.id));
 const isSizeSelectorOpen = ref(false);
 const sizes = ref<string[]>([]);
+
+const stockItems = computed(() => props.variant.items ?? []);
+const hasAnyStock = computed(() =>
+  !props.variant.outOfStock &&
+  stockItems.value.some((item) => Number(item.qty || 0) > 0)
+);
+const isOutOfStock = computed(() => !hasAnyStock.value);
+const availableSizeItems = computed(() =>
+  stockItems.value.filter((item) => item.size && Number(item.qty || 0) > 0)
+);
 
 const imageUrl = (imgPath: string) => {
   // keep your image base logic intact
@@ -182,33 +194,47 @@ const toggleLike = () => {
 };
 
 const addToCart = async () => {
-  // preserve original logic: open size selector only when necessary
-  const items = props.variant.items ?? []
+  const items = stockItems.value
+
+  if (!hasAnyStock.value) {
+    await showToast('Out of stock', 'danger', 'top')
+    return
+  }
 
   if (
     items.length > 1 ||
     (items.length === 1 && items[0].size)
   ) {
-    sizes.value = items
-      .map(i => i.size)
-      .filter(Boolean) as string[]
+    sizes.value = Array.from(new Set(
+      availableSizeItems.value
+        .map(i => i.size)
+        .filter(Boolean) as string[]
+    ))
+
+    if (!sizes.value.length) {
+      await showToast('Out of stock', 'danger', 'top')
+      return
+    }
 
     isSizeSelectorOpen.value = true
   } else {
+    if (!canAddSize(null)) {
+      await showToast('Out of stock', 'danger', 'top')
+      return
+    }
+
     const res = await cartStore.addItem(
       props.variant,
       [null]
     )
 
-    const toast = await toastController.create({
-      message: res?.message || 'Product added to cart',
-      duration: 2000,
-      color: res?.success ? 'success' : 'danger',
-      position: 'bottom',
-      cssClass: `markit-toast ${res?.success ? 'markit-toast-success' : 'markit-toast-warning'}`
-    })
+    await showToast(
+      res?.message || 'Product added to cart',
+      res?.success ? 'success' : 'danger',
+      'bottom'
+    )
 
-    await toast.present()
+    if (res?.success) await validateAfterAdd()
   }
 }
 
@@ -218,20 +244,55 @@ const handleSizeSelect = async (
   if (!selectedSizes || selectedSizes.length === 0)
     return
 
+  const unavailableSize = selectedSizes.find((size) => !canAddSize(size))
+  if (unavailableSize !== undefined) {
+    await showToast(`${formatLabel(unavailableSize)} is out of stock`, 'danger', 'top')
+    return
+  }
+
   const res = await cartStore.addItem(
     props.variant,
     selectedSizes
   )
 
+  await showToast(
+    res?.message || 'Product added to cart',
+    res?.success ? 'success' : 'danger',
+    'bottom'
+  )
+
+  if (res?.success) await validateAfterAdd()
+}
+
+function canAddSize(size: string | null) {
+  return getCartQuantity(cartStore, props.variant.id, size) + 1 <=
+    getVariantAvailableQty(props.variant, size)
+}
+
+async function showToast(
+  message: string,
+  color: 'success' | 'danger' | 'warning',
+  position: 'top' | 'bottom' = 'bottom'
+) {
   const toast = await toastController.create({
-    message: res?.message || 'Product added to cart',
+    message,
     duration: 2000,
-    color: res?.success ? 'success' : 'danger',
-    position: 'bottom',
-    cssClass: `markit-toast ${res?.success ? 'markit-toast-success' : 'markit-toast-warning'}`
+    color,
+    position,
+    cssClass: `markit-toast ${color === 'success' ? 'markit-toast-success' : 'markit-toast-warning'}`
   })
 
   await toast.present()
+}
+
+async function validateAfterAdd() {
+  try {
+    const messages = await reconcileCartStock(cartStore)
+    if (!messages.length) return
+    await showToast(messages[0], 'warning', 'top')
+  } catch (error) {
+    console.error('Failed to validate cart stock', error)
+  }
 }
 
 
